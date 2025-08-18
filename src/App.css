@@ -1,38 +1,150 @@
-.App {
-  text-align: center;
+/* Reset và base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+.loading-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.admin-placeholder,
+.superadmin-placeholder,
+.error-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  padding: 40px;
+  text-align: center;
+}
+
+.admin-placeholder h2,
+.superadmin-placeholder h2,
+.error-container h2 {
+  color: #333;
+  font-size: 32px;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.admin-placeholder p,
+.superadmin-placeholder p,
+.error-container p {
+  color: #666;
+  font-size: 18px;
+  margin-bottom: 15px;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.admin-placeholder button,
+.superadmin-placeholder button,
+.error-container button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.admin-placeholder button:hover,
+.superadmin-placeholder button:hover,
+.error-container button:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.admin-placeholder {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.admin-placeholder h2,
+.admin-placeholder p {
+  color: white;
+}
+
+.superadmin-placeholder {
+  background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+  color: white;
+}
+
+.superadmin-placeholder h2,
+.superadmin-placeholder p {
+  color: white;
+}
+
+.error-container {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.error-container h2,
+.error-container p {
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-placeholder,
+  .superadmin-placeholder,
+  .error-container {
+    padding: 20px;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .admin-placeholder h2,
+  .superadmin-placeholder h2,
+  .error-container h2 {
+    font-size: 24px;
+  }
+  
+  .admin-placeholder p,
+  .superadmin-placeholder p,
+  .error-container p {
+    font-size: 16px;
   }
 }

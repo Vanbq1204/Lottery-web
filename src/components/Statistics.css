@@ -1,0 +1,614 @@
+/* Statistics Container */
+.statistics-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+/* Header */
+.statistics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.statistics-header h2 {
+  margin: 0;
+  color: #2c5530;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.date-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-controls label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.btn-search {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-search:hover {
+  background: #138496;
+  transform: translateY(-1px);
+}
+
+.btn-export {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-export:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 18px;
+}
+
+/* Summary Section */
+.summary-section {
+  background: #d1ecf1;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #bee5eb;
+}
+
+.summary-section h3 {
+  text-align: center;
+  color: #0c5460;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dee2e6;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.summary-card.loto-card {
+  border-left: 4px solid #dc3545;
+}
+
+.summary-card.group-card {
+  border-left: 4px solid #6f42c1;
+}
+
+.summary-card h4 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.summary-card .amount {
+  margin: 0;
+  color: #28a745;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.total-revenue {
+  text-align: center;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 2px solid #17a2b8;
+}
+
+.total-revenue h3 {
+  margin: 0 0 12px 0;
+  color: #17a2b8;
+  font-size: 20px;
+}
+
+.total-amount {
+  margin: 0;
+  color: #dc3545;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+/* Bet Type Tabs */
+.bet-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.tab-btn {
+  background: white;
+  border: 2px solid #dee2e6;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: #495057;
+}
+
+.tab-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.tab-btn.active {
+  background: #17a2b8;
+  border-color: #17a2b8;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
+}
+
+/* Detailed Stats */
+.detailed-stats {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #dee2e6;
+}
+
+/* Loto Stats */
+.loto-stats h3 {
+  text-align: center;
+  color: #dc3545;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+.loto-total {
+  text-align: center;
+  font-size: 18px;
+  color: #495057;
+  margin: 0 0 8px 0;
+}
+
+.loto-total strong {
+  color: #28a745;
+}
+
+.loto-points-total {
+  text-align: center;
+  font-size: 16px;
+  color: #495057;
+  margin: 0 0 24px 0;
+}
+
+.loto-points-total strong {
+  color: #dc3545;
+}
+
+.loto-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  background: white;
+  max-width: 100%;
+}
+
+.loto-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.loto-table th {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 8px 12px;
+  text-align: center;
+  font-weight: 600;
+  color: #495057;
+  font-size: 12px;
+}
+
+.loto-table td {
+  border: 1px solid #dee2e6;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.loto-number {
+  font-weight: bold;
+  color: #495057;
+  background: #f8f9fa;
+  min-width: 40px;
+}
+
+.loto-points {
+  color: #6c757d;
+  min-width: 60px;
+}
+
+.loto-points.has-bet {
+  background: #d4edda;
+  color: #155724;
+  font-weight: 600;
+}
+
+
+
+  /* Bo Stats */
+  .bo-stats {
+    padding: 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .bo-total {
+    text-align: center;
+    font-size: 18px;
+    color: #495057;
+    margin: 0 0 24px 0;
+  }
+  
+  .bo-total strong {
+    color: #28a745;
+    font-family: 'Courier New', monospace;
+  }
+  
+  .bo-list h4 {
+    margin: 0 0 16px 0;
+    color: #495057;
+    font-size: 16px;
+  }
+  
+  .bo-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  
+  .bo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+  }
+  
+  .bo-number {
+    font-weight: 600;
+    color: #495057;
+  }
+  
+  .bo-amount {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #007bff;
+  }
+
+  /* 2s Stats */
+  .twos-stats {
+    padding: 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .twos-total, .twos-amount-total {
+    text-align: center;
+    font-size: 16px;
+    color: #495057;
+    margin: 0 0 8px 0;
+  }
+  
+  .twos-total strong, .twos-amount-total strong {
+    color: #28a745;
+  }
+  
+  .twos-table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+  }
+  
+  .twos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 0 auto;
+  }
+  
+  .twos-table th,
+  .twos-table td {
+    border: 1px solid #dee2e6;
+    text-align: center;
+    padding: 6px 4px;
+    min-width: 45px;
+  }
+  
+  .twos-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+  }
+  
+  .twos-number {
+    font-weight: 600;
+    color: #495057;
+  }
+  
+  .twos-amount {
+    color: #6c757d;
+  }
+  
+  .twos-amount.has-bet {
+    background: #d4edda;
+    color: #155724;
+    font-weight: 600;
+  }
+
+  /* General Bet Items */
+  .bet-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .bet-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+  }
+  
+  .bet-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  
+  .bet-number {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+    margin-right: 8px;
+  }
+  
+  .bet-amount {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: #e74c3c;
+    font-size: 14px;
+    background: rgba(231, 76, 60, 0.1);
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
+  /* Stat Sections */
+  .stat-section {
+    margin-bottom: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid;
+  }
+  
+  /* Different colors for each section */
+  .stat-section:nth-child(1) {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+    border-left-color: #2196f3;
+  }
+  
+  .stat-section:nth-child(2) {
+    background: linear-gradient(135deg, #f3e5f5 0%, #f8f9fa 100%);
+    border-left-color: #9c27b0;
+  }
+  
+  .stat-section:nth-child(3) {
+    background: linear-gradient(135deg, #e8f5e8 0%, #f8f9fa 100%);
+    border-left-color: #4caf50;
+  }
+  
+  .stat-section:nth-child(4) {
+    background: linear-gradient(135deg, #fff3e0 0%, #f8f9fa 100%);
+    border-left-color: #ff9800;
+  }
+  
+  .stat-section:nth-child(5) {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8f9fa 100%);
+    border-left-color: #e91e63;
+  }
+  
+  .stat-section h4 {
+    margin: 0 0 12px 0;
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .section-total {
+    color: #27ae60;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    background: rgba(39, 174, 96, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+
+  /* Other Stats */
+.other-stats {
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+
+.other-stats h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.other-stats p {
+  color: #6c757d;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  
+  .loto-table {
+    font-size: 12px;
+  }
+  
+  .loto-table th,
+  .loto-table td {
+    padding: 4px 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .statistics-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .date-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .bet-tabs {
+    justify-content: center;
+  }
+  
+  .tab-btn {
+    flex: 1;
+    min-width: 80px;
+  }
+  
+  .loto-table {
+    font-size: 11px;
+  }
+  
+  .loto-table th,
+  .loto-table td {
+    padding: 3px 4px;
+  }
+  
+  .loto-number {
+    min-width: 30px;
+  }
+  
+  .loto-points {
+    min-width: 45px;
+  }
+}
+
+@media (max-width: 480px) {
+  .statistics-container {
+    padding: 16px;
+  }
+  
+  .summary-section {
+    padding: 16px;
+  }
+  
+  .detailed-stats {
+    padding: 16px;
+  }
+  
+  .loto-table {
+    font-size: 10px;
+  }
+  
+  .loto-table th,
+  .loto-table td {
+    padding: 2px 3px;
+  }
+  
+  .loto-number {
+    min-width: 25px;
+  }
+  
+  .loto-points {
+    min-width: 35px;
+  }
+} 

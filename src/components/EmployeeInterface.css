@@ -1,0 +1,1375 @@
+/* Employee Interface Styles */
+.employee-interface {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1000;
+}
+
+.sidebar-header {
+  padding: 20px;
+  background: rgba(0,0,0,0.1);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.store-info h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.store-details {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.store-details div {
+  margin-bottom: 4px;
+}
+
+/* Menu Styles */
+.sidebar-menu {
+  flex: 1;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+.menu-item {
+  width: 100%;
+  padding: 15px 20px;
+  background: none;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,0.1);
+  padding-left: 25px;
+}
+
+.menu-item.active {
+  background: rgba(255,255,255,0.2);
+  border-right: 3px solid white;
+  font-weight: 600;
+}
+
+.menu-icon {
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+.menu-label {
+  flex: 1;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.user-role {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 10px;
+  background: rgba(220, 53, 69, 0.8);
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(220, 53, 69, 1);
+}
+
+/* Main Content Styles */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  margin-left: 280px;
+  min-height: 100vh;
+}
+
+.content-header {
+  background: white;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.content-header h2 {
+  margin: 0 0 10px 0;
+  color: #2c5530;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.store-info-header {
+  color: #666;
+  font-size: 14px;
+}
+
+.store-info-header div {
+  margin-right: 20px;
+  display: inline-block;
+}
+
+.content-body {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+/* Main Betting Container */
+.betting-main-container {
+  display: flex;
+  gap: 30px;
+  height: 100%;
+}
+
+/* Left Side - Betting Form Section */
+.betting-form-section {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 25px;
+}
+
+.form-header-info {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.bill-info {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.bill-info div {
+  font-size: 16px;
+  color: #333;
+}
+
+.customer-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.customer-section label {
+  font-size: 16px;
+  color: #333;
+  min-width: 120px;
+}
+
+.customer-name-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Betting Table */
+.betting-table-container {
+  overflow-x: auto;
+}
+
+.betting-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.betting-table td {
+  padding: 10px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+.bet-type-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2c5530;
+  width: 100px;
+}
+
+.quantity-cell {
+  width: 80px;
+  text-align: center;
+}
+
+.quantity-input {
+  width: 60px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.bet-inputs-row {
+  background: #f8f9fa;
+}
+
+.bet-inputs {
+  display: flex;
+  gap: 15px;
+  padding: 10px 0;
+}
+
+.numbers-input {
+  flex: 2;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.amount-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Bo input styles */
+.bo-name-input {
+  flex: 1.5;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.bo-count-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  color: #495057;
+  text-align: center;
+  font-weight: 600;
+}
+
+
+
+/* Calculation Preview */
+.calculation-preview {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #e8f5e8;
+  border: 1px solid #28a745;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #155724;
+  font-weight: 600;
+}
+
+/* Validation Error */
+.validation-error {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f8d7da;
+  border: 1px solid #dc3545;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #721c24;
+  font-weight: 600;
+}
+
+/* ===== INVOICE (Right Panel) - Minimal, clean typography ===== */
+.invoice-section {
+  width: 420px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  border: 1px solid #eaecef;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+.invoice-section * {
+  font-family: inherit;
+  letter-spacing: 0;
+}
+
+.invoice-header {
+  background: #fff;
+  color: #1f2d3d;
+  padding: 20px 22px;
+  border-radius: 12px 12px 0 0;
+  text-align: center;
+  border-bottom: 1px solid #eceff1;
+}
+
+.store-name {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0; /* Thêm margin-bottom */
+  color: #1f2d3d;
+  text-transform: uppercase;
+}
+
+.invoice-details {
+  font-size: 14px; /* Tăng font-size */
+  color: #4b5563;
+  line-height: 1.6; /* Tăng line-height */
+}
+
+.invoice-details strong {
+  color: #1a1a1a; /* Làm đậm màu chữ */
+  font-weight: 600;
+}
+
+.invoice-details div { margin-bottom: 4px; }
+
+.invoice-content {
+  flex: 1;
+  padding: 20px 18px;
+  overflow-y: auto;
+}
+
+/* Invoice Table */
+.invoice-table-section {
+  margin-bottom: 18px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoice-table th {
+  padding: 12px 15px;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid #e9ecef;
+  background: #4a7c59;
+  color: #ffffff; /* trắng */
+  text-align: center;
+}
+
+/* Header trắng đồng nhất */
+.invoice-section .invoice-table th,
+.invoice-list-container .invoice-table th {
+  color: #ffffff !important;
+}
+
+/* Định nghĩa riêng cho bảng hóa đơn trong phần nhập cược (3 cột) */
+.invoice-section .invoice-table th:nth-child(1), 
+.invoice-section .invoice-table td:nth-child(1) { width: 25%; text-align: left;  } /* Loại cược */
+.invoice-section .invoice-table th:nth-child(2), 
+.invoice-section .invoice-table td:nth-child(2) { width: 40%; text-align: left; color: wi } /* Số đã đánh - có nhiều không gian hơn */
+.invoice-section .invoice-table th:nth-child(3), 
+.invoice-section .invoice-table td:nth-child(3) { width: 35%; text-align: right; } /* Tổng tiền */
+
+.invoice-table td {
+  padding: 12px 15px; /* Đồng bộ padding */
+  border-bottom: 1px solid #f2f4f6;
+  vertical-align: middle;
+  font-size: 14px;
+  color: #476d52;
+}
+
+.bet-type-label {
+  font-weight: 600; /* Tăng độ đậm */
+  color: #1f2d3d;
+  font-size: 14px;
+}
+
+/* ---- Chỉnh sửa .bet-numbers-cell cho bảng hóa đơn nhập cược ---- */
+.invoice-section .bet-numbers-cell {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  white-space: normal;           /* Cho phép xuống dòng khi cần */
+  word-break: break-word;        /* Ngắt dòng ở dấu phẩy / khoảng trắng */
+  overflow-wrap: break-word;     /* Hỗ trợ thêm cho các browser */
+}
+
+.bet-total-cell {
+  text-align: right;
+  font-weight: 700; /* Tăng độ đậm */
+  color: #10b981;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; /* Không cho phép xuống dòng */
+}
+
+.empty-invoice-message {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 28px 16px;
+  font-size: 15px;
+}
+
+/* Invoice Summary */
+.invoice-summary {
+  border-top: 1px solid #eaecef;
+  padding: 16px 22px; /* Tăng padding */
+  margin-bottom: 18px;
+}
+
+.total-amount-row {
+  display: flex; /* Dùng flexbox */
+  justify-content: space-between; /* Đẩy "Tổng tiền" và giá trị ra hai bên */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  font-size: 18px;
+  color: #1f2d3d;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Payment Info */
+.payment-info {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #eef1f3;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.payment-row:last-child {
+  margin-bottom: 0;
+  border-top: 1px solid #e8ebee;
+  padding-top: 10px;
+  font-size: 15px;
+}
+
+.customer-give-section { display: flex; align-items: center; gap: 8px; }
+
+.customer-give-input {
+  width: 120px;
+  padding: 9px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.customer-give-input:focus {
+  outline: none;
+  border-color: #2c7a7b;
+  box-shadow: 0 0 0 3px rgba(44,122,123,0.12);
+}
+
+.positive-amount { color: #10b981; font-weight: 800; font-variant-numeric: tabular-nums; }
+.negative-amount { color: #ef4444; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Notice Text */
+.notice-text {
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  font-style: italic;
+  margin: 14px 0 4px 0;
+  line-height: 1.5;
+}
+
+/* Invoice Actions */
+.invoice-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 22px 22px;
+}
+
+/* Main action buttons row */
+.main-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Secondary action buttons row */
+.secondary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center; /* Căn giữa text trong nút */
+}
+
+.btn-print {
+  background: #2c5530;
+  color: white;
+  flex: 1; /* Chiếm không gian bằng nhau trong main-actions */
+}
+
+.btn-print:hover {
+  background: #213f24;
+}
+
+.btn-save-print {
+  background: #059669;
+  color: white;
+  flex: 1; /* Chiếm không gian bằng nhau trong main-actions */
+}
+
+.btn-save-print:hover {
+  background: #047857;
+}
+
+.btn-edit {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #5a6268;
+}
+
+.btn-delete {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #5a6268;
+}
+
+/* Content Placeholder */
+.content-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+  font-size: 18px;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .betting-main-container {
+    flex-direction: column;
+  }
+  
+  .invoice-section {
+    width: 100%;
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .employee-interface {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+  
+  .sidebar-menu {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 0;
+  }
+  
+  .menu-item {
+    min-width: 150px;
+    justify-content: center;
+  }
+  
+  .content-body {
+    padding: 20px;
+  }
+  
+  .bill-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .customer-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .customer-section label {
+    min-width: auto;
+  }
+  
+  .customer-name-input {
+    width: 100%;
+  }
+  
+  .bet-inputs {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+
+  
+  .payment-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.betting-form-section,
+.invoice-section {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.content-placeholder {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Focus styles */
+.customer-name-input:focus,
+.quantity-input:focus,
+.numbers-input:focus,
+.amount-input:focus,
+.customer-give-input:focus {
+  border-color: #2c5530;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(44, 85, 48, 0.2);
+}
+
+/* Hover effects */
+.betting-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.invoice-table tbody tr:hover {
+  background: #f8f9fa;
+} 
+
+.numbers-input, .amount-input {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.numbers-input:focus, .amount-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Input with validation error */
+.numbers-input.error, .amount-input.error {
+  border-color: #dc3545;
+  background-color: #fff5f5;
+}
+
+.numbers-input.error:focus, .amount-input.error:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 5px rgba(220, 53, 69, 0.3);
+} 
+
+/* History Interface */
+.history-container {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  height: 100%;
+  overflow-y: auto;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.history-header h3 {
+  margin: 0;
+  color: #2c5530;
+}
+
+.btn-refresh {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-refresh:hover {
+  background: #138496;
+}
+
+.no-history {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.history-item {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  background: #f8f9fa;
+}
+
+.history-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.history-invoice-id {
+  color: #2c5530;
+  font-size: 16px;
+}
+
+.action-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.action-badge.edit {
+  background: #ffeaa7;
+  color: #2d3436;
+}
+
+.action-badge.delete {
+  background: #fab1a0;
+  color: #2d3436;
+}
+
+.history-date {
+  font-size: 14px;
+  color: #666;
+}
+
+.history-details {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.history-changes {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 8px;
+  border-left: 4px solid #17a2b8;
+}
+
+.history-changes ul {
+  margin: 8px 0 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-changes li {
+  margin-bottom: 6px;
+  padding: 6px 12px;
+  background: white;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
+  font-size: 13px;
+  color: #495057;
+  line-height: 1.4;
+}
+
+.history-changes li:last-child {
+  margin-bottom: 0;
+}
+
+/* Button Updates */
+.btn-clear {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 5px;
+  transition: all 0.2s;
+}
+
+.btn-clear:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Invoice List Interface */
+.invoice-list-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.invoice-list-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.invoice-list-header h3 {
+  margin: 0;
+  color: #2c5530;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-filter label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.date-input {
+  padding: 8px 12px;
+  border: 2px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #4a7c59;
+  box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+}
+
+.loading, .no-invoices {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.invoice-summary {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.invoice-summary p {
+  margin: 0;
+  font-size: 16px;
+  color: #495057;
+}
+
+.invoice-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  table-layout: fixed;
+}
+
+.invoice-table th,
+.invoice-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
+  vertical-align: top;
+  text-align: left;
+}
+
+.invoice-table th {
+  background: #4a7c59;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 2px solid #2c5530;
+}
+
+/* Cố định width từng cột */
+.invoice-table th:nth-child(1),
+.invoice-table td:nth-child(1) { 
+  width: 15%; 
+  font-family: 'Courier New', monospace;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.invoice-table th:nth-child(2),
+.invoice-table td:nth-child(2) { 
+  width: 12%; 
+  font-weight: 500;
+  color: #495057;
+}
+
+.invoice-table th:nth-child(3),
+.invoice-table td:nth-child(3) { 
+  width: 50%;
+  text-align: left; /* Sửa căn lề trái cho chi tiết cược */
+}
+
+.invoice-table th:nth-child(4),
+.invoice-table td:nth-child(4) { 
+  width: 12%; 
+  text-align: right;
+  color: #e74c3c;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.invoice-table th:nth-child(5),
+.invoice-table td:nth-child(5) { 
+  width: 11%; 
+  font-size: 13px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.bet-details {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #495057;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.invoice-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* Các class này đã được thay thế bằng nth-child selectors ở trên */
+
+/* Responsive design for invoice table */
+@media (max-width: 1200px) {
+  .bet-details {
+    max-width: 250px;
+  }
+  
+  .bet-details-cell {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .invoice-list-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .date-filter {
+    justify-content: space-between;
+  }
+  
+  .invoice-summary {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  
+  .invoice-table th,
+  .invoice-table td {
+    padding: 8px;
+    font-size: 13px;
+  }
+  
+  .bet-details {
+    font-size: 12px;
+    max-width: 200px;
+  }
+}
+
+/* Lottery Results Interface */
+.lottery-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+.lottery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.lottery-header h3 {
+  margin: 0;
+  color: #dc3545;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.lottery-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-select {
+  padding: 8px 12px;
+  border: 2px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 200px;
+  transition: border-color 0.3s ease;
+}
+
+.date-select:focus {
+  outline: none;
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.lottery-loading, .no-lottery-data {
+  text-align: center;
+  padding: 60px;
+  color: #6c757d;
+  font-size: 18px;
+}
+
+.lottery-table-container {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 2px solid #dee2e6;
+}
+
+.lottery-table {
+  width: 70%;
+  max-width: 800px;
+  margin: 0 auto;
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+
+.lottery-table td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #dee2e6;
+  background: white;
+  border-radius: 6px;
+  position: relative;
+  font-size: 18px;
+}
+
+.prize-label {
+  background: #495057 !important;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  width: 60px;
+  min-width: 60px;
+}
+
+.gdb-label {
+  background: #dc3545 !important;
+}
+
+.prize-numbers {
+  font-size: 16px;
+  font-weight: bold;
+  color: #dc3545;
+  min-height: 40px;
+  vertical-align: middle;
+}
+
+.gdb-numbers {
+  background: #fff5f5 !important;
+  font-size: 20px;
+  color: #dc3545;
+  border: 2px solid #dc3545 !important;
+}
+
+.gdb-row .prize-numbers {
+  font-size: 25px;
+  padding: 12px;
+}
+
+.multi-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.number-item {
+  flex: 1;
+  min-width: 80px;
+}
+
+.empty-cell {
+  background: #f8f9fa !important;
+  border: 1px dashed #dee2e6 !important;
+  color: #6c757d;
+}
+
+.editable-cell {
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editable-cell:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.cell-input {
+  width: 100%;
+  text-align: center;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  background: transparent;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  padding: 4px;
+  font-family: inherit;
+}
+
+.cell-input:focus {
+  outline: none;
+  border-color: #0056b3;
+  background: #e7f3ff;
+}
+
+.cell-value {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.lottery-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.btn-save {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-save:hover {
+  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.lottery-info {
+  text-align: right;
+}
+
+.lottery-info p {
+  margin: 4px 0;
+  color: #495057;
+  font-size: 14px;
+}
+
+/* Responsive design for lottery table */
+@media (max-width: 768px) {
+  .lottery-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .lottery-controls {
+    justify-content: space-between;
+  }
+  
+  .date-select {
+    min-width: auto;
+    flex: 1;
+  }
+  
+  .lottery-table td {
+    padding: 8px;
+    font-size: 18px;
+  }
+  
+  .gdb-numbers {
+    font-size: 24px;
+    padding: 16px;
+  }
+  
+  .gdb-row .prize-numbers {
+    font-size: 28px;
+    padding: 16px;
+  }
+  
+  .lottery-actions {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .lottery-info {
+    text-align: center;
+  }
+} 

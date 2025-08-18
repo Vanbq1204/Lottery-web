@@ -1,0 +1,421 @@
+/* Prize Interface Styles */
+.prize-interface {
+  padding: 20px;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.prize-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.prize-header h2 {
+  color: #2c5530;
+  font-size: 32px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.prize-header p {
+  color: #6c757d;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Prize controls */
+.prize-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.date-selector,
+.paid-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-selector label,
+.paid-filter label {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 80px;
+}
+
+.date-input,
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+}
+
+.filter-select {
+  min-width: 150px;
+}
+
+.calculate-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.calculate-btn:hover:not(:disabled) {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.calculate-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Stats */
+.prize-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+
+.stat-number {
+  font-size: 32px;
+  font-weight: 600;
+  color: #2c5530;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Winning Invoices */
+.winning-invoices {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.winning-invoices h3 {
+  color: #2c5530;
+  font-size: 20px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 8px;
+}
+
+/* Compact table */
+.prize-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.prize-table th,
+.prize-table td {
+  border-bottom: 1px solid #e9ecef;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.prize-table th {
+  background: #f6f8f9;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.prize-table td.code {
+  font-weight: 700;
+  color: #2c5530;
+}
+
+.prize-table td.money,
+.prize-summary-row .money {
+  font-weight: 600;
+  color: #e74c3c;
+}
+
+.prize-table td.detail {
+  color: #000;
+  font-weight : 500;
+}
+
+/* Summary Row */
+.prize-summary-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 24px;
+  padding: 12px 0 0 0;
+}
+
+.sum-item {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.sum-label {
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.sum-value {
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+/* Ẩn layout card cũ */
+.invoice-list,
+.winning-invoice-card,
+.invoice-header,
+.winning-items { display: none; }
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+  font-size: 18px;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+}
+
+.no-data p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+/* Invoice List */
+.invoice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.winning-invoice-card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  background: #fafbfc;
+  transition: all 0.3s ease;
+}
+
+.winning-invoice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.invoice-info h4 {
+  margin: 0 0 8px 0;
+  color: #2c5530;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.customer-name, .invoice-date {
+  margin: 4px 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.total-prize {
+  text-align: right;
+}
+
+.prize-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e74c3c;
+  margin-bottom: 4px;
+}
+
+.prize-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Winning Items */
+.winning-items h5 {
+  color: #2c5530;
+  font-size: 16px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.winning-item {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+.item-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.bet-type {
+  background: #4a7c59;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.bet-numbers {
+  font-weight: 600;
+  color: #2c5530;
+  font-size: 14px;
+}
+
+.bet-details {
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 14px;
+  margin-left: auto;
+}
+
+/* Toggle button for paid status */
+.checkbox-cell {
+  text-align: center;
+  width: 120px;
+  padding: 12px 8px !important;
+}
+
+.paid-toggle-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.paid-toggle-btn:hover {
+  transform: scale(1.7);
+}
+
+.paid-toggle-btn.paid {
+  color: #28a745;
+}
+
+
+
+.paid-toggle-btn.unpaid {
+  color: #ffc107;
+}
+
+
+
+/* Row styling based on paid status */
+.paid-row {
+  background-color: #d4edda !important;
+}
+
+.paid-row:hover {
+  background-color: #c3e6cb !important;
+}
+
+.unpaid-row {
+  background-color: #fff3cd !important;
+}
+
+.unpaid-row:hover {
+  background-color: #ffeaa7 !important;
+}
+
+/* CSS cho status-text đã được xóa vì không dùng nữa */
+
+/* Responsive */
+@media (max-width: 768px) {
+  .prize-interface {
+    padding: 15px;
+  }
+  
+  .prize-controls {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .prize-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .invoice-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .total-prize {
+    text-align: left;
+  }
+  
+  .item-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .bet-details {
+    margin-left: 0;
+  }
+
+  .prize-table th, .prize-table td {
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+} 

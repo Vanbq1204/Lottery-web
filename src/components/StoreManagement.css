@@ -1,0 +1,410 @@
+.store-mgmt-container {
+  padding: 0;
+  background: white;
+  min-height: 100%;
+}
+
+.store-mgmt-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid black;
+}
+
+.store-mgmt-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: black;
+}
+
+.store-mgmt-loading {
+  text-align: center;
+  padding: 48px;
+  font-size: 16px;
+  color: #666;
+}
+
+.store-mgmt-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Admin Section */
+.store-mgmt-admin-section {
+  background: white;
+  border: 2px solid black;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.store-mgmt-admin-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: black;
+}
+
+.store-mgmt-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.store-mgmt-admin-card {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.store-mgmt-admin-card:hover {
+  border-color: black;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.store-mgmt-admin-card.selected {
+  border-color: black;
+  background: #f8f8f8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.admin-info .admin-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: black;
+  margin-bottom: 4px;
+}
+
+.admin-info .admin-username {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.admin-info .admin-email {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.admin-status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.admin-status.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.admin-status.inactive {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+/* Store Section */
+.store-mgmt-store-section {
+  background: white;
+  border: 2px solid black;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.store-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.store-section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: black;
+}
+
+.store-mgmt-create-btn {
+  background: black;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.store-mgmt-create-btn:hover {
+  background: #333;
+  transform: scale(1.05);
+}
+
+.store-mgmt-store-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.store-mgmt-empty {
+  text-align: center;
+  padding: 48px;
+  color: #666;
+}
+
+.store-mgmt-store-card {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+}
+
+.store-mgmt-store-card:hover {
+  border-color: black;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.store-info {
+  flex: 1;
+}
+
+.store-info .store-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: black;
+  margin-bottom: 8px;
+}
+
+.store-info .store-address {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.store-info .store-phone {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.store-info .store-employee {
+  font-size: 14px;
+  color: #444;
+  font-weight: 500;
+}
+
+.store-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.store-status {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.store-status.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.store-status.inactive {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.store-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.store-edit-btn, .store-delete-btn {
+  padding: 6px 12px;
+  border: 2px solid;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.store-edit-btn {
+  background: white;
+  color: #1976d2;
+  border-color: #1976d2;
+}
+
+.store-edit-btn:hover {
+  background: #1976d2;
+  color: white;
+}
+
+.store-delete-btn {
+  background: white;
+  color: #d32f2f;
+  border-color: #d32f2f;
+}
+
+.store-delete-btn:hover {
+  background: #d32f2f;
+  color: white;
+}
+
+/* Modal */
+.store-mgmt-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.store-mgmt-modal-content {
+  background: white;
+  border: 2px solid black;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.store-mgmt-modal-content h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: black;
+}
+
+.store-mgmt-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.store-mgmt-form-group {
+  margin-bottom: 16px;
+}
+
+.store-mgmt-form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: black;
+  font-size: 14px;
+}
+
+.store-mgmt-form-group input,
+.store-mgmt-form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.store-mgmt-form-group input:focus,
+.store-mgmt-form-group textarea:focus {
+  outline: none;
+  border-color: black;
+}
+
+.store-mgmt-form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.store-mgmt-form-group label input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+}
+
+.store-mgmt-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.store-mgmt-form-actions button {
+  padding: 10px 20px;
+  border: 2px solid;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.store-mgmt-form-actions button[type="submit"] {
+  background: black;
+  color: white;
+  border-color: black;
+}
+
+.store-mgmt-form-actions button[type="submit"]:hover {
+  background: #333;
+}
+
+.store-mgmt-form-actions button[type="button"] {
+  background: white;
+  color: #666;
+  border-color: #ddd;
+}
+
+.store-mgmt-form-actions button[type="button"]:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .store-mgmt-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .store-mgmt-form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .store-mgmt-store-card {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .store-actions {
+    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+} 
