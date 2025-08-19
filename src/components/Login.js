@@ -42,15 +42,37 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="login-container">
+      <div className="login-background">
+        <div className="login-pattern"></div>
+      </div>
+      
       <div className="login-card">
         <div className="login-header">
-          <h2>Hệ Thống Xổ Số</h2>
-          <p>Đăng nhập để tiếp tục</p>
+          <div className="logo-section">
+            <div className="logo-icon">🎯</div>
+            <h1 className="main-title">Lộc Phát 88</h1>
+            <div className="subtitle">Hệ Thống Quản Lý Xổ Số</div>
+          </div>
+          
+          <div className="description-section">
+            <p className="description-text">
+              <strong>🎲 Nền tảng xổ số hiện đại</strong><br/>
+              Quản lý cược, tính thưởng và thống kê chuyên nghiệp
+            </p>
+            <div className="features">
+              <div className="feature-item">⚡ Giao dịch nhanh chóng</div>
+              <div className="feature-item">📊 Thống kê chi tiết</div>
+              <div className="feature-item">🔒 Bảo mật cao cấp</div>
+            </div>
+          </div>
         </div>
         
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="username">Tên đăng nhập</label>
+            <label htmlFor="username">
+              <span className="label-icon">👤</span>
+              Tên đăng nhập
+            </label>
             <input
               type="text"
               id="username"
@@ -63,7 +85,10 @@ const Login = ({ onLogin }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Mật khẩu</label>
+            <label htmlFor="password">
+              <span className="label-icon">🔐</span>
+              Mật khẩu
+            </label>
             <input
               type="password"
               id="password"
@@ -82,9 +107,16 @@ const Login = ({ onLogin }) => {
             className="login-button"
             disabled={loading}
           >
+            <span className="button-icon">🚀</span>
             {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
         </form>
+        
+        <div className="login-footer">
+          <p className="footer-text">
+            © 2024 Lộc Phát 88 - Hệ thống xổ số chuyên nghiệp
+          </p>
+        </div>
       </div>
     </div>
   );
