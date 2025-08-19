@@ -2368,7 +2368,7 @@ const EmployeeInterface = ({ user }) => {
                 <tr>
                   <th>Loại cược</th>
                   <th>Số đã đánh</th>
-                  <th>Tổng tiền (VNĐ)</th>
+                  <th>Tổng tiền</th>
                 </tr>
               </thead>
               <tbody>
@@ -2377,7 +2377,7 @@ const EmployeeInterface = ({ user }) => {
                     <td className="bet-type-label">{item.typeLabel}</td>
                     <td className="bet-numbers-cell">{item.displayNumbers}</td>
                     <td className="bet-total-cell">
-                      <span>{item.totalAmount.toLocaleString()} VNĐ</span>
+                      <span>{item.totalAmount.toLocaleString()}n</span>
                     </td>
                   </tr>
                 ))}
