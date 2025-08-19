@@ -1113,7 +1113,7 @@ const EmployeeInterface = ({ user }) => {
     
     // Create invoice table rows
     const invoiceTableRows = invoiceItems.map(item => {
-      const formattedAmount = Math.floor(item.totalAmount).toString();
+      const formattedAmount = Math.floor(item.totalAmount).toString() + 'n';
       return `
         <tr>
           <td style="padding: 1px; text-align: left; font-size: 15px; border-bottom: 1px solid #000; width: 22%;">${item.typeLabel}</td>
@@ -1281,22 +1281,22 @@ const EmployeeInterface = ({ user }) => {
           <div class="total-section no-break">
             <div class="total-row">
               <span>Tổng tiền:</span>
-              <span>${totalAmount}</span>
+              <span>${totalAmount}n</span>
             </div>
             <div class="total-row">
               <span>Tiền khách đưa:</span>
-              <span>${customerPaid}</span>
+              <span>${customerPaid}n</span>
             </div>
             <div class="total-row">
               <span>Trả lại:</span>
-              <span>${changeAmount}</span>
+              <span>${changeAmount}n</span>
             </div>
           </div>
           
           <div class="divider"></div>
           
           <div class="footer no-break">
-            <p>Quý khách vui lòng kiểm tra lại và giữ hóa đơn khi lấy thưởng tại cửa hàng!</p>
+            <p>Quý khách vui lòng kiểm tra lại toàn bộ nội dung cược trước khi rời cửa hàng và mang theo hóa đơn khi lấy thưởng tại cửa hàng!</p>
           </div>
         </div>
         <script>
@@ -2394,14 +2394,14 @@ const EmployeeInterface = ({ user }) => {
 
           <div className="invoice-summary">
             <div className="total-amount-row">
-              <strong>Tổng tiền: {calculateTotal().toLocaleString()} VNĐ</strong>
+              <strong>Tổng tiền: {calculateTotal().toLocaleString()}n</strong>
             </div>
           </div>
 
           <div className="payment-info">
             <div className="payment-row">
               <span>Khách phải trả:</span>
-              <span>{calculateTotal().toLocaleString()} VNĐ</span>
+              <span>{calculateTotal().toLocaleString()}n</span>
             </div>
             <div className="payment-row">
               <span>Khách đưa:</span>
@@ -2416,19 +2416,19 @@ const EmployeeInterface = ({ user }) => {
                   placeholder="Nhập số tiền"
                   className="customer-give-input"
                 />
-                <span>VNĐ</span>
+                <span>n</span>
               </div>
             </div>
             <div className="payment-row">
               <span>Trả lại:</span>
               <span className={calculateChange() < 0 ? 'negative-amount' : 'positive-amount'}>
-                {calculateChange().toLocaleString()} VNĐ
+                {calculateChange().toLocaleString()}n
               </span>
             </div>
           </div>
 
           <div className="notice-text">
-            Quý khách vui lòng kiểm tra lại hóa đơn và giữ hóa đơn khi nhận thưởng tại cửa hàng. Chúc quý khách may mắn!
+            Quý khách vui lòng kiểm tra lại toàn bộ nội dung cược trước khi rời cửa hàng và mang theo hóa đơn khi lấy thưởng tại cửa hàng!
           </div>
 
           <div className="invoice-actions">
