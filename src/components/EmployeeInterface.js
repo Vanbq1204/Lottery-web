@@ -8,6 +8,7 @@ import PrizeInterface from './PrizeInterface';
 import PrizeSettings from './PrizeSettings';
 import PrizeStatistics from './PrizeStatistics';
 import LotoMultiplierSettings from './LotoMultiplierSettings';
+import QuantityControls from './QuantityControls';
 
 const EmployeeInterface = ({ user }) => {
   const [activeMenu, setActiveMenu] = useState('betting');
@@ -2193,12 +2194,12 @@ const EmployeeInterface = ({ user }) => {
         <tr>
           <td className="bet-type-name">{betType === 'loto' ? 'Loto' : betType.toUpperCase()}</td>
           <td className="quantity-cell">
-            <input
-              type="text"
+            <QuantityControls
               value={bet.quantity}
-              onChange={(e) => handleQuantityChange(betType, e.target.value)}
-              className="quantity-input"
-              placeholder="1-10"
+              onChange={(value) => handleQuantityChange(betType, value)}
+              min={1}
+              max={20}
+              step={1}
             />
           </td>
           <td></td>

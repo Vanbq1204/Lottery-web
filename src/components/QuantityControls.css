@@ -1,0 +1,129 @@
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  width: fit-content;
+}
+
+.quantity-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #f8f9fa;
+  color: #495057;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.quantity-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.quantity-btn:disabled {
+  background: #f1f3f4;
+  color: #bdc3c7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.quantity-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.quantity-btn:hover:not(:disabled) svg {
+  transform: scale(1.1);
+}
+
+.quantity-decrease {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+}
+
+.quantity-decrease:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff5252, #d32f2f);
+}
+
+.quantity-increase {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  color: white;
+}
+
+.quantity-increase:hover:not(:disabled) {
+  background: linear-gradient(135deg, #26a69a, #00897b);
+}
+
+.quantity-controls .quantity-control-input {
+  width: 40px;
+  height: 28px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  background: #fff;
+  padding: 0;
+  margin: 0 2px;
+  transition: border-color 0.2s ease;
+}
+
+.quantity-controls .quantity-control-input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+}
+
+.quantity-controls .quantity-control-input:disabled {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Animation for button press */
+@keyframes buttonPress {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.quantity-btn:active:not(:disabled) {
+  animation: buttonPress 0.1s ease;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .quantity-controls {
+    gap: 2px;
+    padding: 1px;
+  }
+  
+  .quantity-btn {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .quantity-controls .quantity-control-input {
+    width: 36px;
+    height: 24px;
+    font-size: 12px;
+  }
+} 
