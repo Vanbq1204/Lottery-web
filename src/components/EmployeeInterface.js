@@ -1513,18 +1513,35 @@ const EmployeeInterface = ({ user }) => {
 
   // Delete invoice
   const deleteInvoice = async () => {
-    const invoiceIdToDelete = prompt('Nhập mã hóa đơn cần xóa:');
+    const invoiceIdToDelete = prompt('Nhập mã hóa đơn cần xóa (có thể nhập 4 số cuối, vd: 7710):');
     if (!invoiceIdToDelete) return;
 
+    let finalInvoiceId = invoiceIdToDelete.trim();
+    
+    // Nếu chỉ là số và ngắn hơn 10 ký tự, tìm hóa đơn theo số cuối
+    if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length < 10) {
+      // Tìm hóa đơn trong danh sách hiện tại theo số cuối
+      const foundInvoice = invoiceList.find(invoice => 
+        invoice.invoiceId.endsWith(finalInvoiceId)
+      );
+      
+      if (foundInvoice) {
+        finalInvoiceId = foundInvoice.invoiceId;
+      } else {
+        // Nếu không tìm thấy, thêm prefix mặc định
+        finalInvoiceId = `HDAS1CHXSS${finalInvoiceId}`;
+      }
+    }
+
     // eslint-disable-next-line no-restricted-globals
-    if (!confirm(`Bạn có chắc chắn muốn xóa hóa đơn ${invoiceIdToDelete}?`)) {
+    if (!confirm(`Bạn có chắc chắn muốn xóa hóa đơn ${finalInvoiceId}?`)) {
       return;
     }
 
     const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
 
     try {
-      const response = await axios.delete(getApiUrl(`/invoice/delete/${invoiceIdToDelete}`), {
+      const response = await axios.delete(getApiUrl(`/invoice/delete/${finalInvoiceId}`), {
         data: { reason },
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -1534,6 +1551,8 @@ const EmployeeInterface = ({ user }) => {
 
       if (response.data.success) {
         alert('Xóa hóa đơn thành công!');
+        // Reload invoice list after deletion
+        loadInvoiceList();
       } else {
         alert('Lỗi: ' + response.data.message);
       }
@@ -1762,14 +1781,23 @@ const EmployeeInterface = ({ user }) => {
 
   // Edit invoice function
   const editInvoice = () => {
-    const invoiceIdInput = prompt('Nhập mã hóa đơn cần sửa (có thể chỉ nhập số cuối, vd: 17710):');
+    const invoiceIdInput = prompt('Nhập mã hóa đơn cần sửa (có thể nhập 4 số cuối, vd: 7710):');
     if (invoiceIdInput) {
-      // Nếu input ngắn hơn 10 ký tự, có thể là số cuối
       let invoiceIdToEdit = invoiceIdInput.trim();
       
-      // Nếu chỉ là số và ngắn hơn 10 ký tự, thêm prefix
+      // Nếu chỉ là số và ngắn hơn 10 ký tự, tìm hóa đơn theo số cuối
       if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length < 10) {
-        invoiceIdToEdit = `HDAS1CHXSS${invoiceIdToEdit}`;
+        // Tìm hóa đơn trong danh sách hiện tại theo số cuối
+        const foundInvoice = invoiceList.find(invoice => 
+          invoice.invoiceId.endsWith(invoiceIdToEdit)
+        );
+        
+        if (foundInvoice) {
+          invoiceIdToEdit = foundInvoice.invoiceId;
+        } else {
+          // Nếu không tìm thấy, thêm prefix mặc định
+          invoiceIdToEdit = `HDAS1CHXSS${invoiceIdToEdit}`;
+        }
       }
       
       loadInvoiceForEdit(invoiceIdToEdit);

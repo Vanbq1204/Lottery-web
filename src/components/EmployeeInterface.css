@@ -562,13 +562,14 @@
 /* Main action buttons row */
 .main-actions {
   display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
 /* Secondary action buttons row */
 .secondary-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
@@ -586,7 +587,7 @@
 .btn-print {
   background: #2c5530;
   color: white;
-  flex: 1; /* Chiếm không gian bằng nhau trong main-actions */
+  width: 100%; /* Chiếm toàn bộ chiều rộng */
 }
 
 .btn-print:hover {
@@ -596,7 +597,7 @@
 .btn-save-print {
   background: #059669;
   color: white;
-  flex: 1; /* Chiếm không gian bằng nhau trong main-actions */
+  width: 100%; /* Chiếm toàn bộ chiều rộng */
 }
 
 .btn-save-print:hover {
@@ -604,21 +605,23 @@
 }
 
 .btn-edit {
-  background: #6c757d;
-  color: white;
+  background: #ffc107;
+  color: #212529;
+  width: 100%; /* Chiếm toàn bộ chiều rộng */
 }
 
 .btn-edit:hover {
-  background: #5a6268;
+  background: #e0a800;
 }
 
 .btn-delete {
-  background: #6c757d;
+  background: #dc3545;
   color: white;
+  width: 100%; /* Chiếm toàn bộ chiều rộng */
 }
 
 .btn-delete:hover {
-  background: #5a6268;
+  background: #c82333;
 }
 
 /* Content Placeholder */
