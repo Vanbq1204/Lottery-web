@@ -2471,7 +2471,7 @@ const EmployeeInterface = ({ user }) => {
                     </span>
                   </div>
                   <div className="history-date">
-                    {new Date(history.actionDate).toLocaleString('vi-VN')}
+                    {new Date(history.actionDate).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                   </div>
                 </div>
                 
@@ -2627,7 +2627,7 @@ const EmployeeInterface = ({ user }) => {
                       <strong>{invoice.totalAmount.toLocaleString()} VNĐ</strong>
                     </td>
                     <td className="time-cell">
-                      {new Date(invoice.printedAt).toLocaleString('vi-VN')}
+                      {new Date(invoice.printedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                     </td>
                   </tr>
                 ))}
@@ -2712,7 +2712,7 @@ const EmployeeInterface = ({ user }) => {
             >
               {lotteryResults.map(result => (
                 <option key={result.turnNum} value={result.turnNum}>
-                  {result.turnNum} - {new Date(result.openTime).toLocaleString('vi-VN')}
+                  {result.turnNum} - {new Date(result.openTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                 </option>
               ))}
             </select>
@@ -2818,7 +2818,7 @@ const EmployeeInterface = ({ user }) => {
           </button>
           <div className="lottery-info">
             <p><strong>Ngày:</strong> {currentLotteryResult.turnNum}</p>
-            <p><strong>Thời gian:</strong> {new Date(currentLotteryResult.openTime).toLocaleString('vi-VN')}</p>
+            <p><strong>Thời gian:</strong> {new Date(currentLotteryResult.openTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
           </div>
         </div>
       </div>

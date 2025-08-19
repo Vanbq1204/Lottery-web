@@ -117,7 +117,7 @@ const PrizeSettings = () => {
   // Format ngày giờ
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleString('vi-VN');
+    return date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
   };
 
   useEffect(() => {
