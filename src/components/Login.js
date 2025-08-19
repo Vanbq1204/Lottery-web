@@ -53,18 +53,6 @@ const Login = ({ onLogin }) => {
             <h1 className="main-title">Lộc Phát 88</h1>
             <div className="subtitle">Hệ Thống Quản Lý Xổ Số</div>
           </div>
-          
-          <div className="description-section">
-            <p className="description-text">
-              <strong>🎲 Nền tảng xổ số hiện đại</strong><br/>
-              Quản lý cược, tính thưởng và thống kê chuyên nghiệp
-            </p>
-            <div className="features">
-              <div className="feature-item">⚡ Giao dịch nhanh chóng</div>
-              <div className="feature-item">📊 Thống kê chi tiết</div>
-              <div className="feature-item">🔒 Bảo mật cao cấp</div>
-            </div>
-          </div>
         </div>
         
         <form onSubmit={handleSubmit} className="login-form">
