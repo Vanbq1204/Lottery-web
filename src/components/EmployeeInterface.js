@@ -1789,6 +1789,11 @@ const EmployeeInterface = ({ user }) => {
           g7: ['', '', '', '']
         }
       });
+      
+      // Tự động tải kết quả xổ số cho ngày hiện tại
+      setTimeout(async () => {
+        await loadLotteryByDate(turnNum);
+      }, 100);
     }
   };
 
@@ -1842,17 +1847,34 @@ const EmployeeInterface = ({ user }) => {
         setManualLotteryData({
           turnNum: dateToUse, // Sử dụng ngày được chọn
           openTime: result.openTime,
-          results: result.results
-        });
-        alert(`Đã tải kết quả xổ số cho ngày ${dateToUse} thành công!`);
-      } else {
-        alert(`Không tìm thấy kết quả xổ số cho ngày ${dateToUse}`);
-      }
+                      results: result.results
+          });
+          // Không hiển thị alert khi tải thành công để tránh làm phiền
+              } else {
+          // Nếu không có kết quả, reset về trạng thái trống (không hiển thị alert)
+          const today = new Date();
+          const vietnamTime = new Date(today.getTime() + (7 * 60 * 60 * 1000));
+          
+          setManualLotteryData({
+            turnNum: dateToUse,
+            openTime: vietnamTime.toISOString(),
+            results: {
+              gdb: '',
+              g1: '',
+              g2: ['', ''],
+              g3: ['', '', '', '', '', ''],
+              g4: ['', '', '', ''],
+              g5: ['', '', '', '', '', ''],
+              g6: ['', '', ''],
+              g7: ['', '', '', '']
+            }
+          });
+        }
       
-    } catch (error) {
-      console.error('Lỗi tải kết quả xổ số:', error);
-      alert('Lỗi khi tải kết quả xổ số: ' + (error.response?.data?.message || error.message));
-    } finally {
+          } catch (error) {
+        console.error('Lỗi tải kết quả xổ số:', error);
+        // Không hiển thị alert khi có lỗi để tránh làm phiền
+      } finally {
       setIsLoadingLottery(false);
     }
   };
@@ -2973,9 +2995,9 @@ const EmployeeInterface = ({ user }) => {
                   Làm mới
                 </button>
               </div>
-              <div className="auto-load-notice">
-                <small>💡 Kết quả sẽ tự động tải khi chọn ngày</small>
-              </div>
+                              <div className="auto-load-notice">
+                  <small>💡 Kết quả đã tự động tải lần đầu. Chọn ngày khác để tải lại</small>
+                </div>
             </div>
           )}
         </div>

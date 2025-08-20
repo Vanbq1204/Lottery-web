@@ -35,6 +35,7 @@ const AdminTotalStatistics = ({ user }) => {
       if (response.data.success) {
         // Transform data to match AdminStoreStatistics format
         const rawStats = response.data.stats;
+        
         const transformedStats = {
           totalRevenue: rawStats.totalRevenue,
           // Use totals directly from backend
@@ -46,6 +47,7 @@ const AdminTotalStatistics = ({ user }) => {
           dauTotal: rawStats.dauTotal || 0,
           ditTotal: rawStats.ditTotal || 0,
           boTotal: rawStats.boTotal || 0,
+          tongKepDauDitBoTotal: rawStats.tongKepDauDitBoTotal || 0, // Thêm field này
           xienTotal: rawStats.xienTotal || 0,
           xienquayTotal: rawStats.xienquayTotal || 0,
           
@@ -200,10 +202,21 @@ const AdminTotalStatistics = ({ user }) => {
   // Render combined bet table
   const renderCombinedBetTable = (betTypes, title) => {
     // Calculate total for this group
-    const groupTotal = betTypes.reduce((sum, betType) => {
-      const totalField = `${betType}Total`;
-      return sum + (statisticsData[totalField] || 0);
-    }, 0);
+    let groupTotal;
+    
+    // Đặc biệt xử lý cho nhóm tổng/kép/đầu/đít/bộ
+    if (betTypes.includes('tong') && betTypes.includes('kep') && betTypes.includes('dau') && betTypes.includes('dit') && betTypes.includes('bo')) {
+      // Sử dụng tổng tiền khách trả cho nhóm này
+      groupTotal = statisticsData.tongKepDauDitBoTotal || 0;
+      
+
+    } else {
+      // Các nhóm khác vẫn tính theo cách cũ
+      groupTotal = betTypes.reduce((sum, betType) => {
+        const totalField = `${betType}Total`;
+        return sum + (statisticsData[totalField] || 0);
+      }, 0);
+    }
 
     // Get bet type names
     const betTypeNames = {

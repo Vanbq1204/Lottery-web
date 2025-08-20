@@ -302,13 +302,7 @@
   margin: 0;
 }
 
-.admin-stats-has-bet {
-  background: #fff3e0 !important;
-}
 
-.admin-stats-has-bet .admin-stats-number {
-  color: #e65100;
-}
 
 /* Tạo bảng Excel-style cho 2 số */
 .admin-stats-2s-table {
