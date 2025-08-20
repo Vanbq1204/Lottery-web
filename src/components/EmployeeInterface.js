@@ -1,4 +1,4 @@
-import { getApiUrl } from '../config/api';
+import { getApiUrl, EXTERNAL_LOTTERY_API } from '../config/api';
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
@@ -44,6 +44,31 @@ const EmployeeInterface = ({ user }) => {
   const [lotteryResults, setLotteryResults] = useState([]);
   const [selectedLotteryDate, setSelectedLotteryDate] = useState('');
   const [currentLotteryResult, setCurrentLotteryResult] = useState(null);
+  const [dataSource, setDataSource] = useState('api'); // 'api' hoặc 'manual'
+  // Get current date in DD/MM/YYYY format for Vietnam
+  const getCurrentVietnamDateFormatted = () => {
+    const now = new Date();
+    const vietnamTime = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // Add 7 hours
+    const day = String(vietnamTime.getDate()).padStart(2, '0');
+    const month = String(vietnamTime.getMonth() + 1).padStart(2, '0');
+    const year = vietnamTime.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const [manualLotteryData, setManualLotteryData] = useState({
+    turnNum: getCurrentVietnamDateFormatted(),
+    openTime: '',
+    results: {
+      gdb: '', // 5 số
+      g1: '',  // 5 số
+      g2: ['', ''], // 2 giải, mỗi giải 5 số
+      g3: ['', '', '', '', '', ''], // 6 giải, mỗi giải 5 số
+      g4: ['', '', '', ''], // 4 giải, mỗi giải 4 số
+      g5: ['', '', '', '', '', ''], // 6 giải, mỗi giải 4 số
+      g6: ['', '', ''], // 3 giải, mỗi giải 3 số
+      g7: ['', '', '', ''] // 4 giải, mỗi giải 2 số
+    }
+  });
   const [isLoadingLottery, setIsLoadingLottery] = useState(false);
   const [editableCells, setEditableCells] = useState({});
   
@@ -1609,7 +1634,7 @@ const EmployeeInterface = ({ user }) => {
   const loadLotteryResults = async () => {
     setIsLoadingLottery(true);
     try {
-      const response = await axios.get('https://xoso188.net/api/front/open/lottery/history/list/5/miba');
+      const response = await axios.get(EXTERNAL_LOTTERY_API);
       
       if (response.data.success) {
         const results = response.data.t.issueList;
@@ -1635,14 +1660,14 @@ const EmployeeInterface = ({ user }) => {
     try {
       const detail = JSON.parse(detailString);
       return {
-        gdb: detail[0] || '', // Giải đặc biệt
-        g1: detail[1] || '', // Giải nhất
-        g2: detail[2] ? detail[2].split(',') : [], // Giải nhì
-        g3: detail[3] ? detail[3].split(',') : [], // Giải ba
-        g4: detail[4] ? detail[4].split(',') : [], // Giải tư
-        g5: detail[5] ? detail[5].split(',') : [], // Giải năm
-        g6: detail[6] ? detail[6].split(',') : [], // Giải sáu
-        g7: detail[7] ? detail[7].split(',') : []  // Giải bảy
+        gdb: detail[0] || '', // Giải đặc biệt - 5 số
+        g1: detail[1] || '', // Giải nhất - 5 số
+        g2: detail[2] ? detail[2].split(',') : [], // Giải nhì - 2 giải, mỗi giải 5 số
+        g3: detail[3] ? detail[3].split(',') : [], // Giải ba - 6 giải, mỗi giải 5 số
+        g4: detail[4] ? detail[4].split(',') : [], // Giải tư - 4 giải, mỗi giải 4 số
+        g5: detail[5] ? detail[5].split(',') : [], // Giải năm - 6 giải, mỗi giải 4 số
+        g6: detail[6] ? detail[6].split(',') : [], // Giải sáu - 3 giải, mỗi giải 3 số
+        g7: detail[7] ? detail[7].split(',') : []  // Giải bảy - 4 giải, mỗi giải 2 số
       };
     } catch (error) {
       console.error('Lỗi parse lottery detail:', error);
@@ -1704,7 +1729,6 @@ const EmployeeInterface = ({ user }) => {
       const lotteryData = {
         turnNum: currentLotteryResult.turnNum,
         openTime: currentLotteryResult.openTime,
-        openNum: currentLotteryResult.openNum,
         results: {
           gdb: parsed.gdb || '',
           g1: parsed.g1 || '',
@@ -1735,6 +1759,135 @@ const EmployeeInterface = ({ user }) => {
       console.error('Lỗi khi lưu kết quả xổ số:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Không thể lưu kết quả xổ số';
       alert('Lỗi: ' + errorMessage);
+    }
+  };
+
+  // Hàm xử lý thay đổi nguồn dữ liệu
+  const handleDataSourceChange = (source) => {
+    setDataSource(source);
+    if (source === 'manual') {
+      // Khởi tạo dữ liệu thủ công với ngày hiện tại
+      const today = new Date();
+      const vietnamTime = new Date(today.getTime() + (7 * 60 * 60 * 1000));
+      const turnNum = vietnamTime.toLocaleDateString('vi-VN', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+      }).replace(/\//g, '/');
+      
+      setManualLotteryData({
+        turnNum: turnNum,
+        openTime: vietnamTime.toISOString(),
+        results: {
+          gdb: '',
+          g1: '',
+          g2: ['', ''],
+          g3: ['', '', '', '', '', ''],
+          g4: ['', '', '', ''],
+          g5: ['', '', '', '', '', ''],
+          g6: ['', '', ''],
+          g7: ['', '', '', '']
+        }
+      });
+    }
+  };
+
+  // Hàm xử lý thay đổi dữ liệu thủ công
+  const handleManualDataChange = (field, value, index = null) => {
+    setManualLotteryData(prev => {
+      const newData = { ...prev };
+      
+      if (field === 'turnNum' || field === 'openTime') {
+        newData[field] = value;
+      } else if (field.startsWith('g')) {
+        // Xử lý các trường hợp khác nhau
+        if (field === 'gdb' || field === 'g1') {
+          // gdb và g1 là string, không phải array
+          newData.results[field] = value;
+        } else if (index !== null) {
+          // Các trường khác là array
+          newData.results[field][index] = value;
+        } else {
+          newData.results[field] = value;
+        }
+      }
+      
+      return newData;
+    });
+  };
+
+  // Hàm tải kết quả xổ số theo ngày
+  const loadLotteryByDate = async (selectedDate = null) => {
+    const dateToUse = selectedDate || manualLotteryData.turnNum;
+    
+    if (!dateToUse) {
+      alert('Vui lòng nhập ngày xổ số');
+      return;
+    }
+
+    try {
+      setIsLoadingLottery(true);
+      const token = localStorage.getItem('token');
+      
+      // Chuyển đổi turnNum từ DD/MM/YYYY sang YYYY-MM-DD
+      const [day, month, year] = dateToUse.split('/');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      const response = await axios.get(`${getApiUrl('/lottery/results')}?date=${dateStr}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.lotteryResults && response.data.lotteryResults.length > 0) {
+        const result = response.data.lotteryResults[0];
+        setManualLotteryData({
+          turnNum: dateToUse, // Sử dụng ngày được chọn
+          openTime: result.openTime,
+          results: result.results
+        });
+        alert(`Đã tải kết quả xổ số cho ngày ${dateToUse} thành công!`);
+      } else {
+        alert(`Không tìm thấy kết quả xổ số cho ngày ${dateToUse}`);
+      }
+      
+    } catch (error) {
+      console.error('Lỗi tải kết quả xổ số:', error);
+      alert('Lỗi khi tải kết quả xổ số: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setIsLoadingLottery(false);
+    }
+  };
+
+  // Hàm lưu kết quả xổ số thủ công
+  const saveManualLotteryResults = async () => {
+    try {
+      setIsLoadingLottery(true);
+      const token = localStorage.getItem('token');
+      
+      // Validate dữ liệu
+      if (!manualLotteryData.turnNum) {
+        alert('Vui lòng nhập ngày xổ số');
+        return;
+      }
+      
+      if (!manualLotteryData.results.gdb) {
+        alert('Vui lòng nhập giải đặc biệt');
+        return;
+      }
+      
+      const response = await axios.post(getApiUrl('/lottery/save'), 
+        manualLotteryData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      alert('Lưu kết quả xổ số thành công!');
+      await loadLotteryResults();
+      setDataSource('api'); // Chuyển về chế độ API
+      
+    } catch (error) {
+      console.error('Lỗi lưu kết quả xổ số:', error);
+      alert('Lỗi khi lưu kết quả xổ số: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setIsLoadingLottery(false);
     }
   };
 
@@ -2674,6 +2827,26 @@ const EmployeeInterface = ({ user }) => {
   const renderEditableCell = (value, prizeType, index = null) => {
     const cellKey = `${prizeType}-${index || 0}`;
     
+    // Xác định maxLength dựa trên loại giải
+    const getMaxLength = (type) => {
+      switch(type) {
+        case 'gdb':
+        case 'g1':
+        case 'g2':
+        case 'g3':
+          return 5; // 5 số
+        case 'g4':
+        case 'g5':
+          return 4; // 4 số
+        case 'g6':
+          return 3; // 3 số
+        case 'g7':
+          return 2; // 2 số
+        default:
+          return 5;
+      }
+    };
+    
     return (
       <div 
         className="editable-cell"
@@ -2690,6 +2863,8 @@ const EmployeeInterface = ({ user }) => {
                 setEditableCells({...editableCells, [cellKey]: false});
               }
             }}
+            maxLength={getMaxLength(prizeType)}
+            data-digits={getMaxLength(prizeType)}
             autoFocus
             className="cell-input"
           />
@@ -2709,146 +2884,393 @@ const EmployeeInterface = ({ user }) => {
       );
     }
 
-    if (!currentLotteryResult) {
-      return (
-        <div className="no-lottery-data">
-          <p>Không có dữ liệu kết quả xổ số</p>
-          <button onClick={loadLotteryResults} className="btn btn-refresh">
-            Tải lại
-          </button>
-        </div>
-      );
-    }
-
-    const parsed = parseLotteryDetail(currentLotteryResult.detail);
-
     return (
       <div className="lottery-container">
         <div className="lottery-header">
           <h3>Kết quả xổ số Miền Bắc</h3>
-          <div className="lottery-controls">
-            <select
-              value={selectedLotteryDate}
-              onChange={(e) => {
-                const selected = lotteryResults.find(r => r.turnNum === e.target.value);
-                if (selected) {
-                  setCurrentLotteryResult(selected);
-                  setSelectedLotteryDate(e.target.value);
-                  setEditableCells({});
-                }
-              }}
-              className="date-select"
-            >
-              {lotteryResults.map(result => (
-                <option key={result.turnNum} value={result.turnNum}>
-                  {result.turnNum} - {new Date(result.openTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
-                </option>
-              ))}
-            </select>
-            <button onClick={loadLotteryResults} className="btn btn-refresh">
-              Làm mới
-            </button>
+          
+          {/* Chọn nguồn dữ liệu */}
+          <div className="data-source-selector">
+            <label className="data-source-label">Nguồn dữ liệu:</label>
+            <div className="data-source-buttons">
+              <button 
+                className={`data-source-btn ${dataSource === 'api' ? 'active' : ''}`}
+                onClick={() => handleDataSourceChange('api')}
+              >
+                📡 API
+              </button>
+              <button 
+                className={`data-source-btn ${dataSource === 'manual' ? 'active' : ''}`}
+                onClick={() => handleDataSourceChange('manual')}
+              >
+                Nhập thủ công
+              </button>
+            </div>
           </div>
+
+          {/* Giao diện API */}
+          {dataSource === 'api' && (
+            <div className="lottery-controls">
+              {currentLotteryResult ? (
+                <select
+                  value={selectedLotteryDate}
+                  onChange={(e) => {
+                    const selected = lotteryResults.find(r => r.turnNum === e.target.value);
+                    if (selected) {
+                      setCurrentLotteryResult(selected);
+                      setSelectedLotteryDate(e.target.value);
+                      setEditableCells({});
+                    }
+                  }}
+                  className="date-select"
+                >
+                  {lotteryResults.map(result => (
+                    <option key={result.turnNum} value={result.turnNum}>
+                      {result.turnNum} - {new Date(result.openTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="no-lottery-data">
+                  <p>Không có dữ liệu kết quả xổ số</p>
+                </div>
+              )}
+              <button onClick={loadLotteryResults} className="btn btn-refresh">
+                Làm mới
+              </button>
+            </div>
+          )}
+
+          {/* Giao diện nhập thủ công */}
+          {dataSource === 'manual' && (
+            <div className="manual-lottery-controls">
+              <div className="manual-date-input">
+                <label>Ngày xổ số:</label>
+                <input
+                  type="date"
+                  value={(() => {
+                    const [day, month, year] = manualLotteryData.turnNum.split('/');
+                    return `${year}-${month}-${day}`;
+                  })()}
+                  onChange={async (e) => {
+                    const date = new Date(e.target.value);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    const newDate = `${day}/${month}/${year}`;
+                    handleManualDataChange('turnNum', newDate);
+                    
+                    // Tự động tải kết quả khi chọn ngày
+                    try {
+                      await loadLotteryByDate(newDate);
+                    } catch (error) {
+                      console.error('Lỗi tự động tải kết quả:', error);
+                    }
+                  }}
+                  className="date-picker"
+                />
+                <button onClick={() => window.location.reload()} className="btn btn-load">
+                  Làm mới
+                </button>
+              </div>
+              <div className="auto-load-notice">
+                <small>💡 Kết quả sẽ tự động tải khi chọn ngày</small>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="lottery-table-container">
-          <table className="lottery-table">
-            <tbody>
-              <tr className="gdb-row">
-                <td className="prize-label gdb-label">G.ĐB</td>
-                <td className="prize-numbers gdb-numbers" colSpan="4">
-                  {renderEditableCell(parsed.gdb, 'gdb')}
-                </td>
-              </tr>
-              
-              <tr>
-                <td className="prize-label">G.1</td>
-                <td className="prize-numbers" colSpan="4">
-                  {renderEditableCell(parsed.g1, 'g1')}
-                </td>
-              </tr>
-              
-              <tr>
-                <td className="prize-label">G.2</td>
-                {parsed.g2.slice(0, 2).map((num, idx) => (
-                  <td key={idx} className="prize-numbers">
-                    {renderEditableCell(num, 'g2', idx)}
+          {dataSource === 'api' && currentLotteryResult ? (
+            /* Bảng API */
+            <table className="lottery-table">
+              <tbody>
+                {(() => {
+                  const parsed = parseLotteryDetail(currentLotteryResult.detail);
+                  return (
+                    <>
+                      <tr className="gdb-row">
+                        <td className="prize-label gdb-label">G.ĐB</td>
+                        <td className="prize-numbers gdb-numbers" colSpan="4">
+                          {renderEditableCell(parsed.gdb, 'gdb')}
+                        </td>
+                      </tr>
+                      
+                      <tr>
+                        <td className="prize-label">G.1</td>
+                        <td className="prize-numbers" colSpan="4">
+                          {renderEditableCell(parsed.g1, 'g1')}
+                        </td>
+                      </tr>
+                      
+                      <tr>
+                        <td className="prize-label">G.2</td>
+                        {parsed.g2.slice(0, 2).map((num, idx) => (
+                          <td key={idx} className="prize-numbers">
+                            {renderEditableCell(num, 'g2', idx)}
+                          </td>
+                        ))}
+                        {Array.from({length: Math.max(0, 2 - parsed.g2.length)}).map((_, idx) => (
+                          <td key={`empty-g2-${idx}`} className="prize-numbers">
+                            {renderEditableCell('', 'g2', parsed.g2.length + idx)}
+                          </td>
+                        ))}
+                        <td className="prize-numbers empty-cell" colSpan="2"></td>
+                      </tr>
+                      
+                      <tr>
+                        <td className="prize-label">G.3</td>
+                        <td className="prize-numbers" colSpan="4">
+                          <div className="multi-numbers">
+                            {parsed.g3.slice(0, 6).map((num, idx) => (
+                              <div key={idx} className="number-item">
+                                {renderEditableCell(num, 'g3', idx)}
+                              </div>
+                            ))}
+                            {Array.from({length: Math.max(0, 6 - parsed.g3.length)}).map((_, idx) => (
+                              <div key={`empty-g3-${idx}`} className="number-item">
+                                {renderEditableCell('', 'g3', parsed.g3.length + idx)}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      <tr>
+                        <td className="prize-label">G.4</td>
+                        {parsed.g4.slice(0, 4).map((num, idx) => (
+                          <td key={idx} className="prize-numbers">
+                            {renderEditableCell(num, 'g4', idx)}
+                          </td>
+                        ))}
+                        {Array.from({length: Math.max(0, 4 - parsed.g4.length)}).map((_, idx) => (
+                          <td key={`empty-g4-${idx}`} className="prize-numbers">
+                            {renderEditableCell('', 'g4', parsed.g4.length + idx)}
+                          </td>
+                        ))}
+                      </tr>
+                      
+                      <tr>
+                        <td className="prize-label">G.5</td>
+                        <td className="prize-numbers" colSpan="4">
+                          <div className="multi-numbers">
+                            {parsed.g5.slice(0, 6).map((num, idx) => (
+                              <div key={idx} className="number-item">
+                                {renderEditableCell(num, 'g5', idx)}
+                              </div>
+                            ))}
+                            {Array.from({length: Math.max(0, 6 - parsed.g5.length)}).map((_, idx) => (
+                              <div key={`empty-g5-${idx}`} className="number-item">
+                                {renderEditableCell('', 'g5', parsed.g5.length + idx)}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      <tr>
+                        <td className="prize-label">G.6</td>
+                        {parsed.g6.slice(0, 3).map((num, idx) => (
+                          <td key={idx} className="prize-numbers">
+                            {renderEditableCell(num, 'g6', idx)}
+                          </td>
+                        ))}
+                        {Array.from({length: Math.max(0, 3 - parsed.g6.length)}).map((_, idx) => (
+                          <td key={`empty-g6-${idx}`} className="prize-numbers">
+                            {renderEditableCell('', 'g6', parsed.g6.length + idx)}
+                          </td>
+                        ))}
+                      </tr>
+                      
+                      <tr>
+                        <td className="prize-label">G.7</td>
+                        {parsed.g7.slice(0, 4).map((num, idx) => (
+                          <td key={idx} className="prize-numbers">
+                            {renderEditableCell(num, 'g7', idx)}
+                          </td>
+                        ))}
+                        {Array.from({length: Math.max(0, 4 - parsed.g7.length)}).map((_, idx) => (
+                          <td key={`empty-g7-${idx}`} className="prize-numbers">
+                            {renderEditableCell('', 'g7', parsed.g7.length + idx)}
+                          </td>
+                        ))}
+                      </tr>
+                    </>
+                  );
+                })()}
+              </tbody>
+            </table>
+          ) : dataSource === 'manual' ? (
+            /* Bảng nhập thủ công */
+            <table className="lottery-table manual-lottery-table">
+              <tbody>
+                <tr className="gdb-row">
+                  <td className="prize-label gdb-label">G.ĐB</td>
+                  <td className="prize-numbers gdb-numbers" colSpan="4">
+                    <input
+                      type="text"
+                      value={manualLotteryData.results.gdb}
+                      onChange={(e) => handleManualDataChange('gdb', e.target.value)}
+                      placeholder="Nhập giải đặc biệt (5 số)"
+                      className="manual-input gdb-input"
+                      maxLength="5"
+                    />
                   </td>
-                ))}
-                {/* Fill empty cells to make exactly 2 cells for G.2 */}
-                {Array.from({length: Math.max(0, 2 - parsed.g2.length)}).map((_, idx) => (
-                  <td key={`empty-g2-${idx}`} className="prize-numbers">
-                    {renderEditableCell('', 'g2', parsed.g2.length + idx)}
+                </tr>
+                
+                <tr>
+                  <td className="prize-label">G.1</td>
+                  <td className="prize-numbers" colSpan="4">
+                    <input
+                      type="text"
+                      value={manualLotteryData.results.g1}
+                      onChange={(e) => handleManualDataChange('g1', e.target.value)}
+                      placeholder="Nhập giải nhất (5 số)"
+                      className="manual-input"
+                      maxLength="5"
+                    />
                   </td>
-                ))}
-                {/* Fill remaining 2 cells to complete the row */}
-                <td className="prize-numbers empty-cell" colSpan="2"></td>
-              </tr>
-              
-              <tr>
-                <td className="prize-label">G.3</td>
-                <td className="prize-numbers" colSpan="4">
-                  <div className="multi-numbers">
-                    {parsed.g3.map((num, idx) => (
-                      <div key={idx} className="number-item">
-                        {renderEditableCell(num, 'g3', idx)}
-                      </div>
-                    ))}
-                  </div>
-                </td>
-              </tr>
-              
-              <tr>
-                <td className="prize-label">G.4</td>
-                {parsed.g4.map((num, idx) => (
-                  <td key={idx} className="prize-numbers">
-                    {renderEditableCell(num, 'g4', idx)}
+                </tr>
+                
+                <tr>
+                  <td className="prize-label">G.2</td>
+                  {manualLotteryData.results.g2.map((num, idx) => (
+                    <td key={idx} className="prize-numbers">
+                      <input
+                        type="text"
+                        value={num}
+                        onChange={(e) => handleManualDataChange('g2', e.target.value, idx)}
+                        placeholder={`G2-${idx + 1} (5 số)`}
+                        className="manual-input"
+                        maxLength="5"
+                      />
+                    </td>
+                  ))}
+                  <td className="prize-numbers empty-cell" colSpan="2"></td>
+                </tr>
+                
+                <tr>
+                  <td className="prize-label">G.3</td>
+                  <td className="prize-numbers" colSpan="4">
+                    <div className="multi-numbers">
+                      {manualLotteryData.results.g3.map((num, idx) => (
+                        <div key={idx} className="number-item">
+                          <input
+                            type="text"
+                            value={num}
+                            onChange={(e) => handleManualDataChange('g3', e.target.value, idx)}
+                            placeholder={`G3-${idx + 1} (5 số)`}
+                            className="manual-input"
+                            maxLength="5"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </td>
-                ))}
-              </tr>
-              
-              <tr>
-                <td className="prize-label">G.5</td>
-                <td className="prize-numbers" colSpan="4">
-                  <div className="multi-numbers">
-                    {parsed.g5.map((num, idx) => (
-                      <div key={idx} className="number-item">
-                        {renderEditableCell(num, 'g5', idx)}
-                      </div>
-                    ))}
-                  </div>
-                </td>
-              </tr>
-              
-              <tr>
-                <td className="prize-label">G.6</td>
-                {parsed.g6.map((num, idx) => (
-                  <td key={idx} className="prize-numbers">
-                    {renderEditableCell(num, 'g6', idx)}
+                </tr>
+                
+                <tr>
+                  <td className="prize-label">G.4</td>
+                  {manualLotteryData.results.g4.map((num, idx) => (
+                    <td key={idx} className="prize-numbers">
+                      <input
+                        type="text"
+                        value={num}
+                        onChange={(e) => handleManualDataChange('g4', e.target.value, idx)}
+                        placeholder={`G4-${idx + 1} (4 số)`}
+                        className="manual-input"
+                        maxLength="4"
+                      />
+                    </td>
+                  ))}
+                </tr>
+                
+                <tr>
+                  <td className="prize-label">G.5</td>
+                  <td className="prize-numbers" colSpan="4">
+                    <div className="multi-numbers">
+                      {manualLotteryData.results.g5.map((num, idx) => (
+                        <div key={idx} className="number-item">
+                          <input
+                            type="text"
+                            value={num}
+                            onChange={(e) => handleManualDataChange('g5', e.target.value, idx)}
+                            placeholder={`G5-${idx + 1} (4 số)`}
+                            className="manual-input"
+                            maxLength="4"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </td>
-                ))}
-              </tr>
-              
-              <tr>
-                <td className="prize-label">G.7</td>
-                {parsed.g7.map((num, idx) => (
-                  <td key={idx} className="prize-numbers">
-                    {renderEditableCell(num, 'g7', idx)}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+                </tr>
+                
+                <tr>
+                  <td className="prize-label">G.6</td>
+                  {manualLotteryData.results.g6.map((num, idx) => (
+                    <td key={idx} className="prize-numbers">
+                      <input
+                        type="text"
+                        value={num}
+                        onChange={(e) => handleManualDataChange('g6', e.target.value, idx)}
+                        placeholder={`G6-${idx + 1} (3 số)`}
+                        className="manual-input"
+                        maxLength="3"
+                      />
+                    </td>
+                  ))}
+                </tr>
+                
+                <tr>
+                  <td className="prize-label">G.7</td>
+                  {manualLotteryData.results.g7.map((num, idx) => (
+                    <td key={idx} className="prize-numbers">
+                      <input
+                        type="text"
+                        value={num}
+                        onChange={(e) => handleManualDataChange('g7', e.target.value, idx)}
+                        placeholder={`G7-${idx + 1} (2 số)`}
+                        className="manual-input"
+                        maxLength="2"
+                      />
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            <div className="no-lottery-data">
+              <p>Vui lòng chọn nguồn dữ liệu</p>
+            </div>
+          )}
         </div>
 
         <div className="lottery-actions">
-          <button onClick={saveLotteryResults} className="btn btn-save">
-            💾 Lưu kết quả
-          </button>
-          <div className="lottery-info">
-            <p><strong>Ngày:</strong> {currentLotteryResult.turnNum}</p>
-            <p><strong>Thời gian:</strong> {new Date(currentLotteryResult.openTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
-          </div>
+          {dataSource === 'api' && currentLotteryResult ? (
+            <>
+              <button onClick={saveLotteryResults} className="btn btn-save">
+                💾 Lưu kết quả
+              </button>
+              <div className="lottery-info">
+                <p><strong>Ngày:</strong> {currentLotteryResult.turnNum}</p>
+                <p><strong>Thời gian:</strong> {new Date(currentLotteryResult.openTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
+              </div>
+            </>
+          ) : dataSource === 'manual' ? (
+            <>
+              <button onClick={saveManualLotteryResults} className="btn btn-save">
+                💾 Lưu kết quả thủ công
+              </button>
+              <div className="lottery-info">
+                <p><strong>Ngày:</strong> {manualLotteryData.turnNum}</p>
+                <p><strong>Chế độ:</strong> Nhập thủ công</p>
+              </div>
+            </>
+          ) : (
+            <div className="lottery-info">
+              <p>Vui lòng chọn nguồn dữ liệu</p>
+            </div>
+          )}
         </div>
       </div>
     );

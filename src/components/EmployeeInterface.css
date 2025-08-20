@@ -1287,6 +1287,23 @@
   background: #e7f3ff;
 }
 
+/* Kích thước khác nhau cho các loại số */
+.cell-input[data-digits="2"] {
+  width: 40px;
+}
+
+.cell-input[data-digits="3"] {
+  width: 50px;
+}
+
+.cell-input[data-digits="4"] {
+  width: 60px;
+}
+
+.cell-input[data-digits="5"] {
+  width: 70px;
+}
+
 .cell-value {
   display: block;
   width: 100%;
@@ -1374,5 +1391,197 @@
   
   .lottery-info {
     text-align: center;
+  }
+}
+
+/* CSS cho giao diện nhập thủ công - tránh xung đột */
+.data-source-selector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.data-source-label {
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+}
+
+.data-source-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.data-source-btn {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-right: 10px;
+}
+
+.data-source-btn:hover {
+  background: #f8f9fa;
+  border-color: #007bff;
+}
+
+.data-source-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.manual-lottery-controls {
+  margin-bottom: 20px;
+}
+
+.auto-load-notice {
+  margin-top: 8px;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.manual-date-input {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.manual-date-input label {
+  font-weight: 500;
+  color: #495057;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.date-picker {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+}
+
+.date-picker:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.btn-load {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-load:hover {
+  background: #138496;
+}
+
+/* CSS cho bảng nhập thủ công */
+.manual-lottery-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.manual-lottery-table .prize-numbers {
+  padding: 8px;
+  position: relative;
+}
+
+.manual-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  background: white;
+  color: #495057;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.manual-input:focus {
+  outline: none;
+  border-color: #007bff;
+  background: #f8f9ff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.manual-input::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+.gdb-input {
+  font-size: 20px;
+  font-weight: 700;
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.gdb-input:focus {
+  border-color: #dc3545;
+  background: #fff5f5;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+/* Responsive cho giao diện nhập thủ công */
+@media (max-width: 768px) {
+  .data-source-selector {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .data-source-buttons {
+    width: 100%;
+  }
+  
+  .data-source-btn {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .manual-date-input {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .date-input {
+    width: 100%;
+  }
+  
+  .manual-input {
+    font-size: 14px;
+    padding: 6px 8px;
+  }
+  
+  .gdb-input {
+    font-size: 18px;
   }
 } 
