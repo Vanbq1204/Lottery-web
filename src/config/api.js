@@ -8,10 +8,22 @@ const API_CONFIG = {
   }
 };
 
+// Cấu hình API bên ngoài
+const EXTERNAL_API_CONFIG = {
+  development: {
+    lotteryAPI: 'https://xoso188.net/api/front/open/lottery/history/list/5/miba'
+  },
+  production: {
+    lotteryAPI: 'https://xoso188.net/api/front/open/lottery/history/list/5/miba'
+  }
+};
+
 const environment = process.env.NODE_ENV || 'development';
 const config = API_CONFIG[environment];
+const externalConfig = EXTERNAL_API_CONFIG[environment];
 
 export const API_BASE_URL = config.baseURL;
+export const EXTERNAL_LOTTERY_API = externalConfig.lotteryAPI;
 
 // Helper function để tạo full API URL
 export const getApiUrl = (endpoint) => {
