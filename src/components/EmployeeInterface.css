@@ -5,6 +5,34 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Merge duplicates checkbox styles */
+.merge-duplicates-section {
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 10px;
+}
+
+.merge-duplicates-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: #495057;
+  user-select: none;
+}
+
+.merge-duplicates-checkbox input[type="checkbox"] {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.merge-duplicates-checkbox span {
+  font-weight: 500;
+}
+
 /* Sidebar Styles */
 .sidebar {
   width: 280px;

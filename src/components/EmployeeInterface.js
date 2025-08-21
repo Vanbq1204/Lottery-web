@@ -74,6 +74,13 @@ const EmployeeInterface = ({ user }) => {
   
   // Hệ số lô động - load từ API
   const [lotoMultiplier, setLotoMultiplier] = useState(22);
+  
+  // Cho phép gộp số trùng
+  const [allowMergeDuplicates, setAllowMergeDuplicates] = useState(() => {
+    const saved = sessionStorage.getItem('allowMergeDuplicates');
+    return saved === 'true';
+  });
+  const [isMerging, setIsMerging] = useState(false);
 
   // Bộ data - 100 bộ với định nghĩa các số
   const BO_DATA = {
@@ -285,10 +292,14 @@ const EmployeeInterface = ({ user }) => {
 
   // Generate unique invoice ID when component mounts or when new invoice needed
   useEffect(() => {
-    if (storeInfo && !currentInvoiceId) {
-      const newInvoiceId = generateUniqueInvoiceId();
-      setCurrentInvoiceId(newInvoiceId);
-    }
+    const generateInvoiceId = async () => {
+      if (storeInfo && !currentInvoiceId) {
+        const newInvoiceId = await generateUniqueInvoiceId();
+        setCurrentInvoiceId(newInvoiceId);
+      }
+    };
+    
+    generateInvoiceId();
   }, [storeInfo, currentInvoiceId]);
 
   // Auto load data when switching to invoice list tab
@@ -337,9 +348,15 @@ const EmployeeInterface = ({ user }) => {
     }
   };
 
-  // Generate unique invoice ID: HD + admin initials + store initials + 4 digits
-  const generateUniqueInvoiceId = () => {
+  // Generate unique invoice ID: HD + admin initials + store initials + 5 digits
+  const generateUniqueInvoiceId = async (retryCount = 0) => {
     if (!storeInfo) return '';
+    
+    // Giới hạn số lần thử để tránh infinite loop
+    if (retryCount > 10) {
+      console.error('Đã thử tạo mã hóa đơn quá nhiều lần, trả về mã mặc định');
+      return `HD${Date.now()}`; // Fallback với timestamp
+    }
     
     // Get admin initials (first letter of each word)
     const adminInitials = storeInfo.adminId?.name 
@@ -351,16 +368,36 @@ const EmployeeInterface = ({ user }) => {
       ? storeInfo.name.split(' ').map(word => word[0]).join('').toUpperCase()
       : 'ST';
     
-    // Generate 4 random digits
-    const randomDigits = Math.floor(1000 + Math.random() * 9000);
+    // Generate 5 random digits (10000-99999)
+    const randomDigits = Math.floor(10000 + Math.random() * 90000);
     
     // Combine: HD + admin + store + digits
-    return `HD${adminInitials}${storeInitials}${randomDigits}`;
+    const invoiceId = `HD${adminInitials}${storeInitials}${randomDigits}`;
+    
+    // Kiểm tra xem mã hóa đơn đã tồn tại chưa
+    try {
+      const response = await axios.get(getApiUrl(`/invoice/check/${invoiceId}`), {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.data.exists) {
+        // Nếu mã đã tồn tại, tạo lại mã mới với retry count tăng lên
+        return await generateUniqueInvoiceId(retryCount + 1);
+      }
+      
+      return invoiceId;
+    } catch (error) {
+      console.error('Lỗi khi kiểm tra mã hóa đơn:', error);
+      // Nếu có lỗi, trả về mã hiện tại để tránh infinite loop
+      return invoiceId;
+    }
   };
 
   // Reset invoice ID for new invoice
-  const generateNewInvoiceId = () => {
-    const newInvoiceId = generateUniqueInvoiceId();
+  const generateNewInvoiceId = async () => {
+    const newInvoiceId = await generateUniqueInvoiceId();
     setCurrentInvoiceId(newInvoiceId);
     return newInvoiceId;
   };
@@ -473,8 +510,8 @@ const EmployeeInterface = ({ user }) => {
     
     const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
     
-    // Check for duplicates within the input (only on blur)
-    if (isBlurValidation) {
+    // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng
+    if (isBlurValidation && !allowMergeDuplicates) {
       const uniqueNumbers = [...new Set(numbers)];
       if (uniqueNumbers.length !== numbers.length) {
         // Find duplicated numbers
@@ -487,7 +524,7 @@ const EmployeeInterface = ({ user }) => {
     switch(betType) {
       case 'loto':
       case '2s':
-        // Validate 2-digit numbers (00-99)
+        // Validate 2-digit numbers (00-99) - luôn kiểm tra format
         for (let num of numbers) {
           // For blur validation, be strict. For real-time, be lenient
           if (isBlurValidation) {
@@ -499,7 +536,7 @@ const EmployeeInterface = ({ user }) => {
         break;
         
       case '3s':
-        // Validate 3-digit numbers (000-999)
+        // Validate 3-digit numbers (000-999) - luôn kiểm tra format
         for (let num of numbers) {
           if (isBlurValidation) {
             if (!/^\d{3}$/.test(num) || parseInt(num) > 999) {
@@ -629,6 +666,11 @@ const EmployeeInterface = ({ user }) => {
 
   // Check for duplicates across all rows of same bet type
   const checkDuplicatesAcrossRows = (betType, currentRowIndex, newValue) => {
+    // Nếu cho phép gộp số trùng, bỏ qua kiểm tra trùng lặp
+    if (allowMergeDuplicates) {
+      return true;
+    }
+    
     const bet = betData[betType];
     const allNumbers = [];
     
@@ -717,12 +759,15 @@ const EmployeeInterface = ({ user }) => {
       setHasUnsavedChanges(true);
     }
     
+    // Gộp số trùng lặp nếu cho phép (chỉ khi onBlur, không phải real-time)
+    // Logic gộp sẽ được xử lý trong handleInputBlur
+    
     // Real-time validation for numbers field
     if (field === 'numbers') {
       const errorKey = `${betType}-${rowIndex}`;
       
-      // Check for duplicates within the input (real-time)
-      if (value.trim()) {
+      // Check for duplicates within the input (real-time) - chỉ khi không cho phép gộp số trùng
+      if (value.trim() && !allowMergeDuplicates) {
         const numbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
         const uniqueNumbers = [...new Set(numbers)];
         
@@ -774,7 +819,7 @@ const EmployeeInterface = ({ user }) => {
           }
         }
       } else {
-        // Clear error if input is empty
+        // Clear error if input is empty or allow merge duplicates
         setValidationErrors(prev => {
           const newErrors = { ...prev };
           delete newErrors[errorKey];
@@ -798,6 +843,166 @@ const EmployeeInterface = ({ user }) => {
         }
       };
     });
+    
+    // Luôn quét và gộp số trùng nếu cho phép gộp và không đang trong quá trình gộp
+    if (allowMergeDuplicates && !isMerging) {
+      setTimeout(() => {
+        mergeDuplicateNumbers(betType);
+      }, 1500); // Đợi 1.5 giây để người dùng có đủ thời gian nhập tiền
+    }
+  };
+
+  // Gộp số trùng lặp trong tất cả các hàng của một bet type
+  const mergeDuplicateNumbers = (betType) => {
+    // Tránh infinite loop
+    if (isMerging) {
+      console.log('⚠️ Đang trong quá trình gộp, bỏ qua');
+      return;
+    }
+    
+    console.log('🔄 Bắt đầu gộp số trùng cho betType:', betType);
+    setIsMerging(true);
+    
+    setBetData(prev => {
+      const bet = prev[betType];
+      const rows = [...bet.rows];
+      
+      // Lọc các hàng có số và điểm/tiền
+      const validRows = rows.filter(row => 
+        row.numbers && row.numbers.trim() && 
+        ((row.points && row.points.trim()) || (row.amount && row.amount.trim()))
+      );
+      
+      if (validRows.length === 0) return prev;
+      
+      // Thu thập tất cả các số và mapping số -> hàng chứa số đó
+      const numberToRowsMap = {}; // số -> array of {rowIndex, points, numbers}
+      
+      validRows.forEach((row, validIndex) => {
+        const actualRowIndex = rows.indexOf(row);
+        const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        const points = parseFloat(row.points || row.amount || 0);
+        
+        console.log(`📋 Hàng ${actualRowIndex}: "${row.numbers}" x${points}n`);
+        
+        numbers.forEach(num => {
+          if (!numberToRowsMap[num]) {
+            numberToRowsMap[num] = [];
+          }
+          numberToRowsMap[num].push({
+            rowIndex: actualRowIndex,
+            points: points,
+            originalNumbers: numbers,
+            row: row
+          });
+        });
+      });
+      
+      // Tìm số trùng lặp (xuất hiện ở nhiều hàng khác nhau HOẶC nhiều lần trong cùng 1 hàng)
+      const duplicateNumbers = [];
+      Object.keys(numberToRowsMap).forEach(num => {
+        const rowsWithThisNumber = numberToRowsMap[num];
+        
+        // Kiểm tra xem số này có xuất hiện ở nhiều hàng khác nhau không
+        const uniqueRowIndexes = [...new Set(rowsWithThisNumber.map(item => item.rowIndex))];
+        
+        // Kiểm tra xem số này có xuất hiện nhiều lần trong cùng 1 hàng không
+        const hasMultipleInSameRow = rowsWithThisNumber.some(item => {
+          const countInRow = item.originalNumbers.filter(n => n === num).length;
+          return countInRow > 1;
+        });
+        
+        if (uniqueRowIndexes.length > 1 || hasMultipleInSameRow) {
+          duplicateNumbers.push(num);
+        }
+      });
+      
+      console.log('📊 Số trùng lặp tìm thấy:', duplicateNumbers);
+      console.log('📊 Mapping số -> hàng:', numberToRowsMap);
+      
+      if (duplicateNumbers.length === 0) return prev; // Không có số trùng
+      
+      // Xử lý gộp số trùng
+      const newRows = [...rows];
+      const newRowsToAdd = [];
+      
+      duplicateNumbers.forEach(duplicateNum => {
+        const rowsWithThisNumber = numberToRowsMap[duplicateNum];
+        
+        // Lấy danh sách hàng duy nhất có chứa số này
+        const uniqueRowIndexes = [...new Set(rowsWithThisNumber.map(item => item.rowIndex))];
+        
+        console.log(`🔍 Số ${duplicateNum} xuất hiện ở các hàng: ${uniqueRowIndexes.join(', ')}`);
+        
+        // Tính tổng điểm và số lần xuất hiện
+        let totalPoints = 0;
+        let totalOccurrences = 0;
+        
+        uniqueRowIndexes.forEach(rowIndex => {
+          const row = newRows[rowIndex];
+          if (row) {
+            const points = parseFloat(row.points || row.amount || 0);
+            const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const occurrencesInRow = numbers.filter(n => n === duplicateNum).length;
+            
+            totalPoints += points * occurrencesInRow;
+            totalOccurrences += occurrencesInRow;
+            
+            console.log(`📊 Hàng ${rowIndex} có ${occurrencesInRow} lần số ${duplicateNum}, đóng góp ${points * occurrencesInRow}n`);
+          }
+        });
+        
+        console.log(`📊 Số ${duplicateNum} xuất hiện ${totalOccurrences} lần, tổng điểm: ${totalPoints}n`);
+        
+        // Xóa số trùng khỏi tất cả các hàng có chứa nó
+        uniqueRowIndexes.forEach(rowIndex => {
+          const row = newRows[rowIndex];
+          if (row && row.numbers) {
+            const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const remainingNumbers = numbers.filter(n => n !== duplicateNum);
+            
+            newRows[rowIndex] = {
+              ...row,
+              numbers: remainingNumbers.join(' ').trim()
+            };
+            
+            console.log(`📊 Xóa số ${duplicateNum} khỏi hàng ${rowIndex}, còn lại: "${remainingNumbers.join(' ')}"`);
+          }
+        });
+        
+        // Tạo hàng mới cho số trùng
+        const newRow = betType === 'loto' 
+          ? { numbers: duplicateNum, points: totalPoints.toString() }
+          : { numbers: duplicateNum, amount: totalPoints.toString() };
+        
+        newRowsToAdd.push(newRow);
+        console.log(`✅ Tạo hàng mới cho số ${duplicateNum}: ${totalPoints}n`);
+      });
+      
+      // Thêm các hàng mới vào cuối
+      const allRows = [...newRows, ...newRowsToAdd];
+      
+      // Lọc bỏ các hàng trống (không có số)
+      const filteredRows = allRows.filter(row => 
+        (betType === 'bo' && row.boName && row.count && row.amount) ||
+        (betType !== 'bo' && row.numbers && row.numbers.trim())
+      );
+      
+      console.log('📊 Kết quả sau khi gộp:', filteredRows);
+      
+      return {
+        ...prev,
+        [betType]: {
+          quantity: filteredRows.length,
+          rows: filteredRows
+        }
+      };
+    });
+    
+    // Reset flag sau khi hoàn thành
+    setTimeout(() => {
+      setIsMerging(false);
+    }, 100);
   };
 
   // Handle bo name change - special handler for bo bet type
@@ -911,6 +1116,101 @@ const EmployeeInterface = ({ user }) => {
   // Handle input blur - validate when user leaves the input field
   const handleInputBlur = (betType, rowIndex, field, value, event) => {
     if (field === 'numbers') {
+      // Gộp số trùng lặp nếu cho phép và đã có điểm/tiền
+      if (allowMergeDuplicates && value.trim()) {
+        const currentRow = betData[betType].rows[rowIndex];
+        const hasPoints = (currentRow.points && currentRow.points.trim() !== '') || 
+                         (currentRow.amount && currentRow.amount.trim() !== '');
+        
+        if (hasPoints) {
+          setTimeout(() => {
+            const numbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const numberCounts = {};
+            
+            // Đếm số lần xuất hiện của mỗi số
+            numbers.forEach(num => {
+              numberCounts[num] = (numberCounts[num] || 0) + 1;
+            });
+            
+            // Tách số trùng và không trùng
+            const duplicateNumbers = [];
+            const uniqueNumbers = [];
+            
+            Object.entries(numberCounts).forEach(([num, count]) => {
+              if (count > 1) {
+                duplicateNumbers.push(num);
+              } else {
+                uniqueNumbers.push(num);
+              }
+            });
+            
+            // Cập nhật betData
+            setBetData(prev => {
+              const newRows = [...prev[betType].rows];
+              const currentRow = newRows[rowIndex];
+              
+              // Hàng hiện tại chỉ giữ số không trùng
+              newRows[rowIndex] = {
+                ...currentRow,
+                numbers: uniqueNumbers.join(' ')
+              };
+              
+              // Nếu có số trùng, tạo hàng mới cho số trùng
+              if (duplicateNumbers.length > 0) {
+                // Tính điểm mới cho số trùng
+                const currentPoints = parseFloat(currentRow.points || currentRow.amount || 0);
+                
+                // Tính tổng số lần xuất hiện của các số trùng
+                let totalDuplicateCount = 0;
+                duplicateNumbers.forEach(num => {
+                  totalDuplicateCount += numberCounts[num];
+                });
+                
+                const newPoints = currentPoints * totalDuplicateCount;
+                
+                // Tạo hàng mới cho số trùng
+                const newRow = betType === 'loto' 
+                  ? { numbers: duplicateNumbers.join(' '), points: newPoints.toString() }
+                  : { numbers: duplicateNumbers.join(' '), amount: newPoints.toString() };
+                
+                newRows.push(newRow);
+                
+                // Cập nhật quantity
+                return {
+                  ...prev,
+                  [betType]: {
+                    quantity: prev[betType].quantity + 1,
+                    rows: newRows
+                  }
+                };
+              }
+              
+              return {
+                ...prev,
+                [betType]: {
+                  ...prev[betType],
+                  rows: newRows
+                }
+              };
+            });
+          }, 1500); // Đợi 1.5 giây để đồng bộ với các trigger khác
+          
+          // Cập nhật value để sử dụng cho validation (chỉ số không trùng) - tạm thời
+          const numbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
+          const numberCounts = {};
+          numbers.forEach(num => {
+            numberCounts[num] = (numberCounts[num] || 0) + 1;
+          });
+          const uniqueNumbers = [];
+          Object.entries(numberCounts).forEach(([num, count]) => {
+            if (count === 1) {
+              uniqueNumbers.push(num);
+            }
+          });
+          value = uniqueNumbers.join(' ');
+        }
+      }
+      
       // Validate the input
       const validation = validateNumbers(betType, value, true);
       const errorKey = `${betType}-${rowIndex}`;
@@ -932,8 +1232,8 @@ const EmployeeInterface = ({ user }) => {
         return;
       }
       
-      // Check for duplicates across rows
-      if (!checkDuplicatesAcrossRows(betType, rowIndex, value)) {
+      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng)
+      if (!allowMergeDuplicates && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
         // Find which numbers are duplicated
         const currentNumbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
         const bet = betData[betType];
@@ -981,6 +1281,91 @@ const EmployeeInterface = ({ user }) => {
         delete newErrors[errorKey];
         return newErrors;
       });
+    }
+    
+    // Nếu đang nhập điểm/tiền và cho phép gộp số trùng, kiểm tra và gộp số trùng với delay
+    if ((field === 'points' || field === 'amount') && allowMergeDuplicates) {
+      const currentRow = betData[betType].rows[rowIndex];
+      const numbers = currentRow.numbers;
+      
+      if (numbers && numbers.trim()) {
+        setTimeout(() => {
+          const numberArray = numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+          const numberCounts = {};
+          
+          // Đếm số lần xuất hiện của mỗi số
+          numberArray.forEach(num => {
+            numberCounts[num] = (numberCounts[num] || 0) + 1;
+          });
+          
+          // Kiểm tra xem có số trùng không
+          const hasDuplicates = Object.values(numberCounts).some(count => count > 1);
+          
+          if (hasDuplicates) {
+            // Tách số trùng và không trùng
+            const duplicateNumbers = [];
+            const uniqueNumbers = [];
+            
+            Object.entries(numberCounts).forEach(([num, count]) => {
+              if (count > 1) {
+                duplicateNumbers.push(num);
+              } else {
+                uniqueNumbers.push(num);
+              }
+            });
+            
+            // Cập nhật betData
+            setBetData(prev => {
+              const newRows = [...prev[betType].rows];
+              const currentRow = newRows[rowIndex];
+              
+              // Hàng hiện tại chỉ giữ số không trùng
+              newRows[rowIndex] = {
+                ...currentRow,
+                numbers: uniqueNumbers.join(' ')
+              };
+              
+              // Nếu có số trùng, tạo hàng mới cho số trùng
+              if (duplicateNumbers.length > 0) {
+                // Tính điểm mới cho số trùng
+                const currentPoints = parseFloat(currentRow.points || currentRow.amount || 0);
+                
+                // Tính tổng số lần xuất hiện của các số trùng
+                let totalDuplicateCount = 0;
+                duplicateNumbers.forEach(num => {
+                  totalDuplicateCount += numberCounts[num];
+                });
+                
+                const newPoints = currentPoints * totalDuplicateCount;
+                
+                // Tạo hàng mới cho số trùng
+                const newRow = betType === 'loto' 
+                  ? { numbers: duplicateNumbers.join(' '), points: newPoints.toString() }
+                  : { numbers: duplicateNumbers.join(' '), amount: newPoints.toString() };
+                
+                newRows.push(newRow);
+                
+                // Cập nhật quantity
+                return {
+                  ...prev,
+                  [betType]: {
+                    quantity: prev[betType].quantity + 1,
+                    rows: newRows
+                  }
+                };
+              }
+              
+              return {
+                ...prev,
+                [betType]: {
+                  ...prev[betType],
+                  rows: newRows
+                }
+              };
+            });
+          }
+        }, 1500); // Đợi 1.5 giây để người dùng có đủ thời gian nhập tiền
+      }
     }
   };
 
@@ -1444,7 +1829,13 @@ const EmployeeInterface = ({ user }) => {
       }
     } catch (error) {
       console.error('Load invoice error:', error);
-      alert('Không thể tải hóa đơn: ' + error.message);
+      
+      // Xử lý lỗi 404 - hóa đơn không tồn tại
+      if (error.response?.status === 404) {
+        alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
+      } else {
+        alert('Không thể tải hóa đơn: ' + (error.response?.data?.message || error.message));
+      }
     }
   };
 
@@ -1538,13 +1929,19 @@ const EmployeeInterface = ({ user }) => {
 
   // Delete invoice
   const deleteInvoice = async () => {
-    const invoiceIdToDelete = prompt('Nhập mã hóa đơn cần xóa (có thể nhập 4 số cuối, vd: 7710):');
+    const invoiceIdToDelete = prompt('Nhập mã hóa đơn cần xóa (có thể nhập 5 số cuối, vd: 12345):');
     if (!invoiceIdToDelete) return;
 
     let finalInvoiceId = invoiceIdToDelete.trim();
     
-    // Nếu chỉ là số và ngắn hơn 10 ký tự, tìm hóa đơn theo số cuối
-    if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length < 10) {
+    // Kiểm tra nếu nhập số nhưng không đúng 5 số
+    if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length !== 5) {
+      alert('Vui lòng nhập đúng 5 số cuối của mã hóa đơn!');
+      return;
+    }
+    
+    // Nếu chỉ là số và có đúng 5 số, tìm hóa đơn theo số cuối
+    if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length === 5) {
       // Tìm hóa đơn trong danh sách hiện tại theo số cuối
       const foundInvoice = invoiceList.find(invoice => 
         invoice.invoiceId.endsWith(finalInvoiceId)
@@ -1553,8 +1950,9 @@ const EmployeeInterface = ({ user }) => {
       if (foundInvoice) {
         finalInvoiceId = foundInvoice.invoiceId;
       } else {
-        // Nếu không tìm thấy, thêm prefix mặc định
-        finalInvoiceId = `HDAS1CHXSS${finalInvoiceId}`;
+        // Nếu không tìm thấy, báo lỗi và dừng
+        alert(`Không tìm thấy hóa đơn có mã kết thúc bằng ${finalInvoiceId}. Vui lòng kiểm tra lại mã hóa đơn.`);
+        return;
       }
     }
 
@@ -1583,7 +1981,13 @@ const EmployeeInterface = ({ user }) => {
       }
     } catch (error) {
       console.error('Delete invoice error:', error);
-      alert('Lỗi khi xóa hóa đơn: ' + error.message);
+      
+      // Xử lý lỗi 404 - hóa đơn không tồn tại
+      if (error.response?.status === 404) {
+        alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
+      } else {
+        alert('Lỗi khi xóa hóa đơn: ' + (error.response?.data?.message || error.message));
+      }
     }
   };
 
@@ -1956,12 +2360,18 @@ const EmployeeInterface = ({ user }) => {
 
   // Edit invoice function
   const editInvoice = () => {
-    const invoiceIdInput = prompt('Nhập mã hóa đơn cần sửa (có thể nhập 4 số cuối, vd: 7710):');
+    const invoiceIdInput = prompt('Nhập mã hóa đơn cần sửa (có thể nhập 5 số cuối, vd: 12345):');
     if (invoiceIdInput) {
       let invoiceIdToEdit = invoiceIdInput.trim();
       
-      // Nếu chỉ là số và ngắn hơn 10 ký tự, tìm hóa đơn theo số cuối
-      if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length < 10) {
+      // Kiểm tra nếu nhập số nhưng không đúng 5 số
+      if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length !== 5) {
+        alert('Vui lòng nhập đúng 5 số cuối của mã hóa đơn!');
+        return;
+      }
+      
+      // Nếu chỉ là số và có đúng 5 số, tìm hóa đơn theo số cuối
+      if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length === 5) {
         // Tìm hóa đơn trong danh sách hiện tại theo số cuối
         const foundInvoice = invoiceList.find(invoice => 
           invoice.invoiceId.endsWith(invoiceIdToEdit)
@@ -1970,8 +2380,9 @@ const EmployeeInterface = ({ user }) => {
         if (foundInvoice) {
           invoiceIdToEdit = foundInvoice.invoiceId;
         } else {
-          // Nếu không tìm thấy, thêm prefix mặc định
-          invoiceIdToEdit = `HDAS1CHXSS${invoiceIdToEdit}`;
+          // Nếu không tìm thấy, báo lỗi và dừng
+          alert(`Không tìm thấy hóa đơn có mã kết thúc bằng ${invoiceIdToEdit}. Vui lòng kiểm tra lại mã hóa đơn.`);
+          return;
         }
       }
       
@@ -2144,7 +2555,9 @@ const EmployeeInterface = ({ user }) => {
         });
         
         // Generate new invoice ID for next transaction
-        generateNewInvoiceId();
+        generateNewInvoiceId().catch(error => {
+          console.error('Lỗi khi tạo mã hóa đơn mới:', error);
+        });
       }, 1500); // Wait a bit for print dialog to appear
 
     } catch (error) {
@@ -2197,7 +2610,9 @@ const EmployeeInterface = ({ user }) => {
     });
     
     // Generate new invoice ID
-    generateNewInvoiceId();
+    generateNewInvoiceId().catch(error => {
+      console.error('Lỗi khi tạo mã hóa đơn mới:', error);
+    });
   };
 
   const deleteInvoiceByDate = () => {
@@ -2483,6 +2898,33 @@ const EmployeeInterface = ({ user }) => {
     <div className="betting-main-container">
       {/* Left side - Betting Form */}
       <div className="betting-form-section">
+        {/* Checkbox cho phép gộp số trùng */}
+        <div className="merge-duplicates-section">
+          <label className="merge-duplicates-checkbox">
+            <input
+              type="checkbox"
+              checked={allowMergeDuplicates}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setAllowMergeDuplicates(checked);
+                
+                // Lưu vào sessionStorage
+                sessionStorage.setItem('allowMergeDuplicates', checked.toString());
+                
+                // Nếu bật checkbox, gộp tất cả bet types với delay
+                if (checked) {
+                  setTimeout(() => {
+                    ['loto', '2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay'].forEach(betType => {
+                      mergeDuplicateNumbers(betType);
+                    });
+                  }, 1500); // Đợi 1.5 giây để đồng bộ với các logic gộp khác
+                }
+              }}
+            />
+            <span>Cho phép gộp số trùng</span>
+          </label>
+        </div>
+        
         <div className="form-header-info">
           <div className="bill-info">
             <div><strong>Mã hóa đơn:</strong> {currentInvoiceId}</div>

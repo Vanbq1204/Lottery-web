@@ -17,7 +17,6 @@ const BettingInterface = ({ user }) => {
   const [bets, setBets] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [mergeMessage, setMergeMessage] = useState('');
 
   const betTypes = {
     lo2so: 'Lô 2 số',
@@ -46,169 +45,19 @@ const BettingInterface = ({ user }) => {
     });
   };
 
-  // Hàm gộp số trùng lặp cho loto 2s, 3s
-  const mergeDuplicateNumbers = (numbers, amount, betType) => {
-    if (betType !== 'lo2so' && betType !== 'lo3so') {
-      return [{ numbers, amount }];
-    }
-
-    // Tách các số thành mảng
-    const numberArray = numbers.split(/[\s,]+/).filter(num => num.trim() !== '');
-    const amountPerNumber = parseFloat(amount) / numberArray.length;
-
-    // Đếm số lần xuất hiện của mỗi số
-    const numberCount = {};
-    numberArray.forEach(num => {
-      numberCount[num] = (numberCount[num] || 0) + 1;
-    });
-
-    // Tạo kết quả gộp
-    const mergedResults = [];
-    const processedNumbers = new Set();
-
-    // Xử lý các số không trùng lặp trước
-    Object.keys(numberCount).forEach(num => {
-      if (numberCount[num] === 1) {
-        mergedResults.push({
-          numbers: num,
-          amount: amountPerNumber.toString()
-        });
-      }
-    });
-
-    // Xử lý các số trùng lặp
-    Object.keys(numberCount).forEach(num => {
-      if (numberCount[num] > 1) {
-        mergedResults.push({
-          numbers: num,
-          amount: (amountPerNumber * numberCount[num]).toString()
-        });
-      }
-    });
-
-    // Hiển thị thông báo nếu có số trùng lặp
-    const duplicateNumbers = Object.keys(numberCount).filter(num => numberCount[num] > 1);
-    if (duplicateNumbers.length > 0) {
-      setMergeMessage(`✅ Đã gộp số trùng lặp trong lần nhập: ${duplicateNumbers.join(', ')}`);
-      setTimeout(() => setMergeMessage(''), 3000);
-    }
-
-    return mergedResults;
-  };
-
-  // Hàm gộp với các cược đã có
-  const mergeWithExistingBets = (newNumbers, newAmount, betType) => {
-    if (betType !== 'lo2so' && betType !== 'lo3so') {
-      return false; // Không gộp cho các loại cược khác
-    }
-
-    const newNumberArray = newNumbers.split(/[\s,]+/).filter(num => num.trim() !== '');
-    const newAmountPerNumber = parseFloat(newAmount) / newNumberArray.length;
-    
-    let hasMerged = false;
-    const updatedBets = [...bets];
-
-    // Kiểm tra từng cược hiện tại
-    for (let i = 0; i < updatedBets.length; i++) {
-      const existingBet = updatedBets[i];
-      if (existingBet.betType === betType) {
-        const existingNumbers = existingBet.numbers.split(/[\s,]+/).filter(num => num.trim() !== '');
-        
-        // Kiểm tra xem có số nào trùng không
-        const commonNumbers = newNumberArray.filter(num => existingNumbers.includes(num));
-        
-        if (commonNumbers.length > 0) {
-          // Có số trùng, thực hiện gộp
-          hasMerged = true;
-          
-          // Tách các số không trùng
-          const nonCommonNumbers = newNumberArray.filter(num => !existingNumbers.includes(num));
-          
-          // Cập nhật số tiền cho số trùng
-          commonNumbers.forEach(commonNum => {
-            const existingAmount = parseFloat(existingBet.amount);
-            const newAmountForCommon = newAmountPerNumber;
-            existingBet.amount = (existingAmount + newAmountForCommon).toString();
-          });
-          
-          // Thêm các số không trùng thành cược mới
-          if (nonCommonNumbers.length > 0) {
-            const nonCommonAmount = nonCommonNumbers.length * newAmountPerNumber;
-            const newBet = {
-              ...betData,
-              numbers: nonCommonNumbers.join(' '),
-              amount: nonCommonAmount.toString(),
-              id: Date.now(),
-              timestamp: new Date().toLocaleTimeString()
-            };
-            updatedBets.push(newBet);
-          }
-          
-          break; // Chỉ gộp với cược đầu tiên tìm thấy
-        }
-      }
-    }
-
-    if (hasMerged) {
-      const cleanedBets = cleanupBets(updatedBets);
-      setBets(cleanedBets);
-      setMergeMessage(`✅ Đã gộp số trùng lặp: ${commonNumbers.join(', ')}`);
-      setTimeout(() => setMergeMessage(''), 3000); // Tự động ẩn sau 3 giây
-      return true;
-    }
-    
-    return false;
-  };
-
-  // Hàm dọn dẹp và sắp xếp lại danh sách cược
-  const cleanupBets = (betsList) => {
-    return betsList
-      .filter(bet => bet.numbers && bet.numbers.trim() !== '' && bet.amount && parseFloat(bet.amount) > 0)
-      .map((bet, index) => ({
-        ...bet,
-        id: Date.now() + index // Đảm bảo ID duy nhất và sắp xếp
-      }));
-  };
-
   const addBet = () => {
     if (!betData.numbers || !betData.amount) {
       alert('Vui lòng nhập đầy đủ số và tiền cược');
       return;
     }
 
-    // Xử lý gộp số trùng lặp cho loto 2s, 3s
-    if (betData.betType === 'lo2so' || betData.betType === 'lo3so') {
-      // Trước tiên thử gộp với các cược đã có
-      const mergedWithExisting = mergeWithExistingBets(betData.numbers, betData.amount, betData.betType);
-      
-      if (!mergedWithExisting) {
-        // Nếu không gộp được với cược đã có, xử lý gộp trong cùng một lần nhập
-        const mergedBets = mergeDuplicateNumbers(betData.numbers, betData.amount, betData.betType);
-        
-        const newBets = mergedBets.map((mergedBet, index) => ({
-          ...betData,
-          numbers: mergedBet.numbers,
-          amount: mergedBet.amount,
-          id: Date.now() + index, // Đảm bảo ID duy nhất
-          timestamp: new Date().toLocaleTimeString()
-        }));
+    const newBet = {
+      ...betData,
+      id: Date.now(),
+      timestamp: new Date().toLocaleTimeString()
+    };
 
-        const allBets = [...bets, ...newBets];
-        const cleanedBets = cleanupBets(allBets);
-        setBets(cleanedBets);
-      }
-    } else {
-      // Xử lý bình thường cho các loại cược khác
-      const newBet = {
-        ...betData,
-        id: Date.now(),
-        timestamp: new Date().toLocaleTimeString()
-      };
-
-      const allBets = [...bets, newBet];
-      const cleanedBets = cleanupBets(allBets);
-      setBets(cleanedBets);
-    }
+    setBets([...bets, newBet]);
     
     // Reset form trừ thông tin khách hàng
     setBetData({
@@ -311,18 +160,6 @@ const BettingInterface = ({ user }) => {
 
           <div className="bet-form">
             <h3>Thông tin cược</h3>
-            {mergeMessage && (
-              <div className="merge-message" style={{
-                backgroundColor: '#e8f5e8',
-                color: '#2d5a2d',
-                padding: '10px',
-                borderRadius: '5px',
-                marginBottom: '15px',
-                border: '1px solid #4caf50'
-              }}>
-                {mergeMessage}
-              </div>
-            )}
             <div className="form-row">
               <div className="form-group">
                 <label>Loại cược</label>
