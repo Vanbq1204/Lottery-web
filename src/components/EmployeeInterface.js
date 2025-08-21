@@ -555,6 +555,14 @@ const EmployeeInterface = ({ user }) => {
               return { isValid: false, message: 'Chỉ được nhập tổng từ 0 đến 9' };
             }
           }
+          
+          // Kiểm tra trùng lặp cho tổng (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
+          const uniqueNumbers = [...new Set(numbers)];
+          if (uniqueNumbers.length !== numbers.length) {
+            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return { isValid: false, message: `Tổng ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+          }
         }
         break;
         
@@ -565,6 +573,14 @@ const EmployeeInterface = ({ user }) => {
             if (!['bằng', 'bang', 'lệch', 'lech'].includes(item.toLowerCase())) {
               return { isValid: false, message: 'Chỉ được nhập "bằng" hoặc "lệch"' };
             }
+          }
+          
+          // Kiểm tra trùng lặp cho kép (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
+          const uniqueNumbers = [...new Set(numbers)];
+          if (uniqueNumbers.length !== numbers.length) {
+            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return { isValid: false, message: `Kép ${uniqueDuplicates.join(', ')} bị trùng lặp` };
           }
         }
         break;
@@ -578,6 +594,14 @@ const EmployeeInterface = ({ user }) => {
               return { isValid: false, message: 'Chỉ được nhập đầu từ 0 đến 9' };
             }
           }
+          
+          // Kiểm tra trùng lặp cho đầu (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
+          const uniqueNumbers = [...new Set(numbers)];
+          if (uniqueNumbers.length !== numbers.length) {
+            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return { isValid: false, message: `Đầu ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+          }
         }
         break;
         
@@ -589,6 +613,14 @@ const EmployeeInterface = ({ user }) => {
             if (!/^[0-9]$/.test(cleanNum)) {
               return { isValid: false, message: 'Chỉ được nhập đít từ 0 đến 9' };
             }
+          }
+          
+          // Kiểm tra trùng lặp cho đít (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
+          const uniqueNumbers = [...new Set(numbers)];
+          if (uniqueNumbers.length !== numbers.length) {
+            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return { isValid: false, message: `Đít ${uniqueDuplicates.join(', ')} bị trùng lặp` };
           }
         }
         break;
@@ -1094,6 +1126,29 @@ const EmployeeInterface = ({ user }) => {
       return newErrors;
     });
 
+    // Check for duplicate bo names across all rows
+    const currentRows = betData[betType].rows;
+    const duplicateBoNames = currentRows.filter((row, index) => 
+      index !== rowIndex && row.boName === trimmedValue
+    );
+    
+    if (duplicateBoNames.length > 0) {
+      const errorKey = `${betType}-${rowIndex}`;
+      setValidationErrors(prev => ({
+        ...prev,
+        [errorKey]: `Bộ ${trimmedValue} đã được nhập ở hàng khác`
+      }));
+      
+      setTimeout(() => {
+        const inputRef = inputRefs.current[errorKey];
+        if (inputRef) {
+          inputRef.focus();
+          inputRef.select();
+        }
+      }, 100);
+      return;
+    }
+
     // Update count based on bo data
     const boNumbers = BO_DATA[trimmedValue];
     setBetData(prev => {
@@ -1232,8 +1287,8 @@ const EmployeeInterface = ({ user }) => {
         return;
       }
       
-      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng)
-      if (!allowMergeDuplicates && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
+      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s)
+      if (!(allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
         // Find which numbers are duplicated
         const currentNumbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
         const bet = betData[betType];
