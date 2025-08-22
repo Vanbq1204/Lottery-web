@@ -106,8 +106,8 @@ const PrizeSettings = () => {
     const multiplier = parseFloat(formData.get('multiplier'));
     const description = formData.get('description');
     
-    if (!multiplier || multiplier <= 0) {
-      alert('Vui lòng nhập hệ số hợp lệ (lớn hơn 0)');
+    if (isNaN(multiplier) || multiplier < 0) {
+      alert('Vui lòng nhập hệ số hợp lệ (≥ 0)');
       return;
     }
     

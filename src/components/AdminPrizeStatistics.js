@@ -67,6 +67,10 @@ const AdminPrizeStatistics = () => {
       <div className="admin-prize-loto-stats">
         <div className="admin-prize-stats-summary">
           <div className="admin-prize-summary-card">
+            <h4>Tổng điểm thưởng</h4>
+            <div className="admin-prize-amount">{lotoStats.totalPoints ? `${lotoStats.totalPoints}đ` : '0đ'}</div>
+          </div>
+          <div className="admin-prize-summary-card">
             <h4>Tổng thưởng lô tô</h4>
             <div className="admin-prize-amount">{formatMoney(lotoStats.totalPrize)}</div>
           </div>
