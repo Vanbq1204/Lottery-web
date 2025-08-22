@@ -48,10 +48,10 @@ const EmployeeInterface = ({ user }) => {
   // Get current date in DD/MM/YYYY format for Vietnam
   const getCurrentVietnamDateFormatted = () => {
     const now = new Date();
-    const vietnamTime = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // Add 7 hours
-    const day = String(vietnamTime.getDate()).padStart(2, '0');
-    const month = String(vietnamTime.getMonth() + 1).padStart(2, '0');
-    const year = vietnamTime.getFullYear();
+    // Sử dụng toLocaleDateString để lấy ngày theo múi giờ local (không cộng thêm giờ)
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
     return `${day}/${month}/${year}`;
   };
 
@@ -184,7 +184,12 @@ const EmployeeInterface = ({ user }) => {
     '96': [96, 69, 91, 19, 46, 64, 41, 14],
     '97': [97, 79, 92, 29, 47, 74, 42, 24],
     '98': [98, 89, 93, 39, 48, 84, 43, 34],
-    '99': [99, 94, 49, 44]
+    '99': [99, 94, 49, 44],
+    // Các bộ chẵn lẻ
+    'chanle': [1, 3, 5, 7, 9, 21, 23, 25, 27, 29, 41, 43, 45, 47, 49, 61, 63, 65, 67, 69, 81, 83, 85, 87, 89],
+    'lechan': [10, 12, 14, 16, 18, 30, 32, 34, 36, 38, 50, 52, 54, 56, 58, 70, 72, 74, 76, 78, 90, 92, 94, 96, 98],
+    'lele': [11, 13, 15, 17, 19, 31, 33, 35, 37, 39, 51, 53, 55, 57, 59, 71, 73, 75, 77, 79, 91, 93, 95, 97, 99],
+    'chanchan': [0, 2, 4, 6, 8, 20, 22, 24, 26, 28, 40, 42, 44, 46, 48, 60, 62, 64, 66, 68, 80, 82, 84, 86, 88]
   };
 
   // Bet data for each type with dynamic rows
@@ -705,6 +710,30 @@ const EmployeeInterface = ({ user }) => {
     }
     
     const bet = betData[betType];
+    
+    // Xử lý đặc biệt cho bộ
+    if (betType === 'bo') {
+      const allBoNames = [];
+      
+      bet.rows.forEach((row, index) => {
+        if (index === currentRowIndex) {
+          // Use the new value for current row
+          if (newValue.trim()) {
+            allBoNames.push(newValue.trim());
+          }
+        } else {
+          // Use existing value for other rows
+          if (row.boName && row.boName.trim()) {
+            allBoNames.push(row.boName.trim());
+          }
+        }
+      });
+      
+      const uniqueBoNames = [...new Set(allBoNames)];
+      return uniqueBoNames.length === allBoNames.length;
+    }
+    
+    // Xử lý cho các loại cược khác
     const allNumbers = [];
     
     bet.rows.forEach((row, index) => {
@@ -738,7 +767,7 @@ const EmployeeInterface = ({ user }) => {
       // Check rows that would be removed
       const rowsToRemove = currentRows.slice(quantity);
       const hasDataInRemovedRows = rowsToRemove.some(row => 
-        row.numbers.trim() !== '' || (row.points && row.points.trim() !== '') || (row.amount && row.amount.trim() !== '')
+        row.numbers.trim() !== '' || (row.points && row.points.toString().trim() !== '') || (row.amount && row.amount.toString().trim() !== '')
       );
       
       if (hasDataInRemovedRows) {
@@ -903,7 +932,7 @@ const EmployeeInterface = ({ user }) => {
       // Lọc các hàng có số và điểm/tiền
       const validRows = rows.filter(row => 
         row.numbers && row.numbers.trim() && 
-        ((row.points && row.points.trim()) || (row.amount && row.amount.trim()))
+        ((row.points && row.points.toString().trim()) || (row.amount && row.amount.toString().trim()))
       );
       
       if (validRows.length === 0) return prev;
@@ -1083,12 +1112,13 @@ const EmployeeInterface = ({ user }) => {
       return;
     }
 
-    // Validate bo name format (00-99)
-    if (!/^\d{2}$/.test(trimmedValue)) {
+    // Validate bo name format (00-99 hoặc chanle, lechan, lele, chanchan)
+    const isValidBoName = /^\d{2}$/.test(trimmedValue) || ['chanle', 'lechan', 'lele', 'chanchan'].includes(trimmedValue);
+    if (!isValidBoName) {
       const errorKey = `${betType}-${rowIndex}`;
       setValidationErrors(prev => ({
         ...prev,
-        [errorKey]: 'Tên bộ phải là số từ 00 đến 99'
+        [errorKey]: 'Tên bộ phải là số từ 00 đến 99 hoặc chanle, lechan, lele, chanchan'
       }));
       
       setTimeout(() => {
@@ -1175,8 +1205,8 @@ const EmployeeInterface = ({ user }) => {
       // Gộp số trùng lặp nếu cho phép và đã có điểm/tiền (chỉ cho loto, 2s, 3s)
       if (allowMergeDuplicates && !isLoadingInvoice && value.trim() && ['loto', '2s', '3s'].includes(betType)) {
         const currentRow = betData[betType].rows[rowIndex];
-        const hasPoints = (currentRow.points && currentRow.points.trim() !== '') || 
-                         (currentRow.amount && currentRow.amount.trim() !== '');
+        const hasPoints = (currentRow.points && currentRow.points.toString().trim() !== '') || 
+                         (currentRow.amount && currentRow.amount.toString().trim() !== '');
         
         if (hasPoints) {
           setTimeout(() => {
@@ -1843,9 +1873,21 @@ const EmployeeInterface = ({ user }) => {
             newBetData[betType] = {
               quantity: items.length,
               rows: items.map(item => {
-                // Parse "Bộ 12" to get boName "12"
-                const boMatch = item.numbers ? item.numbers.match(/Bộ (\d+)/) : null;
-                const boName = boMatch ? boMatch[1] : '';
+                // Parse "Bộ 12" hoặc "Bộ chanle" để lấy tên bộ
+                let boName = '';
+                if (item.numbers) {
+                  // Thử parse bộ số thường (Bộ 12)
+                  const boMatch = item.numbers.match(/Bộ (\d+)/);
+                  if (boMatch) {
+                    boName = boMatch[1];
+                  } else {
+                    // Thử parse bộ chẵn lẻ (Bộ chanle, lechan, lele, chanchan)
+                    const boChanLeMatch = item.numbers.match(/Bộ (chanle|lechan|lele|chanchan)/);
+                    if (boChanLeMatch) {
+                      boName = boChanLeMatch[1];
+                    }
+                  }
+                }
                 const count = boName && BO_DATA[boName] ? BO_DATA[boName].length.toString() : '';
                 
                 return {
@@ -1917,11 +1959,16 @@ const EmployeeInterface = ({ user }) => {
         let amount = null;
 
         if (item.type === 'bo') {
-          // For bo type: "Bộ 03 (8 số x 12n)"
+          // For bo type: "Bộ 03 (8 số x 12n)" hoặc "Bộ chanle (25 số x 12n)"
           const boMatch = item.displayNumbers.match(/Bộ (\d+) \((\d+) số x (\d+\.?\d*)n\)/);
+          const boChanLeMatch = item.displayNumbers.match(/Bộ (chanle|lechan|lele|chanchan) \((\d+) số x (\d+\.?\d*)n\)/);
+          
           if (boMatch) {
             numbers = `Bộ ${boMatch[1]}`;
             amount = parseFloat(boMatch[3]);
+          } else if (boChanLeMatch) {
+            numbers = `Bộ ${boChanLeMatch[1]}`;
+            amount = parseFloat(boChanLeMatch[3]);
           }
         } else if (item.type === 'loto') {
           // For loto type: "12, 13 (x20đ)"
@@ -2510,11 +2557,16 @@ const EmployeeInterface = ({ user }) => {
         let amount = null;
 
         if (item.type === 'bo') {
-          // For bo type: "Bộ 12 (8 số x 20n)"
+          // For bo type: "Bộ 12 (8 số x 20n)" hoặc "Bộ chanle (25 số x 20n)"
           const boMatch = item.displayNumbers.match(/Bộ (\d+) \((\d+) số x (\d+)n\)/);
+          const boChanLeMatch = item.displayNumbers.match(/Bộ (chanle|lechan|lele|chanchan) \((\d+) số x (\d+)n\)/);
+          
           if (boMatch) {
             numbers = `Bộ ${boMatch[1]}`;
             amount = parseFloat(boMatch[3]);
+          } else if (boChanLeMatch) {
+            numbers = `Bộ ${boChanLeMatch[1]}`;
+            amount = parseFloat(boChanLeMatch[3]);
           }
         } else if (item.type === 'loto') {
           // For loto type: "12, 13 (x20đ)"
@@ -2773,7 +2825,7 @@ const EmployeeInterface = ({ user }) => {
       case 'xienquay':
         return "VD: 12-13-14, 12-13-14-15 (xiên quay 3,4)";
       case 'bo':
-        return "VD: 12, 00, 05 (Tên bộ 00-99)";
+        return "VD: 12, 00, 05, chanle, lechan, lele, chanchan";
       default:
         return "VD: 12";
     }
@@ -2895,7 +2947,7 @@ const EmployeeInterface = ({ user }) => {
                       value={row.boName}
                       onChange={(e) => handleBoNameChange(betType, index, e.target.value)}
                       onBlur={(e) => handleBoNameBlur(betType, index, e.target.value, e)}
-                      placeholder="Tên bộ (VD: 12, 00)"
+                      placeholder="Tên bộ (VD: 12, 00, chanle, lechan, lele, chanchan)"
                       className={`bo-name-input ${validationErrors[`${betType}-${index}`] ? 'error' : ''}`}
                       ref={el => inputRefs.current[`${betType}-${index}`] = el}
                     />

@@ -125,6 +125,12 @@ const AdminPrizeStatistics = () => {
             <h4>Tổng thưởng 2 số</h4>
             <div className="admin-prize-amount">{formatMoney(stats2s.totalPrize)}</div>
           </div>
+          <div className="admin-prize-summary-card">
+            <h4>Tổng tiền cược 2 số</h4>
+            <div className="admin-prize-amount" style={{color: '#2c5530'}}>
+              {formatMoney(Object.values(stats2s.winningNumbers).reduce((sum, data) => sum + (data.totalBetAmount * 1000), 0))}
+            </div>
+          </div>
         </div>
 
         <div className="admin-prize-s2-details">
@@ -132,9 +138,10 @@ const AdminPrizeStatistics = () => {
           <table className="admin-prize-stats-table">
             <thead>
               <tr>
-                <th style={{width: '30%'}}>Số</th>
-                <th style={{width: '25%'}}>Số lần trúng</th>
-                <th style={{width: '45%', textAlign: 'right'}}>Tổng thưởng</th>
+                <th style={{width: '20%'}}>Số</th>
+                <th style={{width: '20%'}}>Số lần trúng</th>
+                <th style={{width: '30%', textAlign: 'right'}}>Tiền cược</th>
+                <th style={{width: '30%', textAlign: 'right'}}>Tổng thưởng</th>
               </tr>
             </thead>
             <tbody>
@@ -142,6 +149,7 @@ const AdminPrizeStatistics = () => {
                 <tr key={number}>
                   <td className="admin-prize-number">{number}</td>
                   <td>{data.count}</td>
+                  <td style={{textAlign: 'right', fontWeight: 'bold', color: '#2c5530'}}>{formatMoney(data.totalBetAmount * 1000)}</td>
                   <td className="admin-prize-prize-amount" style={{textAlign: 'right'}}>{formatMoney(data.totalPrize)}</td>
                 </tr>
               ))}
