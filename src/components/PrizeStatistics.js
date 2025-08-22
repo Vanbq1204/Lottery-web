@@ -316,10 +316,11 @@ const PrizeStatistics = () => {
     const allDetails = [];
     Object.entries(xienQuayStats.cases).forEach(([caseType, caseData]) => {
       caseData.details.forEach(detail => {
-        // Xác định loại xiên quay từ caseType
+        // Xác định loại xiên quay từ số con trong numbers
+        const numberCount = detail.numbers.split('-').length;
         let xienQuayType = 'Xiên quay';
-        if (caseType.includes('xienquay3')) xienQuayType = 'Xiên quay 3';
-        else if (caseType.includes('xienquay4')) xienQuayType = 'Xiên quay 4';
+        if (numberCount === 3) xienQuayType = 'Xiên quay 3';
+        else if (numberCount === 4) xienQuayType = 'Xiên quay 4';
         
         allDetails.push({
           ...detail,

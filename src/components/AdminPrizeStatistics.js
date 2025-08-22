@@ -335,6 +335,7 @@ const AdminPrizeStatistics = () => {
   // Render Xien Quay Statistics
   const renderXienQuayStats = () => {
     const xienQuayStats = statisticsData?.statistics?.xienquay;
+    console.log('🔍 XienQuay Stats:', xienQuayStats);
     if (!xienQuayStats || xienQuayStats.totalPrize === 0) {
       return <div className="admin-prize-no-data">Không có dữ liệu xiên quay trúng thưởng</div>;
     }
@@ -345,10 +346,11 @@ const AdminPrizeStatistics = () => {
       if (caseData.numberGroups) {
         // Sử dụng numberGroups để gộp
         Object.entries(caseData.numberGroups).forEach(([numbers, groupData]) => {
-          // Xác định loại xiên quay từ caseType
+          // Xác định loại xiên quay từ số con trong numbers
+          const numberCount = numbers.split('-').length;
           let xienQuayType = 'Xiên quay';
-          if (caseType.includes('xienquay3')) xienQuayType = 'Xiên quay 3';
-          else if (caseType.includes('xienquay4')) xienQuayType = 'Xiên quay 4';
+          if (numberCount === 3) xienQuayType = 'Xiên quay 3';
+          else if (numberCount === 4) xienQuayType = 'Xiên quay 4';
           
           allDetails.push({
             numbers: numbers,
@@ -364,10 +366,11 @@ const AdminPrizeStatistics = () => {
       } else {
         // Fallback cho dữ liệu cũ
         caseData.details.forEach(detail => {
-          // Xác định loại xiên quay từ caseType
+          // Xác định loại xiên quay từ số con trong numbers
+          const numberCount = detail.numbers.split('-').length;
           let xienQuayType = 'Xiên quay';
-          if (caseType.includes('xienquay3')) xienQuayType = 'Xiên quay 3';
-          else if (caseType.includes('xienquay4')) xienQuayType = 'Xiên quay 4';
+          if (numberCount === 3) xienQuayType = 'Xiên quay 3';
+          else if (numberCount === 4) xienQuayType = 'Xiên quay 4';
           
           allDetails.push({
             ...detail,

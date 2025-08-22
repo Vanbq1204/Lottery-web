@@ -81,6 +81,7 @@ const EmployeeInterface = ({ user }) => {
     return saved === 'true';
   });
   const [isMerging, setIsMerging] = useState(false);
+  const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
 
   // Bộ data - 100 bộ với định nghĩa các số
   const BO_DATA = {
@@ -877,7 +878,7 @@ const EmployeeInterface = ({ user }) => {
     });
     
     // Luôn quét và gộp số trùng nếu cho phép gộp và không đang trong quá trình gộp (chỉ cho loto, 2s, 3s)
-    if (allowMergeDuplicates && !isMerging && ['loto', '2s', '3s'].includes(betType)) {
+    if (allowMergeDuplicates && !isMerging && !isLoadingInvoice && ['loto', '2s', '3s'].includes(betType)) {
       setTimeout(() => {
         mergeDuplicateNumbers(betType);
       }, 1500); // Đợi 1.5 giây để người dùng có đủ thời gian nhập tiền
@@ -886,9 +887,9 @@ const EmployeeInterface = ({ user }) => {
 
   // Gộp số trùng lặp trong tất cả các hàng của một bet type
   const mergeDuplicateNumbers = (betType) => {
-    // Tránh infinite loop
-    if (isMerging) {
-      console.log('⚠️ Đang trong quá trình gộp, bỏ qua');
+    // Tránh infinite loop và không merge khi đang load hóa đơn
+    if (isMerging || isLoadingInvoice) {
+      console.log('⚠️ Đang trong quá trình gộp hoặc đang load hóa đơn, bỏ qua');
       return;
     }
     
@@ -1172,7 +1173,7 @@ const EmployeeInterface = ({ user }) => {
   const handleInputBlur = (betType, rowIndex, field, value, event) => {
     if (field === 'numbers') {
       // Gộp số trùng lặp nếu cho phép và đã có điểm/tiền (chỉ cho loto, 2s, 3s)
-      if (allowMergeDuplicates && value.trim() && ['loto', '2s', '3s'].includes(betType)) {
+      if (allowMergeDuplicates && !isLoadingInvoice && value.trim() && ['loto', '2s', '3s'].includes(betType)) {
         const currentRow = betData[betType].rows[rowIndex];
         const hasPoints = (currentRow.points && currentRow.points.trim() !== '') || 
                          (currentRow.amount && currentRow.amount.trim() !== '');
@@ -1339,7 +1340,7 @@ const EmployeeInterface = ({ user }) => {
     }
     
     // Nếu đang nhập điểm/tiền và cho phép gộp số trùng, kiểm tra và gộp số trùng với delay (chỉ cho loto, 2s, 3s)
-    if ((field === 'points' || field === 'amount') && allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) {
+    if ((field === 'points' || field === 'amount') && allowMergeDuplicates && !isLoadingInvoice && ['loto', '2s', '3s'].includes(betType)) {
       const currentRow = betData[betType].rows[rowIndex];
       const numbers = currentRow.numbers;
       
@@ -1792,6 +1793,7 @@ const EmployeeInterface = ({ user }) => {
 
   // Load invoice for editing
   const loadInvoiceForEdit = async (invoiceId) => {
+    setIsLoadingInvoice(true);
     try {
       const response = await axios.get(getApiUrl(`/invoice/detail/${invoiceId}`), {
         headers: {
@@ -1891,6 +1893,8 @@ const EmployeeInterface = ({ user }) => {
       } else {
         alert('Không thể tải hóa đơn: ' + (error.response?.data?.message || error.message));
       }
+    } finally {
+      setIsLoadingInvoice(false);
     }
   };
 
@@ -2966,8 +2970,8 @@ const EmployeeInterface = ({ user }) => {
                 // Lưu vào sessionStorage
                 sessionStorage.setItem('allowMergeDuplicates', checked.toString());
                 
-                // Nếu bật checkbox, gộp chỉ loto, 2s, 3s với delay
-                if (checked) {
+                // Nếu bật checkbox, gộp chỉ loto, 2s, 3s với delay (không gộp khi đang load hóa đơn)
+                if (checked && !isLoadingInvoice) {
                   setTimeout(() => {
                     ['loto', '2s', '3s'].forEach(betType => {
                       mergeDuplicateNumbers(betType);
