@@ -377,7 +377,8 @@
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
-  max-height: 80vh;
+  height: auto;
+  min-height: fit-content;
   border: 1px solid #eaecef;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
 }
@@ -420,7 +421,7 @@
 .invoice-content {
   flex: 1;
   padding: 20px 18px;
-  overflow-y: auto;
+  overflow-y: visible;
 }
 
 /* Invoice Table */
