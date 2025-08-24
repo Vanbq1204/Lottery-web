@@ -48,10 +48,11 @@ const EmployeeInterface = ({ user }) => {
   // Get current date in DD/MM/YYYY format for Vietnam
   const getCurrentVietnamDateFormatted = () => {
     const now = new Date();
-    // Sử dụng toLocaleDateString để lấy ngày theo múi giờ local (không cộng thêm giờ)
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const year = now.getFullYear();
+    // Sử dụng toLocaleDateString với timezone Việt Nam để lấy đúng ngày hiện tại
+    const vietnamDate = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
+    const day = String(vietnamDate.getDate()).padStart(2, '0');
+    const month = String(vietnamDate.getMonth() + 1).padStart(2, '0');
+    const year = vietnamDate.getFullYear();
     return `${day}/${month}/${year}`;
   };
 
@@ -82,6 +83,10 @@ const EmployeeInterface = ({ user }) => {
   });
   const [isMerging, setIsMerging] = useState(false);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
+  
+  // Thêm state để track thời gian thay đổi cho logic gộp số trùng
+  const [mergeTimeouts, setMergeTimeouts] = useState({});
+  const [lastChanges, setLastChanges] = useState({});
 
   // Bộ data - 100 bộ với định nghĩa các số
   const BO_DATA = {
@@ -299,10 +304,10 @@ const EmployeeInterface = ({ user }) => {
   // Generate unique invoice ID when component mounts or when new invoice needed
   useEffect(() => {
     const generateInvoiceId = async () => {
-      if (storeInfo && !currentInvoiceId) {
+    if (storeInfo && !currentInvoiceId) {
         const newInvoiceId = await generateUniqueInvoiceId();
-        setCurrentInvoiceId(newInvoiceId);
-      }
+      setCurrentInvoiceId(newInvoiceId);
+    }
     };
     
     generateInvoiceId();
@@ -321,6 +326,18 @@ const EmployeeInterface = ({ user }) => {
       loadLotoMultiplier();
     }
   }, [activeMenu]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cleanup timeouts when component unmounts
+  useEffect(() => {
+    return () => {
+      // Hủy tất cả timeouts khi component unmount
+      Object.values(mergeTimeouts).forEach(timeoutId => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      });
+    };
+  }, [mergeTimeouts]);
 
   const loadStoreInfo = async () => {
     try {
@@ -821,9 +838,6 @@ const EmployeeInterface = ({ user }) => {
       setHasUnsavedChanges(true);
     }
     
-    // Gộp số trùng lặp nếu cho phép (chỉ khi onBlur, không phải real-time)
-    // Logic gộp sẽ được xử lý trong handleInputBlur
-    
     // Real-time validation for numbers field
     if (field === 'numbers') {
       const errorKey = `${betType}-${rowIndex}`;
@@ -906,11 +920,48 @@ const EmployeeInterface = ({ user }) => {
       };
     });
     
-    // Luôn quét và gộp số trùng nếu cho phép gộp và không đang trong quá trình gộp (chỉ cho loto, 2s, 3s)
-    if (allowMergeDuplicates && !isMerging && !isLoadingInvoice && ['loto', '2s', '3s'].includes(betType)) {
-      setTimeout(() => {
-        mergeDuplicateNumbers(betType);
-      }, 1500); // Đợi 1.5 giây để người dùng có đủ thời gian nhập tiền
+    // Track thay đổi cho logic gộp số trùng
+    if (allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) {
+      const changeKey = `${betType}-${rowIndex}-${field}`;
+      const now = Date.now();
+      
+      // Cập nhật thời gian thay đổi cuối cùng
+      setLastChanges(prev => ({
+        ...prev,
+        [changeKey]: now
+      }));
+      
+      // Hủy timeout cũ nếu có
+      if (mergeTimeouts[changeKey]) {
+        clearTimeout(mergeTimeouts[changeKey]);
+      }
+      
+      // Tạo timeout mới để gộp số trùng sau 1 giây
+      const timeoutId = setTimeout(() => {
+        // Chỉ gộp nếu có số và tiền/điểm
+        const currentRow = betData[betType].rows[rowIndex];
+        const hasNumbers = currentRow.numbers && currentRow.numbers.trim();
+        const hasPoints = (currentRow.points && currentRow.points.toString().trim() !== '') || 
+                         (currentRow.amount && currentRow.amount.toString().trim() !== '');
+        
+        if (hasNumbers && hasPoints && !isMerging && !isLoadingInvoice) {
+          console.log(`🔄 Trigger gộp số trùng cho ${betType} sau 1 giây delay`);
+          mergeDuplicateNumbers(betType);
+        }
+        
+        // Xóa timeout khỏi state
+        setMergeTimeouts(prev => {
+          const newTimeouts = { ...prev };
+          delete newTimeouts[changeKey];
+          return newTimeouts;
+        });
+      }, 1000); // Đợi 1 giây
+      
+      // Lưu timeout mới
+      setMergeTimeouts(prev => ({
+        ...prev,
+        [changeKey]: timeoutId
+      }));
     }
   };
 
@@ -1202,100 +1253,8 @@ const EmployeeInterface = ({ user }) => {
   // Handle input blur - validate when user leaves the input field
   const handleInputBlur = (betType, rowIndex, field, value, event) => {
     if (field === 'numbers') {
-      // Gộp số trùng lặp nếu cho phép và đã có điểm/tiền (chỉ cho loto, 2s, 3s)
-      if (allowMergeDuplicates && !isLoadingInvoice && value.trim() && ['loto', '2s', '3s'].includes(betType)) {
-        const currentRow = betData[betType].rows[rowIndex];
-        const hasPoints = (currentRow.points && currentRow.points.toString().trim() !== '') || 
-                         (currentRow.amount && currentRow.amount.toString().trim() !== '');
-        
-        if (hasPoints) {
-          setTimeout(() => {
-            const numbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
-            const numberCounts = {};
-            
-            // Đếm số lần xuất hiện của mỗi số
-            numbers.forEach(num => {
-              numberCounts[num] = (numberCounts[num] || 0) + 1;
-            });
-            
-            // Tách số trùng và không trùng
-            const duplicateNumbers = [];
-            const uniqueNumbers = [];
-            
-            Object.entries(numberCounts).forEach(([num, count]) => {
-              if (count > 1) {
-                duplicateNumbers.push(num);
-              } else {
-                uniqueNumbers.push(num);
-              }
-            });
-            
-            // Cập nhật betData
-            setBetData(prev => {
-              const newRows = [...prev[betType].rows];
-              const currentRow = newRows[rowIndex];
-              
-              // Hàng hiện tại chỉ giữ số không trùng
-              newRows[rowIndex] = {
-                ...currentRow,
-                numbers: uniqueNumbers.join(' ')
-              };
-              
-              // Nếu có số trùng, tạo hàng mới cho số trùng
-              if (duplicateNumbers.length > 0) {
-                // Tính điểm mới cho số trùng
-                const currentPoints = parseFloat(currentRow.points || currentRow.amount || 0);
-                
-                // Tính tổng số lần xuất hiện của các số trùng
-                let totalDuplicateCount = 0;
-                duplicateNumbers.forEach(num => {
-                  totalDuplicateCount += numberCounts[num];
-                });
-                
-                const newPoints = currentPoints * totalDuplicateCount;
-                
-                // Tạo hàng mới cho số trùng
-                const newRow = betType === 'loto' 
-                  ? { numbers: duplicateNumbers.join(' '), points: newPoints.toString() }
-                  : { numbers: duplicateNumbers.join(' '), amount: newPoints.toString() };
-                
-                newRows.push(newRow);
-                
-                // Cập nhật quantity
-                return {
-                  ...prev,
-                  [betType]: {
-                    quantity: prev[betType].quantity + 1,
-                    rows: newRows
-                  }
-                };
-              }
-              
-              return {
-                ...prev,
-                [betType]: {
-                  ...prev[betType],
-                  rows: newRows
-                }
-              };
-            });
-          }, 1500); // Đợi 1.5 giây để đồng bộ với các trigger khác
-          
-          // Cập nhật value để sử dụng cho validation (chỉ số không trùng) - tạm thời
-          const numbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
-          const numberCounts = {};
-          numbers.forEach(num => {
-            numberCounts[num] = (numberCounts[num] || 0) + 1;
-          });
-          const uniqueNumbers = [];
-          Object.entries(numberCounts).forEach(([num, count]) => {
-            if (count === 1) {
-              uniqueNumbers.push(num);
-            }
-          });
-          value = uniqueNumbers.join(' ');
-        }
-      }
+      // Logic gộp số trùng đã được xử lý trong handleRowChange với delay 1 giây
+      // Không cần xử lý thêm ở đây để tránh duplicate
       
       // Validate the input
       const validation = validateNumbers(betType, value, true);
@@ -1369,90 +1328,8 @@ const EmployeeInterface = ({ user }) => {
       });
     }
     
-    // Nếu đang nhập điểm/tiền và cho phép gộp số trùng, kiểm tra và gộp số trùng với delay (chỉ cho loto, 2s, 3s)
-    if ((field === 'points' || field === 'amount') && allowMergeDuplicates && !isLoadingInvoice && ['loto', '2s', '3s'].includes(betType)) {
-      const currentRow = betData[betType].rows[rowIndex];
-      const numbers = currentRow.numbers;
-      
-      if (numbers && numbers.trim()) {
-        setTimeout(() => {
-          const numberArray = numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
-          const numberCounts = {};
-          
-          // Đếm số lần xuất hiện của mỗi số
-          numberArray.forEach(num => {
-            numberCounts[num] = (numberCounts[num] || 0) + 1;
-          });
-          
-          // Kiểm tra xem có số trùng không
-          const hasDuplicates = Object.values(numberCounts).some(count => count > 1);
-          
-          if (hasDuplicates) {
-            // Tách số trùng và không trùng
-            const duplicateNumbers = [];
-            const uniqueNumbers = [];
-            
-            Object.entries(numberCounts).forEach(([num, count]) => {
-              if (count > 1) {
-                duplicateNumbers.push(num);
-              } else {
-                uniqueNumbers.push(num);
-              }
-            });
-            
-            // Cập nhật betData
-            setBetData(prev => {
-              const newRows = [...prev[betType].rows];
-              const currentRow = newRows[rowIndex];
-              
-              // Hàng hiện tại chỉ giữ số không trùng
-              newRows[rowIndex] = {
-                ...currentRow,
-                numbers: uniqueNumbers.join(' ')
-              };
-              
-              // Nếu có số trùng, tạo hàng mới cho số trùng
-              if (duplicateNumbers.length > 0) {
-                // Tính điểm mới cho số trùng
-                const currentPoints = parseFloat(currentRow.points || currentRow.amount || 0);
-                
-                // Tính tổng số lần xuất hiện của các số trùng
-                let totalDuplicateCount = 0;
-                duplicateNumbers.forEach(num => {
-                  totalDuplicateCount += numberCounts[num];
-                });
-                
-                const newPoints = currentPoints * totalDuplicateCount;
-                
-                // Tạo hàng mới cho số trùng
-                const newRow = betType === 'loto' 
-                  ? { numbers: duplicateNumbers.join(' '), points: newPoints.toString() }
-                  : { numbers: duplicateNumbers.join(' '), amount: newPoints.toString() };
-                
-                newRows.push(newRow);
-                
-                // Cập nhật quantity
-                return {
-                  ...prev,
-                  [betType]: {
-                    quantity: prev[betType].quantity + 1,
-                    rows: newRows
-                  }
-                };
-              }
-              
-              return {
-                ...prev,
-                [betType]: {
-                  ...prev[betType],
-                  rows: newRows
-                }
-              };
-            });
-          }
-        }, 1500); // Đợi 1.5 giây để người dùng có đủ thời gian nhập tiền
-      }
-    }
+    // Logic gộp số trùng cho points/amount đã được xử lý trong handleRowChange với delay 1 giây
+    // Không cần xử lý thêm ở đây để tránh duplicate
   };
 
   // Format numbers with commas for better readability in invoice
@@ -2276,10 +2153,10 @@ const EmployeeInterface = ({ user }) => {
   const handleDataSourceChange = (source) => {
     setDataSource(source);
     if (source === 'manual') {
-      // Khởi tạo dữ liệu thủ công với ngày hiện tại
+      // Khởi tạo dữ liệu thủ công với ngày hiện tại (sử dụng timezone Việt Nam)
       const today = new Date();
-      const vietnamTime = new Date(today.getTime() + (7 * 60 * 60 * 1000));
-      const turnNum = vietnamTime.toLocaleDateString('vi-VN', { 
+      const vietnamDate = new Date(today.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
+      const turnNum = vietnamDate.toLocaleDateString('vi-VN', { 
         day: '2-digit', 
         month: '2-digit', 
         year: 'numeric' 
@@ -2287,7 +2164,7 @@ const EmployeeInterface = ({ user }) => {
       
       setManualLotteryData({
         turnNum: turnNum,
-        openTime: vietnamTime.toISOString(),
+        openTime: vietnamDate.toISOString(),
         results: {
           gdb: '',
           g1: '',
@@ -2363,11 +2240,11 @@ const EmployeeInterface = ({ user }) => {
               } else {
           // Nếu không có kết quả, reset về trạng thái trống (không hiển thị alert)
           const today = new Date();
-          const vietnamTime = new Date(today.getTime() + (7 * 60 * 60 * 1000));
+          const vietnamDate = new Date(today.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
           
           setManualLotteryData({
             turnNum: dateToUse,
-            openTime: vietnamTime.toISOString(),
+            openTime: vietnamDate.toISOString(),
             results: {
               gdb: '',
               g1: '',
