@@ -1652,10 +1652,26 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   position: relative;
   z-index: 1002;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mobile-menu-toggle:hover {
   background: #4a7c59;
+}
+
+.mobile-menu-toggle.menu-open {
+  left: 240px;
+  background: #dc3545;
+  transform: rotate(180deg);
+}
+
+.mobile-menu-toggle.menu-open:hover {
+  background: #c82333;
 }
 
 /* Mobile Menu Overlay */
@@ -1752,7 +1768,7 @@
 @media (max-width: 768px) {
   /* Mobile Styles */
   .mobile-menu-toggle {
-    display: block;
+    display: flex;
   }
   
   .mobile-menu-overlay {
@@ -2193,6 +2209,10 @@
   /* Small Mobile Styles */
   .sidebar {
     width: 100%;
+  }
+  
+  .mobile-menu-toggle.menu-open {
+    left: calc(100% - 60px);
   }
   
   .sidebar-header {

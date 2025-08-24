@@ -3774,11 +3774,11 @@ const EmployeeInterface = ({ user }) => {
     <div className="employee-interface">
       {/* Mobile Menu Toggle Button */}
       <button 
-        className="mobile-menu-toggle" 
+        className={`mobile-menu-toggle ${isMobileMenuOpen ? 'menu-open' : ''}`}
         onClick={toggleMobileMenu}
         aria-label="Toggle menu"
       >
-        ☰
+        {isMobileMenuOpen ? '✕' : '☰'}
       </button>
 
       {/* Mobile Menu Overlay */}
