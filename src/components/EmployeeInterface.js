@@ -15,6 +15,7 @@ const EmployeeInterface = ({ user }) => {
   const [storeInfo, setStoreInfo] = useState(null);
   const [customerName, setCustomerName] = useState('');
   const [customerGive, setCustomerGive] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Invoice ID state - tạo một lần và giữ nguyên
   const [currentInvoiceId, setCurrentInvoiceId] = useState('');
@@ -2309,18 +2310,34 @@ const EmployeeInterface = ({ user }) => {
       currentMenu: activeMenu 
     });
     
-          if (isEditMode && hasUnsavedChanges) {
-        const confirmLeave = window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn thoát?');
-        if (!confirmLeave) {
-          console.log('❌ User cancelled menu change');
-          return;
-        }
-        console.log('✅ User confirmed, reloading page...');
-        // Tự động reload trang ngay sau khi user confirm
-        window.location.reload();
+    if (isEditMode && hasUnsavedChanges) {
+      const confirmLeave = window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn thoát?');
+      if (!confirmLeave) {
+        console.log('❌ User cancelled menu change');
         return;
       }
+      console.log('✅ User confirmed, reloading page...');
+      // Tự động reload trang ngay sau khi user confirm
+      window.location.reload();
+      return;
+    }
+    
     setActiveMenu(menuId);
+    
+    // Close mobile menu when menu item is clicked
+    if (window.innerWidth <= 768) {
+      setIsMobileMenuOpen(false);
+    }
+  };
+
+  // Handle mobile menu toggle
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Handle click outside mobile menu
+  const handleOverlayClick = () => {
+    setIsMobileMenuOpen(false);
   };
 
   // Save and print invoice function (for edit mode)
@@ -3755,8 +3772,23 @@ const EmployeeInterface = ({ user }) => {
 
   return (
     <div className="employee-interface">
+      {/* Mobile Menu Toggle Button */}
+      <button 
+        className="mobile-menu-toggle" 
+        onClick={toggleMobileMenu}
+        aria-label="Toggle menu"
+      >
+        ☰
+      </button>
+
+      {/* Mobile Menu Overlay */}
+      <div 
+        className={`mobile-menu-overlay ${isMobileMenuOpen ? 'active' : ''}`}
+        onClick={handleOverlayClick}
+      />
+
       {/* Sidebar Menu */}
-      <div className="sidebar">
+      <div className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="store-info">
             <h3>{storeInfo?.name || user.storeName}</h3>

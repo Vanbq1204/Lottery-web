@@ -1578,8 +1578,310 @@
   box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
 }
 
-/* Responsive cho giao diện nhập thủ công */
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1001;
+  background: #2c5530;
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.mobile-menu-toggle:hover {
+  background: #4a7c59;
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-menu-overlay.active {
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  /* Tablet Styles */
+  .sidebar {
+    width: 250px;
+  }
+  
+  .main-content {
+    margin-left: 250px;
+  }
+  
+  .betting-main-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .betting-form-section {
+    width: 100%;
+  }
+  
+  .invoice-section {
+    width: 100%;
+  }
+  
+  .betting-table {
+    font-size: 14px;
+  }
+  
+  .bet-inputs {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .numbers-input,
+  .amount-input,
+  .bo-name-input,
+  .bo-count-input {
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
+  /* Mobile Styles */
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .mobile-menu-overlay {
+    display: block;
+  }
+  
+  .mobile-menu-overlay.active {
+    opacity: 1;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 280px;
+  }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .main-content {
+    margin-left: 0;
+    padding-top: 60px;
+  }
+  
+  .content-header {
+    padding: 15px 20px;
+  }
+  
+  .content-header h2 {
+    font-size: 20px;
+  }
+  
+  .store-info-header {
+    font-size: 12px;
+  }
+  
+  .store-info-header div {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  /* Betting Interface Mobile */
+  .betting-main-container {
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+  }
+  
+  .form-header-info {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .bill-info {
+    text-align: center;
+  }
+  
+  .bill-info div {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+  
+  .customer-section {
+    width: 100%;
+  }
+  
+  .customer-section label {
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  .customer-name-input {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px;
+  }
+  
+  .betting-table {
+    font-size: 13px;
+    width: 100%;
+  }
+  
+  .betting-table td {
+    padding: 8px 4px;
+  }
+  
+  .bet-type-name {
+    font-size: 12px;
+    padding: 8px 4px;
+    white-space: nowrap;
+  }
+  
+  .quantity-cell {
+    width: 80px;
+  }
+  
+  .bet-inputs {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+  
+  .numbers-input,
+  .amount-input,
+  .bo-name-input,
+  .bo-count-input {
+    width: 100%;
+    font-size: 14px;
+    padding: 8px 10px;
+    box-sizing: border-box;
+  }
+  
+  .calculation-preview {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  .validation-error {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  /* Invoice Section Mobile */
+  .invoice-section {
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .invoice-header {
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .store-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c5530;
+    margin-bottom: 8px;
+  }
+  
+  .invoice-details {
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .invoice-details div {
+    margin-bottom: 4px;
+  }
+  
+  .invoice-table {
+    font-size: 12px;
+  }
+  
+  .invoice-table th,
+  .invoice-table td {
+    padding: 6px 4px;
+  }
+  
+  .bet-type-label {
+    font-size: 11px;
+  }
+  
+  .bet-numbers-cell {
+    font-size: 11px;
+    word-break: break-word;
+  }
+  
+  .bet-total-cell {
+    font-size: 11px;
+  }
+  
+  .payment-info {
+    gap: 10px;
+  }
+  
+  .payment-row {
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+  }
+  
+  .customer-give-section {
+    width: 100%;
+  }
+  
+  .customer-give-input {
+    width: 100%;
+    font-size: 16px;
+  }
+  
+  .invoice-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .main-actions,
+  .secondary-actions {
+    width: 100%;
+  }
+  
+  .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+  
+  /* Lottery Interface Mobile */
+  .lottery-container {
+    padding: 15px;
+  }
+  
+  .lottery-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
   .data-source-selector {
     flex-direction: column;
     align-items: flex-start;
@@ -1612,5 +1914,178 @@
   
   .gdb-input {
     font-size: 18px;
+  }
+  
+  .lottery-table {
+    font-size: 12px;
+  }
+  
+  .lottery-table th,
+  .lottery-table td {
+    padding: 4px 2px;
+  }
+  
+  .prize-label {
+    font-size: 11px;
+    padding: 4px 2px;
+  }
+  
+  .prize-numbers {
+    padding: 4px 2px;
+  }
+  
+  .cell-input {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+  
+  .cell-value {
+    font-size: 12px;
+  }
+  
+  /* Invoice List Mobile */
+  .invoice-list-container {
+    padding: 15px;
+  }
+  
+  .invoice-list-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .controls-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .date-filter,
+  .search-filter {
+    width: 100%;
+  }
+  
+  .date-input,
+  .search-input {
+    width: 100%;
+    font-size: 16px;
+  }
+  
+  .invoice-table {
+    font-size: 11px;
+  }
+  
+  .invoice-table th,
+  .invoice-table td {
+    padding: 4px 2px;
+  }
+  
+  .invoice-id-cell {
+    font-size: 10px;
+  }
+  
+  .customer-cell {
+    font-size: 10px;
+  }
+  
+  .bet-details-cell {
+    font-size: 9px;
+  }
+  
+  .amount-cell {
+    font-size: 10px;
+  }
+  
+  .time-cell {
+    font-size: 9px;
+  }
+  
+  /* History Interface Mobile */
+  .history-container {
+    padding: 15px;
+  }
+  
+  .history-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .history-item {
+    padding: 15px;
+  }
+  
+  .history-header-info {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .history-invoice-id {
+    font-size: 14px;
+  }
+  
+  .history-action {
+    align-self: flex-start;
+  }
+  
+  .history-date {
+    font-size: 12px;
+  }
+  
+  .history-details {
+    gap: 10px;
+  }
+  
+  .history-employee,
+  .history-reason {
+    font-size: 12px;
+  }
+  
+  .history-changes {
+    font-size: 11px;
+  }
+  
+  .history-changes ul {
+    padding-left: 15px;
+  }
+  
+  .history-changes li {
+    margin-bottom: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Small Mobile Styles */
+  .sidebar {
+    width: 100%;
+  }
+  
+  .betting-main-container {
+    padding: 10px;
+  }
+  
+  .invoice-section {
+    padding: 10px;
+  }
+  
+  .lottery-container {
+    padding: 10px;
+  }
+  
+  .invoice-list-container {
+    padding: 10px;
+  }
+  
+  .history-container {
+    padding: 10px;
+  }
+  
+  .betting-table {
+    font-size: 12px;
+  }
+  
+  .invoice-table {
+    font-size: 10px;
+  }
+  
+  .lottery-table {
+    font-size: 11px;
   }
 } 
