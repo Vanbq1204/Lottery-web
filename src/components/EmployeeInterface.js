@@ -463,40 +463,22 @@ const EmployeeInterface = ({ user }) => {
     return numCount * amountValue;
   };
 
-  // Calculate Tổng amount: số con x tiền x 10 (mỗi tổng có 10 con đề)
-  const calculateTongAmount = (numbersStr, amount) => {
-    if (!numbersStr || !amount) return 0;
-    
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
-    const numCount = numbers.length;
-    const amountValue = parseFloat(amount);
-    
-    // Mỗi tổng có 10 con đề
-    return numCount * amountValue * 10;
+  // Calculate Tổng amount: tiền x 10 (mỗi tổng có 10 con đề)
+  const calculateTongAmount = (amount) => {
+    if (!amount) return 0;
+    return parseFloat(amount) * 10;
   };
 
-  // Calculate Kép amount: số con x tiền x 10 (mỗi kép có 10 con đề)
-  const calculateKepAmount = (numbersStr, amount) => {
-    if (!numbersStr || !amount) return 0;
-    
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
-    const numCount = numbers.length;
-    const amountValue = parseFloat(amount);
-    
-    // Mỗi kép có 10 con đề
-    return numCount * amountValue * 10;
+  // Calculate Kép amount: tiền x 10 (mỗi kép có 10 con đề)
+  const calculateKepAmount = (amount) => {
+    if (!amount) return 0;
+    return parseFloat(amount) * 10;
   };
 
-  // Calculate Đầu/Đít amount: số con x tiền x 10 (mỗi đầu/đít có 10 con đề)
-  const calculateDauDitAmount = (numbersStr, amount) => {
-    if (!numbersStr || !amount) return 0;
-    
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
-    const numCount = numbers.length;
-    const amountValue = parseFloat(amount);
-    
-    // Mỗi đầu/đít có 10 con đề
-    return numCount * amountValue * 10;
+  // Calculate Đầu/Đít amount: tiền x 10 (mỗi đầu/đít có 10 con đề)
+  const calculateDauDitAmount = (amount) => {
+    if (!amount) return 0;
+    return parseFloat(amount) * 10;
   };
 
   // Calculate Xiên amount
@@ -552,8 +534,8 @@ const EmployeeInterface = ({ user }) => {
     
     const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
     
-    // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s, tong, dau, dit
-    if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit'].includes(betType))) {
+    // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s
+    if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType))) {
       const uniqueNumbers = [...new Set(numbers)];
       if (uniqueNumbers.length !== numbers.length) {
         // Find duplicated numbers
@@ -598,14 +580,12 @@ const EmployeeInterface = ({ user }) => {
             }
           }
           
-          // Kiểm tra trùng lặp cho tổng (chỉ khi không cho phép gộp số trùng)
-          if (!allowMergeDuplicates) {
-            const uniqueNumbers = [...new Set(numbers)];
-            if (uniqueNumbers.length !== numbers.length) {
-              const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
-              const uniqueDuplicates = [...new Set(duplicates)];
-              return { isValid: false, message: `Tổng ${uniqueDuplicates.join(', ')} bị trùng lặp` };
-            }
+          // Kiểm tra trùng lặp cho tổng (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
+          const uniqueNumbers = [...new Set(numbers)];
+          if (uniqueNumbers.length !== numbers.length) {
+            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return { isValid: false, message: `Tổng ${uniqueDuplicates.join(', ')} bị trùng lặp` };
           }
         }
         break;
@@ -639,14 +619,12 @@ const EmployeeInterface = ({ user }) => {
             }
           }
           
-          // Kiểm tra trùng lặp cho đầu (chỉ khi không cho phép gộp số trùng)
-          if (!allowMergeDuplicates) {
-            const uniqueNumbers = [...new Set(numbers)];
-            if (uniqueNumbers.length !== numbers.length) {
-              const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
-              const uniqueDuplicates = [...new Set(duplicates)];
-              return { isValid: false, message: `Đầu ${uniqueDuplicates.join(', ')} bị trùng lặp` };
-            }
+          // Kiểm tra trùng lặp cho đầu (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
+          const uniqueNumbers = [...new Set(numbers)];
+          if (uniqueNumbers.length !== numbers.length) {
+            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return { isValid: false, message: `Đầu ${uniqueDuplicates.join(', ')} bị trùng lặp` };
           }
         }
         break;
@@ -661,14 +639,12 @@ const EmployeeInterface = ({ user }) => {
             }
           }
           
-          // Kiểm tra trùng lặp cho đít (chỉ khi không cho phép gộp số trùng)
-          if (!allowMergeDuplicates) {
-            const uniqueNumbers = [...new Set(numbers)];
-            if (uniqueNumbers.length !== numbers.length) {
-              const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
-              const uniqueDuplicates = [...new Set(duplicates)];
-              return { isValid: false, message: `Đít ${uniqueDuplicates.join(', ')} bị trùng lặp` };
-            }
+          // Kiểm tra trùng lặp cho đít (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
+          const uniqueNumbers = [...new Set(numbers)];
+          if (uniqueNumbers.length !== numbers.length) {
+            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return { isValid: false, message: `Đít ${uniqueDuplicates.join(', ')} bị trùng lặp` };
           }
         }
         break;
@@ -746,8 +722,8 @@ const EmployeeInterface = ({ user }) => {
 
   // Check for duplicates across all rows of same bet type
   const checkDuplicatesAcrossRows = (betType, currentRowIndex, newValue) => {
-    // Nếu cho phép gộp số trùng và là loto, 2s, 3s, tong, dau, dit, bỏ qua kiểm tra trùng lặp
-    if (allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit'].includes(betType)) {
+    // Nếu cho phép gộp số trùng và là loto, 2s, 3s, bỏ qua kiểm tra trùng lặp
+    if (allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) {
       return true;
     }
     
@@ -946,7 +922,7 @@ const EmployeeInterface = ({ user }) => {
     });
     
     // Track thay đổi cho logic gộp số trùng
-    if (allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit'].includes(betType)) {
+    if (allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) {
       const changeKey = `${betType}-${rowIndex}-${field}`;
       const now = Date.now();
       
@@ -1302,8 +1278,8 @@ const EmployeeInterface = ({ user }) => {
         return;
       }
       
-      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s, tong, dau, dit)
-      if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
+      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s)
+      if (!(allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
         // Find which numbers are duplicated
         const currentNumbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
         const bet = betData[betType];
@@ -1413,15 +1389,15 @@ const EmployeeInterface = ({ user }) => {
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'tong') {
             // Tổng calculation
-            totalAmount = calculateTongAmount(row.numbers, row.amount);
+            totalAmount = calculateTongAmount(row.amount);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'kep') {
             // Kép calculation
-            totalAmount = calculateKepAmount(row.numbers, row.amount);
+            totalAmount = calculateKepAmount(row.amount);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'dau' || betType === 'dit') {
             // Đầu/Đít calculation
-            totalAmount = calculateDauDitAmount(row.numbers, row.amount);
+            totalAmount = calculateDauDitAmount(row.amount);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'bo') {
             // Bộ calculation
@@ -2779,20 +2755,16 @@ const EmployeeInterface = ({ user }) => {
         preview = `${count3s} con x ${row.amount} = ${calculate3SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
       case 'tong':
-        const tongCount = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
-        preview = `${tongCount} tổng x ${row.amount} = ${calculateTongAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        preview = `Tổng x ${row.amount} = ${calculateTongAmount(row.amount).toLocaleString()} VNĐ`;
         break;
       case 'kep':
-        const kepCount = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
-        preview = `${kepCount} kép x ${row.amount} = ${calculateKepAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        preview = `Kép x ${row.amount} = ${calculateKepAmount(row.amount).toLocaleString()} VNĐ`;
         break;
       case 'dau':
-        const dauCount = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
-        preview = `${dauCount} đầu x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        preview = `Đầu x ${row.amount} = ${calculateDauDitAmount(row.amount).toLocaleString()} VNĐ`;
         break;
       case 'dit':
-        const ditCount = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
-        preview = `${ditCount} đít x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        preview = `Đít x ${row.amount} = ${calculateDauDitAmount(row.amount).toLocaleString()} VNĐ`;
         break;
       case 'xien':
         const xienCount = row.numbers.trim().split(/[\s,]+/).filter(x => x.length > 0).length;
