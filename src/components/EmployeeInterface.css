@@ -1655,7 +1655,6 @@
   transition: all 0.3s ease;
   width: 40px;
   height: 40px;
-  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -1694,11 +1693,43 @@
   pointer-events: auto;
 }
 
+/* Desktop Styles - Ensure sidebar is always visible */
+@media (min-width: 1025px) {
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+  
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+  
+  .sidebar {
+    transform: none !important;
+    position: fixed;
+    left: 0;
+  }
+  
+  .main-content {
+    margin-left: 280px;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   /* Tablet Styles */
+  .mobile-menu-toggle {
+    display: none;
+  }
+  
+  .mobile-menu-overlay {
+    display: none;
+  }
+  
   .sidebar {
     width: 250px;
+    transform: none;
+    position: fixed;
+    left: 0;
   }
   
   .main-content {
