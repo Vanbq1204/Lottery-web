@@ -238,7 +238,7 @@ const EmployeeInterface = ({ user }) => {
     },
     bo: { 
       quantity: 1, 
-      rows: [{ boName: '', count: '', amount: '' }]
+      rows: [{ numbers: '', amount: '' }]
     }
   });
 
@@ -464,9 +464,14 @@ const EmployeeInterface = ({ user }) => {
   };
 
   // Calculate Tổng amount: tiền x 10 (mỗi tổng có 10 con đề)
-  const calculateTongAmount = (amount) => {
-    if (!amount) return 0;
-    return parseFloat(amount) * 10;
+  const calculateTongAmount = (numbersStr, amount) => {
+    if (!numbersStr || !amount) return 0;
+    
+    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numCount = numbers.length;
+    const amountValue = parseFloat(amount);
+    
+    return numCount * amountValue * 10;
   };
 
   // Calculate Kép amount: tiền x 10 (mỗi kép có 10 con đề)
@@ -476,9 +481,14 @@ const EmployeeInterface = ({ user }) => {
   };
 
   // Calculate Đầu/Đít amount: tiền x 10 (mỗi đầu/đít có 10 con đề)
-  const calculateDauDitAmount = (amount) => {
-    if (!amount) return 0;
-    return parseFloat(amount) * 10;
+  const calculateDauDitAmount = (numbersStr, amount) => {
+    if (!numbersStr || !amount) return 0;
+    
+    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numCount = numbers.length;
+    const amountValue = parseFloat(amount);
+    
+    return numCount * amountValue * 10;
   };
 
   // Calculate Xiên amount
@@ -519,13 +529,21 @@ const EmployeeInterface = ({ user }) => {
   };
 
   // Calculate Bo amount
-  const calculateBoAmount = (boName, count, amount) => {
-    if (!boName || !count || !amount) return 0;
+  const calculateBoAmount = (numbersStr, amount) => {
+    if (!numbersStr || !amount) return 0;
     
-    const countValue = parseInt(count);
+    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
     const amountValue = parseFloat(amount);
     
-    return countValue * amountValue;
+    let totalAmount = 0;
+    
+    numbers.forEach(num => {
+      if (BO_DATA[num]) {
+        totalAmount += BO_DATA[num].length * amountValue;
+      }
+    });
+    
+    return totalAmount;
   };
 
   // Validation functions
@@ -534,16 +552,16 @@ const EmployeeInterface = ({ user }) => {
     
     const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
     
-    // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s
-    if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType))) {
-      const uniqueNumbers = [...new Set(numbers)];
-      if (uniqueNumbers.length !== numbers.length) {
-        // Find duplicated numbers
-        const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
-        const uniqueDuplicates = [...new Set(duplicates)];
-        return { isValid: false, message: `Số ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+          // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s, tong, dau, dit, bo
+      if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
+        const uniqueNumbers = [...new Set(numbers)];
+        if (uniqueNumbers.length !== numbers.length) {
+          // Find duplicated numbers
+          const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+          const uniqueDuplicates = [...new Set(duplicates)];
+          return { isValid: false, message: `Số ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+        }
       }
-    }
     
     switch(betType) {
       case 'loto':
@@ -580,12 +598,14 @@ const EmployeeInterface = ({ user }) => {
             }
           }
           
-          // Kiểm tra trùng lặp cho tổng (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
-          const uniqueNumbers = [...new Set(numbers)];
-          if (uniqueNumbers.length !== numbers.length) {
-            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
-            const uniqueDuplicates = [...new Set(duplicates)];
-            return { isValid: false, message: `Tổng ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+          // Kiểm tra trùng lặp cho tổng (chỉ khi không cho phép gộp số trùng)
+          if (!allowMergeDuplicates) {
+            const uniqueNumbers = [...new Set(numbers)];
+            if (uniqueNumbers.length !== numbers.length) {
+              const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+              const uniqueDuplicates = [...new Set(duplicates)];
+              return { isValid: false, message: `Tổng ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+            }
           }
         }
         break;
@@ -619,12 +639,14 @@ const EmployeeInterface = ({ user }) => {
             }
           }
           
-          // Kiểm tra trùng lặp cho đầu (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
-          const uniqueNumbers = [...new Set(numbers)];
-          if (uniqueNumbers.length !== numbers.length) {
-            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
-            const uniqueDuplicates = [...new Set(duplicates)];
-            return { isValid: false, message: `Đầu ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+          // Kiểm tra trùng lặp cho đầu (chỉ khi không cho phép gộp số trùng)
+          if (!allowMergeDuplicates) {
+            const uniqueNumbers = [...new Set(numbers)];
+            if (uniqueNumbers.length !== numbers.length) {
+              const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+              const uniqueDuplicates = [...new Set(duplicates)];
+              return { isValid: false, message: `Đầu ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+            }
           }
         }
         break;
@@ -639,12 +661,14 @@ const EmployeeInterface = ({ user }) => {
             }
           }
           
-          // Kiểm tra trùng lặp cho đít (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
-          const uniqueNumbers = [...new Set(numbers)];
-          if (uniqueNumbers.length !== numbers.length) {
-            const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
-            const uniqueDuplicates = [...new Set(duplicates)];
-            return { isValid: false, message: `Đít ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+          // Kiểm tra trùng lặp cho đít (chỉ khi không cho phép gộp số trùng)
+          if (!allowMergeDuplicates) {
+            const uniqueNumbers = [...new Set(numbers)];
+            if (uniqueNumbers.length !== numbers.length) {
+              const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+              const uniqueDuplicates = [...new Set(duplicates)];
+              return { isValid: false, message: `Đít ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+            }
           }
         }
         break;
@@ -681,6 +705,34 @@ const EmployeeInterface = ({ user }) => {
           const uniqueTypes = [...new Set(xienTypes)];
           if (uniqueTypes.length > 1) {
             return { isValid: false, message: 'Một hàng chỉ được phép nhập một loại xiên (2, 3, hoặc 4)' };
+          }
+        }
+        break;
+        
+      case 'bo':
+        // Validate bộ (00-99 hoặc chanle, lechan, lele, chanchan) - only on blur
+        if (isBlurValidation) {
+          for (let num of numbers) {
+            // Validate bo name format (00-99 hoặc chanle, lechan, lele, chanchan)
+            const isValidBoName = /^\d{2}$/.test(num) || ['chanle', 'lechan', 'lele', 'chanchan'].includes(num);
+            if (!isValidBoName) {
+              return { isValid: false, message: 'Tên bộ phải là số từ 00 đến 99 hoặc chanle, lechan, lele, chanchan' };
+            }
+            
+            // Check if bo exists
+            if (!BO_DATA[num]) {
+              return { isValid: false, message: `Bộ ${num} không tồn tại` };
+            }
+          }
+          
+          // Kiểm tra trùng lặp cho bộ (chỉ khi không cho phép gộp số trùng)
+          if (!allowMergeDuplicates) {
+            const uniqueNumbers = [...new Set(numbers)];
+            if (uniqueNumbers.length !== numbers.length) {
+              const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+              const uniqueDuplicates = [...new Set(duplicates)];
+              return { isValid: false, message: `Bộ ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+            }
           }
         }
         break;
@@ -722,8 +774,8 @@ const EmployeeInterface = ({ user }) => {
 
   // Check for duplicates across all rows of same bet type
   const checkDuplicatesAcrossRows = (betType, currentRowIndex, newValue) => {
-    // Nếu cho phép gộp số trùng và là loto, 2s, 3s, bỏ qua kiểm tra trùng lặp
-    if (allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) {
+    // Nếu cho phép gộp số trùng và là loto, 2s, 3s, tong, dau, dit, bo, bỏ qua kiểm tra trùng lặp
+    if (allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) {
       return true;
     }
     
@@ -731,24 +783,26 @@ const EmployeeInterface = ({ user }) => {
     
     // Xử lý đặc biệt cho bộ
     if (betType === 'bo') {
-      const allBoNames = [];
+      const allBoNumbers = [];
       
       bet.rows.forEach((row, index) => {
         if (index === currentRowIndex) {
           // Use the new value for current row
           if (newValue.trim()) {
-            allBoNames.push(newValue.trim());
+            const numbers = newValue.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            allBoNumbers.push(...numbers);
           }
         } else {
           // Use existing value for other rows
-          if (row.boName && row.boName.trim()) {
-            allBoNames.push(row.boName.trim());
+          if (row.numbers && row.numbers.trim()) {
+            const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            allBoNumbers.push(...numbers);
           }
         }
       });
       
-      const uniqueBoNames = [...new Set(allBoNames)];
-      return uniqueBoNames.length === allBoNames.length;
+      const uniqueBoNumbers = [...new Set(allBoNumbers)];
+      return uniqueBoNumbers.length === allBoNumbers.length;
     }
     
     // Xử lý cho các loại cược khác
@@ -844,7 +898,7 @@ const EmployeeInterface = ({ user }) => {
       const errorKey = `${betType}-${rowIndex}`;
       
       // Check for duplicates within the input (real-time) - chỉ khi không cho phép gộp số trùng
-      if (value.trim() && !allowMergeDuplicates) {
+      if (value.trim() && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
         const numbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
         const uniqueNumbers = [...new Set(numbers)];
         
@@ -856,9 +910,9 @@ const EmployeeInterface = ({ user }) => {
             ...prev,
             [errorKey]: `Số ${uniqueDuplicates.join(', ')} bị trùng lặp`
           }));
-        } else {
-          // Check for duplicates across rows (real-time)
-          if (!checkDuplicatesAcrossRows(betType, rowIndex, value)) {
+                  } else {
+            // Check for duplicates across rows (real-time) - chỉ khi không cho phép gộp số trùng
+            if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
             // Find which numbers are duplicated
             const currentNumbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
             const bet = betData[betType];
@@ -922,7 +976,7 @@ const EmployeeInterface = ({ user }) => {
     });
     
     // Track thay đổi cho logic gộp số trùng
-    if (allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) {
+    if (allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) {
       const changeKey = `${betType}-${rowIndex}-${field}`;
       const now = Date.now();
       
@@ -937,13 +991,20 @@ const EmployeeInterface = ({ user }) => {
         clearTimeout(mergeTimeouts[changeKey]);
       }
       
+      // Snapshot giá trị mới nhất tại thời điểm nhập để tránh đọc state cũ trong timeout
+      const rowNow = betData[betType].rows[rowIndex] || {};
+      const snapshot = {
+        numbers: field === 'numbers' ? value : (rowNow.numbers || ''),
+        points: field === 'points' ? value : (rowNow.points || ''),
+        amount: field === 'amount' ? value : (rowNow.amount || '')
+      };
+
       // Tạo timeout mới để gộp số trùng sau 1 giây
       const timeoutId = setTimeout(() => {
         // Chỉ gộp nếu có số và tiền/điểm
-        const currentRow = betData[betType].rows[rowIndex];
-        const hasNumbers = currentRow.numbers && currentRow.numbers.trim();
-        const hasPoints = (currentRow.points && currentRow.points.toString().trim() !== '') || 
-                         (currentRow.amount && currentRow.amount.toString().trim() !== '');
+        const hasNumbers = snapshot.numbers && snapshot.numbers.toString().trim() !== '';
+        const hasPoints = (snapshot.points && snapshot.points.toString().trim() !== '') || 
+                          (snapshot.amount && snapshot.amount.toString().trim() !== '');
         
         if (hasNumbers && hasPoints && !isMerging && !isLoadingInvoice) {
           console.log(`🔄 Trigger gộp số trùng cho ${betType} sau 1 giây delay`);
@@ -1098,8 +1159,7 @@ const EmployeeInterface = ({ user }) => {
       
       // Lọc bỏ các hàng trống (không có số)
       const filteredRows = allRows.filter(row => 
-        (betType === 'bo' && row.boName && row.count && row.amount) ||
-        (betType !== 'bo' && row.numbers && row.numbers.trim())
+        row.numbers && row.numbers.trim()
       );
       
       console.log('📊 Kết quả sau khi gộp:', filteredRows);
@@ -1119,143 +1179,22 @@ const EmployeeInterface = ({ user }) => {
     }, 100);
   };
 
-  // Handle bo name change - special handler for bo bet type
-  const handleBoNameChange = (betType, rowIndex, value) => {
-    setBetData(prev => {
-      const newRows = [...prev[betType].rows];
-      
-      // Update bo name
-      newRows[rowIndex] = {
-        ...newRows[rowIndex],
-        boName: value
-      };
-      
-      return {
-        ...prev,
-        [betType]: {
-          ...prev[betType],
-          rows: newRows
-        }
-      };
-    });
-  };
-
-  // Handle bo name blur - validate and update count
-  const handleBoNameBlur = (betType, rowIndex, value, event) => {
-    const trimmedValue = value.trim();
-    
-    if (!trimmedValue) {
-      // Clear count if no bo name
-      setBetData(prev => {
-        const newRows = [...prev[betType].rows];
-        newRows[rowIndex] = {
-          ...newRows[rowIndex],
-          count: ''
-        };
-        
-        return {
-          ...prev,
-          [betType]: {
-            ...prev[betType],
-            rows: newRows
-          }
-        };
-      });
-      return;
-    }
-
-    // Validate bo name format (00-99 hoặc chanle, lechan, lele, chanchan)
-    const isValidBoName = /^\d{2}$/.test(trimmedValue) || ['chanle', 'lechan', 'lele', 'chanchan'].includes(trimmedValue);
-    if (!isValidBoName) {
-      const errorKey = `${betType}-${rowIndex}`;
-      setValidationErrors(prev => ({
-        ...prev,
-        [errorKey]: 'Tên bộ phải là số từ 00 đến 99 hoặc chanle, lechan, lele, chanchan'
-      }));
-      
-      setTimeout(() => {
-        const inputRef = inputRefs.current[errorKey];
-        if (inputRef) {
-          inputRef.focus();
-          inputRef.select();
-        }
-      }, 100);
-      return;
-    }
-
-    // Check if bo exists
-    if (!BO_DATA[trimmedValue]) {
-      const errorKey = `${betType}-${rowIndex}`;
-      setValidationErrors(prev => ({
-        ...prev,
-        [errorKey]: `Bộ ${trimmedValue} không tồn tại`
-      }));
-      
-      setTimeout(() => {
-        const inputRef = inputRefs.current[errorKey];
-        if (inputRef) {
-          inputRef.focus();
-          inputRef.select();
-        }
-      }, 100);
-      return;
-    }
-
-    // Clear validation errors and update count
-    const errorKey = `${betType}-${rowIndex}`;
-    setValidationErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[errorKey];
-      return newErrors;
-    });
-
-    // Check for duplicate bo names across all rows
-    const currentRows = betData[betType].rows;
-    const duplicateBoNames = currentRows.filter((row, index) => 
-      index !== rowIndex && row.boName === trimmedValue
-    );
-    
-    if (duplicateBoNames.length > 0) {
-      const errorKey = `${betType}-${rowIndex}`;
-      setValidationErrors(prev => ({
-        ...prev,
-        [errorKey]: `Bộ ${trimmedValue} đã được nhập ở hàng khác`
-      }));
-      
-      setTimeout(() => {
-        const inputRef = inputRefs.current[errorKey];
-        if (inputRef) {
-          inputRef.focus();
-          inputRef.select();
-        }
-      }, 100);
-      return;
-    }
-
-    // Update count based on bo data
-    const boNumbers = BO_DATA[trimmedValue];
-    setBetData(prev => {
-      const newRows = [...prev[betType].rows];
-      newRows[rowIndex] = {
-        ...newRows[rowIndex],
-        count: boNumbers.length
-      };
-      
-      return {
-        ...prev,
-        [betType]: {
-          ...prev[betType],
-          rows: newRows
-        }
-      };
-    });
-  };
+  // Handle bo name change - special handler for bo bet type (removed, now using standard numbers field)
+  // Handle bo name blur - validate and update count (removed, now using standard validation)
 
   // Handle input blur - validate when user leaves the input field
   const handleInputBlur = (betType, rowIndex, field, value, event) => {
     if (field === 'numbers') {
-      // Logic gộp số trùng đã được xử lý trong handleRowChange với delay 1 giây
-      // Không cần xử lý thêm ở đây để tránh duplicate
+      // Khi blur numbers, nếu cho phép gộp cho các loại hỗ trợ gộp thì kích hoạt gộp ngay nếu đủ dữ liệu
+      if (allowMergeDuplicates && ['loto','2s','3s','tong','dau','dit','bo'].includes(betType) && !isMerging && !isLoadingInvoice) {
+        const currentRow = betData[betType].rows[rowIndex];
+        const hasNumbers = (value && value.trim() !== '');
+        const hasPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
+                          (currentRow?.amount && currentRow.amount.toString().trim() !== '');
+        if (hasNumbers && hasPoints) {
+          mergeDuplicateNumbers(betType);
+        }
+      }
       
       // Validate the input
       const validation = validateNumbers(betType, value, true);
@@ -1278,8 +1217,8 @@ const EmployeeInterface = ({ user }) => {
         return;
       }
       
-      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s)
-      if (!(allowMergeDuplicates && ['loto', '2s', '3s'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
+      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s, tong, dau, dit, bo)
+      if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
         // Find which numbers are duplicated
         const currentNumbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
         const bet = betData[betType];
@@ -1327,10 +1266,29 @@ const EmployeeInterface = ({ user }) => {
         delete newErrors[errorKey];
         return newErrors;
       });
+
+      // Khi cho phép gộp và là betType 'bo', kích hoạt gộp ngay khi blur ô numbers
+      if (allowMergeDuplicates && betType === 'bo') {
+        const currentRow = betData[betType].rows[rowIndex];
+        const hasNumbers = currentRow?.numbers && currentRow.numbers.trim();
+        const hasAmountOrPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
+                                  (currentRow?.amount && currentRow.amount.toString().trim() !== '');
+        if (hasNumbers && hasAmountOrPoints && !isMerging && !isLoadingInvoice) {
+          mergeDuplicateNumbers('bo');
+        }
+      }
     }
     
-    // Logic gộp số trùng cho points/amount đã được xử lý trong handleRowChange với delay 1 giây
-    // Không cần xử lý thêm ở đây để tránh duplicate
+    // Khi blur ô points/amount của các loại hỗ trợ gộp, kích hoạt gộp ngay nếu đủ dữ liệu
+    if (allowMergeDuplicates && ['loto','2s','3s','tong','dau','dit','bo'].includes(betType) && field !== 'numbers') {
+      const currentRow = betData[betType].rows[rowIndex];
+      const hasNumbers = currentRow?.numbers && currentRow.numbers.toString().trim() !== '';
+      const hasAmountOrPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
+                                (currentRow?.amount && currentRow.amount.toString().trim() !== '');
+      if (hasNumbers && hasAmountOrPoints && !isMerging && !isLoadingInvoice) {
+        mergeDuplicateNumbers(betType);
+      }
+    }
   };
 
   // Format numbers with commas for better readability in invoice
@@ -1368,7 +1326,7 @@ const EmployeeInterface = ({ user }) => {
       bet.rows.forEach((row, index) => {
         // Special check for bo type
         const hasValidData = betType === 'bo' 
-          ? (row.boName && row.count && row.amount)
+          ? (row.numbers && row.amount)
           : (row.numbers && (row.points || row.amount));
           
         if (hasValidData) {
@@ -1389,7 +1347,7 @@ const EmployeeInterface = ({ user }) => {
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'tong') {
             // Tổng calculation
-            totalAmount = calculateTongAmount(row.amount);
+            totalAmount = calculateTongAmount(row.numbers, row.amount);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'kep') {
             // Kép calculation
@@ -1397,12 +1355,21 @@ const EmployeeInterface = ({ user }) => {
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'dau' || betType === 'dit') {
             // Đầu/Đít calculation
-            totalAmount = calculateDauDitAmount(row.amount);
+            totalAmount = calculateDauDitAmount(row.numbers, row.amount);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'bo') {
             // Bộ calculation
-            totalAmount = calculateBoAmount(row.boName, row.count, row.amount);
-            displayNumbers = `Bộ ${row.boName} (${row.count} số x ${row.amount}n)`;
+            totalAmount = calculateBoAmount(row.numbers, row.amount);
+            const boNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            if (boNumbers.length > 0) {
+              const boDetails = boNumbers.map(num => {
+                const count = BO_DATA[num] ? BO_DATA[num].length : 0;
+                return `Bộ ${num}(${count} số)`;
+              }).join('\n');
+              displayNumbers = `${boDetails} (x${row.amount}n)`;
+            } else {
+              displayNumbers = `Bộ (x${row.amount}n)`;
+            }
           } else if (betType === 'xien') {
             // Xiên calculation
             totalAmount = calculateXienAmount(row.numbers, row.amount);
@@ -1486,16 +1453,17 @@ const EmployeeInterface = ({ user }) => {
     const frameDoc = printFrame.contentWindow.document;
     
     // Create invoice table rows
-    const invoiceTableRows = invoiceItems.map(item => {
-      const formattedAmount = Math.floor(item.totalAmount).toString() + 'n';
-      return `
+          const invoiceTableRows = invoiceItems.map(item => {
+        const formattedAmount = Math.floor(item.totalAmount).toString() + 'n';
+        const displayHtml = String(item.displayNumbers).replace(/\n/g, '<br/>');
+        return `
         <tr>
           <td style="padding: 1px; text-align: left; font-size: 15px; border-bottom: 1px solid #000; width: 22%;">${item.typeLabel}</td>
-          <td style="padding: 1px; text-align: left; font-size: 15px; border-bottom: 1px solid #000; width: 45%;">${item.displayNumbers}</td>
+          <td style="padding: 1px; text-align: left; font-size: 15px; border-bottom: 1px solid #000; width: 45%;">${displayHtml}</td>
           <td style="padding: 1px; text-align: right; font-size: 15px; border-bottom: 1px solid #000; width: 33%;">${formattedAmount}</td>
         </tr>
       `;
-    }).join('');
+      }).join('');
     
     // Create HTML for small invoice
     const invoiceHTML = `
@@ -1732,7 +1700,7 @@ const EmployeeInterface = ({ user }) => {
           dit: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           xien: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           xienquay: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
-          bo: { quantity: 1, rows: [{ boName: '', count: '', amount: '' }] }
+          bo: { quantity: 1, rows: [{ numbers: '', amount: '' }] }
         };
 
         // Group items by bet type
@@ -1746,35 +1714,20 @@ const EmployeeInterface = ({ user }) => {
 
         // Convert back to betData format
         Object.entries(itemsByType).forEach(([betType, items]) => {
-          if (betType === 'bo') {
-            // Special handling for "bộ" type
-            newBetData[betType] = {
-              quantity: items.length,
-              rows: items.map(item => {
-                // Parse "Bộ 12" hoặc "Bộ chanle" để lấy tên bộ
-                let boName = '';
-                if (item.numbers) {
-                  // Thử parse bộ số thường (Bộ 12)
-                  const boMatch = item.numbers.match(/Bộ (\d+)/);
-                  if (boMatch) {
-                    boName = boMatch[1];
-                  } else {
-                    // Thử parse bộ chẵn lẻ (Bộ chanle, lechan, lele, chanchan)
-                    const boChanLeMatch = item.numbers.match(/Bộ (chanle|lechan|lele|chanchan)/);
-                    if (boChanLeMatch) {
-                      boName = boChanLeMatch[1];
-                    }
-                  }
-                }
-                const count = boName && BO_DATA[boName] ? BO_DATA[boName].length.toString() : '';
-                
-                return {
-                  boName: boName,
-                  count: count,
-                  amount: item.amount ? item.amount.toString() : ''
-                };
-              })
-            };
+                  if (betType === 'bo') {
+          // Special handling for "bộ" type
+          newBetData[betType] = {
+            quantity: items.length,
+            rows: items.map(item => {
+              // Với bộ, item.numbers chứa tên bộ (ví dụ: "05"), item.displayNumbers chứa format đầy đủ
+              let boNumbers = item.numbers || '';
+              
+              return {
+                numbers: boNumbers,
+                amount: item.amount ? item.amount.toString() : ''
+              };
+            })
+          };
           } else if (betType === 'loto') {
             // Special handling for "loto" type
           newBetData[betType] = {
@@ -1831,44 +1784,70 @@ const EmployeeInterface = ({ user }) => {
       const changeAmountValue = Math.max(0, customerGiveAmount - totalAmount);
 
       // Prepare items data
-      const itemsForDB = invoiceItems.map(item => {
+      const itemsForDB = [];
+      
+      invoiceItems.forEach(item => {
         let numbers = '';
         let points = null;
         let amount = null;
 
         if (item.type === 'bo') {
-          // For bo type: "Bộ 03 (8 số x 12n)" hoặc "Bộ chanle (25 số x 12n)"
-          const boMatch = item.displayNumbers.match(/Bộ (\d+) \((\d+) số x (\d+\.?\d*)n\)/);
-          const boChanLeMatch = item.displayNumbers.match(/Bộ (chanle|lechan|lele|chanchan) \((\d+) số x (\d+\.?\d*)n\)/);
+          // For bo: tách từng bộ thành item riêng biệt
+          const boMatches = item.displayNumbers.match(/Bộ (\d+|[a-z]+)\((\d+) số\)/g);
+          const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
+          amount = amountMatch ? parseFloat(amountMatch[1]) : null;
           
-          if (boMatch) {
-            numbers = `Bộ ${boMatch[1]}`;
-            amount = parseFloat(boMatch[3]);
-          } else if (boChanLeMatch) {
-            numbers = `Bộ ${boChanLeMatch[1]}`;
-            amount = parseFloat(boChanLeMatch[3]);
+          if (boMatches) {
+            boMatches.forEach(match => {
+              const boMatch = match.match(/Bộ (\d+|[a-z]+)\((\d+) số\)/);
+              if (boMatch) {
+                const boName = boMatch[1];
+                const boCount = parseInt(boMatch[2]);
+                const individualTotalAmount = boCount * amount;
+                
+                itemsForDB.push({
+                  betType: item.type,
+                  betTypeLabel: item.typeLabel,
+                  numbers: boName,
+                  displayNumbers: `Bộ ${boName}(${boCount} số) (x${amount}n)`,
+                  points: points,
+                  amount: amount,
+                  totalAmount: individualTotalAmount
+                });
+              }
+            });
           }
         } else if (item.type === 'loto') {
           // For loto type: "12, 13 (x20đ)"
           numbers = item.displayNumbers.split(' (x')[0];
           const pointsMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)đ\)/);
           points = pointsMatch ? parseFloat(pointsMatch[1]) : null;
+          
+          itemsForDB.push({
+            betType: item.type,
+            betTypeLabel: item.typeLabel,
+            numbers: numbers,
+            displayNumbers: item.displayNumbers,
+            points: points,
+            amount: amount,
+            totalAmount: item.totalAmount
+          });
         } else {
           // For other types: "12, 13 (x20n)"
           numbers = item.displayNumbers.split(' (x')[0];
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
+          
+          itemsForDB.push({
+            betType: item.type,
+            betTypeLabel: item.typeLabel,
+            numbers: numbers,
+            displayNumbers: item.displayNumbers,
+            points: points,
+            amount: amount,
+            totalAmount: item.totalAmount
+          });
         }
-
-        return {
-        betType: item.type,
-        betTypeLabel: item.typeLabel,
-          numbers: numbers,
-        displayNumbers: item.displayNumbers,
-          points: points,
-          amount: amount,
-        totalAmount: item.totalAmount
-        };
       });
 
       const reason = prompt('Nhập lý do sửa hóa đơn (không bắt buộc):') || 'Cập nhật hóa đơn';
@@ -2445,44 +2424,92 @@ const EmployeeInterface = ({ user }) => {
       const changeAmountValue = Math.max(0, customerGiveAmount - totalAmount);
 
       // Prepare items data for database
-      const itemsForDB = invoiceItems.map(item => {
+      const itemsForDB = [];
+      
+      invoiceItems.forEach(item => {
         let numbers = '';
         let points = null;
         let amount = null;
 
         if (item.type === 'bo') {
-          // For bo type: "Bộ 12 (8 số x 20n)" hoặc "Bộ chanle (25 số x 20n)"
-          const boMatch = item.displayNumbers.match(/Bộ (\d+) \((\d+) số x (\d+)n\)/);
-          const boChanLeMatch = item.displayNumbers.match(/Bộ (chanle|lechan|lele|chanchan) \((\d+) số x (\d+)n\)/);
+          // For bo: tách từng bộ thành item riêng biệt
+          const boMatches = item.displayNumbers.match(/Bộ (\d+|[a-z]+)\((\d+) số\)/g);
+          const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
+          amount = amountMatch ? parseFloat(amountMatch[1]) : null;
           
-          if (boMatch) {
-            numbers = `Bộ ${boMatch[1]}`;
-            amount = parseFloat(boMatch[3]);
-          } else if (boChanLeMatch) {
-            numbers = `Bộ ${boChanLeMatch[1]}`;
-            amount = parseFloat(boChanLeMatch[3]);
+          if (boMatches) {
+            boMatches.forEach(match => {
+              const boMatch = match.match(/Bộ (\d+|[a-z]+)\((\d+) số\)/);
+              if (boMatch) {
+                const boName = boMatch[1];
+                const boCount = parseInt(boMatch[2]);
+                const individualTotalAmount = boCount * amount;
+                
+                itemsForDB.push({
+                  betType: item.type,
+                  betTypeLabel: item.typeLabel,
+                  numbers: boName,
+                  displayNumbers: `Bộ ${boName}(${boCount} số) (x${amount}n)`,
+                  points: points,
+                  amount: amount,
+                  totalAmount: individualTotalAmount
+                });
+              }
+            });
           }
         } else if (item.type === 'loto') {
           // For loto type: "12, 13 (x20đ)"
           numbers = item.displayNumbers.split(' (x')[0];
           const pointsMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)đ\)/);
           points = pointsMatch ? parseFloat(pointsMatch[1]) : null;
+          
+          itemsForDB.push({
+            betType: item.type,
+            betTypeLabel: item.typeLabel,
+            numbers: numbers,
+            displayNumbers: item.displayNumbers,
+            points: points,
+            amount: amount,
+            totalAmount: item.totalAmount
+          });
+        } else if (['tong', 'dau', 'dit'].includes(item.type)) {
+          // For tong, dau, dit: tách từng số thành item riêng biệt
+          const numbersStr = item.displayNumbers.split(' (x')[0];
+          const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
+          amount = amountMatch ? parseFloat(amountMatch[1]) : null;
+          
+          const individualNumbers = numbersStr.split(', ').map(n => n.trim());
+          
+          individualNumbers.forEach(num => {
+            const individualTotalAmount = amount * 10; // Mỗi tổng/đầu/đít có 10 con đề
+            
+            itemsForDB.push({
+              betType: item.type,
+              betTypeLabel: item.typeLabel,
+              numbers: num,
+              displayNumbers: `${num} (x${amount}n)`,
+              points: points,
+              amount: amount,
+              totalAmount: individualTotalAmount
+            });
+          });
+
         } else {
           // For other types: "12, 13 (x20n)"
           numbers = item.displayNumbers.split(' (x')[0];
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
+          
+          itemsForDB.push({
+            betType: item.type,
+            betTypeLabel: item.typeLabel,
+            numbers: numbers,
+            displayNumbers: item.displayNumbers,
+            points: points,
+            amount: amount,
+            totalAmount: item.totalAmount
+          });
         }
-
-        return {
-          betType: item.type,
-          betTypeLabel: item.typeLabel,
-          numbers: numbers,
-          displayNumbers: item.displayNumbers,
-          points: points,
-          amount: amount,
-          totalAmount: item.totalAmount
-        };
       });
 
       const invoiceData = {
@@ -2553,10 +2580,10 @@ const EmployeeInterface = ({ user }) => {
             quantity: 1, 
             rows: [{ numbers: '', amount: '' }]
           },
-          bo: { 
-            quantity: 1, 
-            rows: [{ boName: '', count: '', amount: '' }]
-          }
+                  bo: { 
+          quantity: 1, 
+          rows: [{ numbers: '', amount: '' }]
+        }
         });
         
         // Generate new invoice ID for next transaction
@@ -2609,6 +2636,10 @@ const EmployeeInterface = ({ user }) => {
         rows: [{ numbers: '', amount: '' }]
       },
       xienquay: { 
+        quantity: 1, 
+        rows: [{ numbers: '', amount: '' }]
+      },
+      bo: { 
         quantity: 1, 
         rows: [{ numbers: '', amount: '' }]
       }
@@ -2735,7 +2766,7 @@ const EmployeeInterface = ({ user }) => {
   const getCalculationPreview = (betType, row) => {
     // Special check for bo type
     if (betType === 'bo') {
-      if (!row.boName || !row.count || !row.amount) return null;
+      if (!row.numbers || !row.amount) return null;
     } else {
       if (!row.numbers || (!row.points && !row.amount)) return null;
     }
@@ -2755,16 +2786,31 @@ const EmployeeInterface = ({ user }) => {
         preview = `${count3s} con x ${row.amount} = ${calculate3SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
       case 'tong':
-        preview = `Tổng x ${row.amount} = ${calculateTongAmount(row.amount).toLocaleString()} VNĐ`;
+        const tongNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        if (tongNumbers.length > 0) {
+          preview = `Tổng ${tongNumbers.join(',')} x ${row.amount} = ${calculateTongAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        } else {
+          preview = `Tổng x ${row.amount} = 0 VNĐ`;
+        }
         break;
       case 'kep':
         preview = `Kép x ${row.amount} = ${calculateKepAmount(row.amount).toLocaleString()} VNĐ`;
         break;
       case 'dau':
-        preview = `Đầu x ${row.amount} = ${calculateDauDitAmount(row.amount).toLocaleString()} VNĐ`;
+        const dauNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        if (dauNumbers.length > 0) {
+          preview = `Đầu ${dauNumbers.join(',')} x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        } else {
+          preview = `Đầu x ${row.amount} = 0 VNĐ`;
+        }
         break;
       case 'dit':
-        preview = `Đít x ${row.amount} = ${calculateDauDitAmount(row.amount).toLocaleString()} VNĐ`;
+        const ditNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        if (ditNumbers.length > 0) {
+          preview = `Đít ${ditNumbers.join(',')} x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        } else {
+          preview = `Đít x ${row.amount} = 0 VNĐ`;
+        }
         break;
       case 'xien':
         const xienCount = row.numbers.trim().split(/[\s,]+/).filter(x => x.length > 0).length;
@@ -2789,9 +2835,24 @@ const EmployeeInterface = ({ user }) => {
         preview = `${xienQuayDetail} = ${row.amount} x ${totalMultiplier} = ${calculateXienQuayAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
       case 'bo':
-        if (row.boName && row.count && row.amount) {
-          const totalAmount = parseInt(row.amount) * parseInt(row.count);
-          preview = `Bộ ${row.boName} x ${row.count} số x ${row.amount} = ${totalAmount.toLocaleString()} VNĐ`;
+        if (row.numbers && row.amount) {
+          const boNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+          if (boNumbers.length > 0) {
+            let previewDetail = '';
+            let totalAmount = 0;
+            
+            boNumbers.forEach(num => {
+              if (BO_DATA[num]) {
+                const count = BO_DATA[num].length;
+                const amount = parseFloat(row.amount);
+                const boAmount = count * amount;
+                totalAmount += boAmount;
+                previewDetail += (previewDetail ? ' + ' : '') + `bộ ${num} x${count} x${amount}`;
+              }
+            });
+            
+            preview = `${previewDetail} = ${totalAmount.toLocaleString()} VNĐ`;
+          }
         }
         break;
       default:
@@ -2834,23 +2895,16 @@ const EmployeeInterface = ({ user }) => {
             <td colSpan="3">
               <div className="bet-inputs">
                 {isBo ? (
-                  // Special layout for Bộ with 3 inputs
+                  // Special layout for Bộ with 2 inputs (numbers and amount)
                   <>
                     <input
                       type="text"
-                      value={row.boName}
-                      onChange={(e) => handleBoNameChange(betType, index, e.target.value)}
-                      onBlur={(e) => handleBoNameBlur(betType, index, e.target.value, e)}
-                      placeholder="Tên bộ (VD: 12, 00, chanle, lechan, lele, chanchan)"
-                      className={`bo-name-input ${validationErrors[`${betType}-${index}`] ? 'error' : ''}`}
+                      value={row.numbers}
+                      onChange={(e) => handleRowChange(betType, index, 'numbers', e.target.value)}
+                      onBlur={(e) => handleInputBlur(betType, index, 'numbers', e.target.value, e)}
+                      placeholder="Tên bộ (VD: 05, 06, 07, chanle, lechan, lele, chanchan)"
+                      className={`numbers-input ${validationErrors[`${betType}-${index}`] ? 'error' : ''}`}
                       ref={el => inputRefs.current[`${betType}-${index}`] = el}
-                    />
-                    <input
-                      type="text"
-                      value={row.count}
-                      readOnly
-                      placeholder="Số lượng"
-                      className="bo-count-input"
                     />
                     <input
                       type="text"
@@ -2916,10 +2970,10 @@ const EmployeeInterface = ({ user }) => {
                 // Lưu vào sessionStorage
                 sessionStorage.setItem('allowMergeDuplicates', checked.toString());
                 
-                // Nếu bật checkbox, gộp chỉ loto, 2s, 3s với delay (không gộp khi đang load hóa đơn)
+                // Nếu bật checkbox, gộp chỉ loto, 2s, 3s, bo với delay (không gộp khi đang load hóa đơn)
                 if (checked && !isLoadingInvoice) {
                   setTimeout(() => {
-                    ['loto', '2s', '3s'].forEach(betType => {
+                    ['loto', '2s', '3s', 'bo'].forEach(betType => {
                       mergeDuplicateNumbers(betType);
                     });
                   }, 1500); // Đợi 1.5 giây để đồng bộ với các logic gộp khác
@@ -2997,7 +3051,7 @@ const EmployeeInterface = ({ user }) => {
                 {invoiceItems.map((item) => (
                   <tr key={item.id}>
                     <td className="bet-type-label">{item.typeLabel}</td>
-                    <td className="bet-numbers-cell">{item.displayNumbers}</td>
+                    <td className="bet-numbers-cell">{String(item.displayNumbers).split('\n').map((line, i) => (<React.Fragment key={i}>{line}{i < String(item.displayNumbers).split('\n').length - 1 ? <br/> : null}</React.Fragment>))}</td>
                     <td className="bet-total-cell">
                       <span>{item.totalAmount.toLocaleString()}n</span>
                     </td>
@@ -3171,11 +3225,26 @@ const EmployeeInterface = ({ user }) => {
         const numbers = item.numbers || '';
         const amount = item.points || item.amount || 0;
         const total = item.totalAmount || 0;
-        return `${numbers} (${amount}${betType === 'loto' ? 'đ' : 'n'}) = ${total.toLocaleString()}`;
+        
+        if (betType === 'bo') {
+          // Xử lý đặc biệt cho bộ - hiển thị với số lượng số
+          const boNumbers = numbers.split(' ').filter(n => n.length > 0);
+          if (boNumbers.length > 0) {
+            const boDetails = boNumbers.map(num => {
+              const count = BO_DATA[num] ? BO_DATA[num].length : 0;
+              return `Bộ ${num}(${count} số)`;
+            }).join(', ');
+            return `${boDetails} (${amount}n) = ${total.toLocaleString()}`;
+          } else {
+            return `Bộ (${amount}n) = ${total.toLocaleString()}`;
+          }
+        } else {
+          return `${numbers} (${amount}${betType === 'loto' ? 'đ' : 'n'}) = ${total.toLocaleString()}`;
+        }
       }).join(', ');
       
       return `${label}: ${details}`;
-    }).join(' | ');
+    }).join('\n');
   };
 
   const renderInvoiceListInterface = () => (
@@ -3271,7 +3340,23 @@ const EmployeeInterface = ({ user }) => {
                     </td>
                     <td className="bet-details-cell">
                       <div className="bet-details">
-                        {formatBetDetails(invoice.items)}
+                        {(() => {
+                          const lines = String(formatBetDetails(invoice.items)).split('\n');
+                          return lines.map((line, i) => {
+                            const parts = line.split(': ');
+                            const label = parts[0] || '';
+                            const content = parts.slice(1).join(': ') || '';
+                            return (
+                              <div key={i} style={{padding: '2px 0'}}>
+                                <span style={{color: '#e74c3c', fontWeight: 700}}>{label}:</span>{' '}
+                                <span style={{color: '#000'}}>{content}</span>
+                                {i < lines.length - 1 && (
+                                  <div style={{borderTop: '1px dashed #ccc', margin: '4px 0'}} />
+                                )}
+                              </div>
+                            );
+                          });
+                        })()}
                       </div>
                     </td>
                     <td className="amount-cell">
