@@ -887,6 +887,34 @@ const EmployeeInterface = ({ user }) => {
 
   // Handle row data change
   const handleRowChange = (betType, rowIndex, field, value) => {
+    // Chuẩn hóa cho ô tiền/điểm: trim space, chỉ giữ số và dấu chấm, chặn nhiều số
+    if (field === 'amount' || field === 'points') {
+      const raw = String(value || '');
+      // Loại bỏ khoảng trắng thừa ở đầu/cuối và giữa (giữ lại một số duy nhất)
+      // Thay thế nhiều khoảng trắng bằng một khoảng trắng đơn để phát hiện nhiều số
+      const normalizedSpaces = raw.replace(/\s+/g, ' ').trim();
+      // Nếu người dùng nhập nhiều số cách nhau bằng khoảng trắng, giữ số đầu tiên
+      const firstToken = normalizedSpaces.split(' ')[0] || '';
+      // Chỉ cho phép số và một dấu chấm (hỗ trợ thập phân)
+      const cleaned = firstToken.replace(/[^0-9.]/g, '');
+      // Nếu có nhiều dấu chấm, giữ chỉ dấu chấm đầu tiên
+      const parts = cleaned.split('.');
+      const sanitized = parts.length > 1 ? parts[0] + '.' + parts.slice(1).join('').replace(/\./g, '') : cleaned;
+      value = sanitized;
+
+      // Validation: không cho phép nhiều số trong cùng một ô amount/points
+      const errorKey = `${betType}-${rowIndex}-amount`; // key phụ cho lỗi số tiền
+      const hasMultipleNumbers = normalizedSpaces.split(' ').length > 1;
+      setValidationErrors(prev => {
+        const next = { ...prev };
+        if (hasMultipleNumbers) {
+          next[errorKey] = 'Chỉ được nhập 1 số tiền/điểm trong một hàng';
+        } else {
+          delete next[errorKey];
+        }
+        return next;
+      });
+    }
     // Track changes if in edit mode
     if (isEditMode) {
       console.log('📝 Row change detected in edit mode:', { betType, rowIndex, field, value });
@@ -1184,6 +1212,34 @@ const EmployeeInterface = ({ user }) => {
 
   // Handle input blur - validate when user leaves the input field
   const handleInputBlur = (betType, rowIndex, field, value, event) => {
+    // Chuẩn hóa tức thời cho ô tiền/điểm khi blur: trim space và giữ một số duy nhất
+    if (field === 'amount' || field === 'points') {
+      const raw = String(value || '');
+      const normalizedSpaces = raw.replace(/\s+/g, ' ').trim();
+      const firstToken = normalizedSpaces.split(' ')[0] || '';
+      const cleaned = firstToken.replace(/[^0-9.]/g, '');
+      const parts = cleaned.split('.');
+      const sanitized = parts.length > 1 ? parts[0] + '.' + parts.slice(1).join('').replace(/\./g, '') : cleaned;
+      // Ghi lại vào state ngay khi blur để tránh hiển thị 0đ
+      setBetData(prev => {
+        const next = { ...prev };
+        const rows = [...next[betType].rows];
+        rows[rowIndex] = { ...rows[rowIndex], [field]: sanitized };
+        next[betType] = { ...next[betType], rows };
+        return next;
+      });
+      value = sanitized;
+
+      // Validation nhiều số trong một ô
+      const errorKey = `${betType}-${rowIndex}-amount`;
+      const hasMultipleNumbers = normalizedSpaces.split(' ').length > 1;
+      setValidationErrors(prev => {
+        const next = { ...prev };
+        if (hasMultipleNumbers) next[errorKey] = 'Chỉ được nhập 1 số tiền/điểm trong một hàng';
+        else delete next[errorKey];
+        return next;
+      });
+    }
     if (field === 'numbers') {
       // Khi blur numbers, nếu cho phép gộp cho các loại hỗ trợ gộp thì kích hoạt gộp ngay nếu đủ dữ liệu
       if (allowMergeDuplicates && ['loto','2s','3s','tong','dau','dit','bo'].includes(betType) && !isMerging && !isLoadingInvoice) {
