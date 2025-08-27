@@ -564,6 +564,10 @@ const AdminPrizeStatistics = () => {
               <div className="admin-prize-count">{statisticsData.totalStores || 0}</div>
             </div>
             <div className="admin-prize-overview-card">
+              <h4>Tổng số hóa đơn cược</h4>
+              <div className="admin-prize-count">{statisticsData.totalBettingInvoices || 0}</div>
+            </div>
+            <div className="admin-prize-overview-card">
               <h4>Ngày thống kê</h4>
               <div className="admin-prize-date">{new Date(selectedDate).toLocaleDateString('vi-VN')}</div>
             </div>
