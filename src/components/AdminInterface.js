@@ -13,6 +13,7 @@ const AdminInterface = ({ user, onLogout }) => {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
     { id: 'my-store', label: 'Cửa hàng của tôi', icon: '🏪' },
@@ -52,11 +53,25 @@ const AdminInterface = ({ user, onLogout }) => {
   // Xem chi tiết cửa hàng
   const viewStoreDetail = (store) => {
     setSelectedStore(store);
+    if (window.innerWidth <= 992) setIsMobileMenuOpen(false);
   };
 
   // Quay lại danh sách cửa hàng
   const backToStoreList = () => {
     setSelectedStore(null);
+  };
+
+  const handleMenuClick = (itemId) => {
+    setActiveTab(itemId);
+    if (window.innerWidth <= 992) setIsMobileMenuOpen(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(prev => !prev);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   const renderContent = () => {
@@ -157,7 +172,7 @@ const AdminInterface = ({ user, onLogout }) => {
   return (
     <div className="admin-interface-container">
       {/* Left Sidebar Menu */}
-      <div className="admin-sidebar">
+      <div className={`admin-sidebar ${isMobileMenuOpen ? 'admin-sidebar--open' : 'admin-sidebar--closed'}`}>
         <div className="admin-sidebar-header">
           <h3>Quản trị viên</h3>
           <p className="admin-user-name">{user.name || user.username}</p>
@@ -168,7 +183,7 @@ const AdminInterface = ({ user, onLogout }) => {
             <button
               key={item.id}
               className={`admin-nav-item ${activeTab === item.id ? 'admin-nav-active' : ''}`}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleMenuClick(item.id)}
             >
               <span className="admin-nav-icon">{item.icon}</span>
               <span className="admin-nav-label">{item.label}</span>
@@ -183,6 +198,17 @@ const AdminInterface = ({ user, onLogout }) => {
           </button>
         </div>
       </div>
+
+      {/* Mobile top bar with hamburger */}
+      <div className="admin-mobile-topbar">
+        <button className="admin-mobile-menu-button" onClick={toggleMobileMenu}>
+          ☰ Menu
+        </button>
+        <div className="admin-mobile-topbar-title">Trang quản trị</div>
+      </div>
+
+      {/* Overlay for mobile menu */}
+      {isMobileMenuOpen && <div className="admin-overlay" onClick={closeMobileMenu} />}
 
       {/* Main Content Area */}
       <div className="admin-main-content">

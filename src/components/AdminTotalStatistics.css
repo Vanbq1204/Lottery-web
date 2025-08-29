@@ -527,3 +527,31 @@
     gap: 8px;
   }
 } 
+
+/* Scoped styles chỉ cho khu vực bộ lọc */
+.admin-filter-scope .filter-toggle-btn {
+  border: 1px solid #90caf9;
+  background: #e3f2fd;
+  color: #0d47a1;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 600;
+}
+
+.admin-filter-scope .filter-toggle-btn:hover {
+  background: #d7ebfc;
+  border-color: #64b5f6;
+}
+
+.admin-filter-scope .filter-toggle-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(144, 202, 249, 0.35);
+}
+
+.admin-filter-scope .panel {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+  background: #fafafa;
+} 

@@ -357,3 +357,71 @@
     padding: 15px;
   }
 } 
+
+/* Mobile top bar and menu toggle - only visible on small screens */
+.admin-mobile-topbar {
+  display: none;
+}
+
+.admin-overlay {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  .admin-mobile-topbar {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: #ffffff;
+    border-bottom: 2px solid #000;
+    align-items: center;
+    padding: 0 12px;
+    z-index: 1001;
+  }
+
+  .admin-mobile-menu-button {
+    border: 1px solid #000;
+    background: #fff;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .admin-mobile-topbar-title {
+    margin-left: 12px;
+    font-weight: 600;
+    color: #000;
+  }
+
+  .admin-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+
+  .admin-sidebar {
+    transform: translateX(-110%);
+    transition: transform 0.25s ease;
+    z-index: 1002;
+    width: 240px;
+  }
+
+  .admin-sidebar.admin-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar.admin-sidebar--closed {
+    transform: translateX(-110%);
+  }
+
+  .admin-main-content {
+    margin-left: 0;
+    padding-top: 60px; /* space for topbar */
+  }
+} 

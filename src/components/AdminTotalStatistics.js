@@ -17,28 +17,545 @@ const AdminTotalStatistics = ({ user }) => {
   const [statisticsData, setStatisticsData] = useState(null);
   const [activeTab, setActiveTab] = useState('betting'); // 'betting' hoặc 'prizes'
   const [activeDetailTab, setActiveDetailTab] = useState('loto'); // Tab chi tiết trong thống kê cược
+  // UI và logic bộ lọc hiển thị cho bảng Lô tô (chỉ tác động giao diện)
+  const [showLotoFilter, setShowLotoFilter] = useState(false);
+  const [lotoFilterNumber, setLotoFilterNumber] = useState(''); // "00" - "99"
+  const [lotoFilterSubtract, setLotoFilterSubtract] = useState(''); // số điểm trừ (1 con)
+  const [lotoFilterPercent, setLotoFilterPercent] = useState(''); // % áp dụng toàn bộ
+  // Top N con có điểm cao nhất - Lô tô
+  const [topNCount, setTopNCount] = useState('');
+  const [topNSelection, setTopNSelection] = useState([]); // [{number, points}]
+  const [topNSubtracts, setTopNSubtracts] = useState({}); // { '10': '100', ... }
+  // Ghim bộ lọc (persist) - Lô tô
+  const [pinLotoFilter, setPinLotoFilter] = useState(false);
+
+  // UI và logic bộ lọc cho 2 số (tiền)
+  const [showTwoSFilter, setShowTwoSFilter] = useState(false);
+  const [twoSFilterNumber, setTwoSFilterNumber] = useState('');
+  const [twoSFilterSubtract, setTwoSFilterSubtract] = useState(''); // số tiền trừ (n)
+  const [twoSFilterPercent, setTwoSFilterPercent] = useState('');
+  // Top N - 2 số
+  const [topNTwoSCount, setTopNTwoSCount] = useState('');
+  const [topNTwoSSelection, setTopNTwoSSelection] = useState([]); // [{number, amount}]
+  const [topNTwoSSubtracts, setTopNTwoSSubtracts] = useState({}); // { '10': '50', ... }
+  // Ghim - 2 số
+  const [pinTwoSFilter, setPinTwoSFilter] = useState(false);
+  // Trừ theo số tiền thấp nhất (00-99) - hỗ trợ nhiều lần
+  const [twoSMinSubtracts, setTwoSMinSubtracts] = useState([]); // string[] mỗi phần tử là một lần trừ
+
+  // UI và logic bộ lọc cho 3 số
+  const [showThreeFilter, setShowThreeFilter] = useState(false);
+  const [threeFilterNumber, setThreeFilterNumber] = useState('');
+  const [threeFilterSubtract, setThreeFilterSubtract] = useState('');
+  const [threeFilterPercent, setThreeFilterPercent] = useState('');
+  const [topNThreeCount, setTopNThreeCount] = useState('');
+  const [topNThreeSelection, setTopNThreeSelection] = useState([]); // [{key, amount}]
+  const [topNThreeSubtracts, setTopNThreeSubtracts] = useState({});
+  const [pinThreeFilter, setPinThreeFilter] = useState(false);
+
+  // UI và logic bộ lọc cho Xiên
+  const [showXienFilter, setShowXienFilter] = useState(false);
+  const [xienFilterNumber, setXienFilterNumber] = useState('');
+  const [xienFilterSubtract, setXienFilterSubtract] = useState('');
+  const [xienFilterPercent, setXienFilterPercent] = useState('');
+  const [topNXienCount, setTopNXienCount] = useState('');
+  const [topNXienSelection, setTopNXienSelection] = useState([]);
+  const [topNXienSubtracts, setTopNXienSubtracts] = useState({});
+  const [pinXienFilter, setPinXienFilter] = useState(false);
+
+  // UI và logic bộ lọc cho Xiên quay
+  const [showXienQuayFilter, setShowXienQuayFilter] = useState(false);
+  const [xienQuayFilterNumber, setXienQuayFilterNumber] = useState('');
+  const [xienQuayFilterSubtract, setXienQuayFilterSubtract] = useState('');
+  const [xienQuayFilterPercent, setXienQuayFilterPercent] = useState('');
+  const [topNXienQuayCount, setTopNXienQuayCount] = useState('');
+  const [topNXienQuaySelection, setTopNXienQuaySelection] = useState([]);
+  const [topNXienQuaySubtracts, setTopNXienQuaySubtracts] = useState({});
+  const [pinXienQuayFilter, setPinXienQuayFilter] = useState(false);
+
+  const getLotoFilterStorageKey = () => `lotoFilter:${user?.id}:${selectedDate}`;
+  const getTwoSFilterStorageKey = () => `twoSFilter:${user?.id}:${selectedDate}`;
+  const getThreeFilterStorageKey = () => `threeFilter:${user?.id}:${selectedDate}`;
+  const getXienFilterStorageKey = () => `xienFilter:${user?.id}:${selectedDate}`;
+  const getXienQuayFilterStorageKey = () => `xienQuayFilter:${user?.id}:${selectedDate}`;
+
+  const resetLotoFilters = () => {
+    setShowLotoFilter(false);
+    setLotoFilterNumber('');
+    setLotoFilterSubtract('');
+    setLotoFilterPercent('');
+    setTopNCount('');
+    setTopNSelection([]);
+    setTopNSubtracts({});
+  };
+
+  const resetTwoSFilters = () => {
+    setShowTwoSFilter(false);
+    setTwoSFilterNumber('');
+    setTwoSFilterSubtract('');
+    setTwoSFilterPercent('');
+    setTopNTwoSCount('');
+    setTopNTwoSSelection([]);
+    setTopNTwoSSubtracts({});
+    setTwoSMinSubtracts([]);
+  };
+
+  const resetThreeFilters = () => {
+    setShowThreeFilter(false);
+    setThreeFilterNumber('');
+    setThreeFilterSubtract('');
+    setThreeFilterPercent('');
+    setTopNThreeCount('');
+    setTopNThreeSelection([]);
+    setTopNThreeSubtracts({});
+  };
+
+  const resetXienFilters = () => {
+    setShowXienFilter(false);
+    setXienFilterNumber('');
+    setXienFilterSubtract('');
+    setXienFilterPercent('');
+    setTopNXienCount('');
+    setTopNXienSelection([]);
+    setTopNXienSubtracts({});
+  };
+
+  const resetXienQuayFilters = () => {
+    setShowXienQuayFilter(false);
+    setXienQuayFilterNumber('');
+    setXienQuayFilterSubtract('');
+    setXienQuayFilterPercent('');
+    setTopNXienQuayCount('');
+    setTopNXienQuaySelection([]);
+    setTopNXienQuaySubtracts({});
+  };
+
+  const clearPersistedLotoFilters = () => { try { localStorage.removeItem(getLotoFilterStorageKey()); } catch (e) {} };
+  const clearPersistedTwoSFilters = () => { try { localStorage.removeItem(getTwoSFilterStorageKey()); } catch (e) {} };
+  const clearPersistedThreeFilters = () => { try { localStorage.removeItem(getThreeFilterStorageKey()); } catch (e) {} };
+  const clearPersistedXienFilters = () => { try { localStorage.removeItem(getXienFilterStorageKey()); } catch (e) {} };
+  const clearPersistedXienQuayFilters = () => { try { localStorage.removeItem(getXienQuayFilterStorageKey()); } catch (e) {} };
+
+  const handleRefreshLoto = async () => { clearPersistedLotoFilters(); resetLotoFilters(); await loadStatistics(); };
+  const handleRefreshTwoS = async () => { clearPersistedTwoSFilters(); resetTwoSFilters(); await loadStatistics(); };
+  const handleRefreshThree = async () => { clearPersistedThreeFilters(); resetThreeFilters(); await loadStatistics(); };
+  const handleRefreshXien = async () => { clearPersistedXienFilters(); resetXienFilters(); await loadStatistics(); };
+  const handleRefreshXienQuay = async () => { clearPersistedXienQuayFilters(); resetXienQuayFilters(); await loadStatistics(); };
+
+  const saveLotoFiltersToStorage = () => {
+    if (!pinLotoFilter) return;
+    try {
+      const payload = { showLotoFilter, lotoFilterNumber, lotoFilterSubtract, lotoFilterPercent, topNCount, topNSubtracts, pinLotoFilter: true };
+      localStorage.setItem(getLotoFilterStorageKey(), JSON.stringify(payload));
+    } catch (e) {}
+  };
+
+  const saveTwoSFiltersToStorage = () => {
+    if (!pinTwoSFilter) return;
+    try {
+      const payload = {
+        showTwoSFilter,
+        twoSFilterNumber,
+        twoSFilterSubtract,
+        twoSFilterPercent,
+        topNTwoSCount,
+        topNTwoSSubtracts,
+        twoSMinSubtracts,
+        pinTwoSFilter: true
+      };
+      localStorage.setItem(getTwoSFilterStorageKey(), JSON.stringify(payload));
+    } catch (e) {}
+  };
+
+  const saveThreeFiltersToStorage = () => {
+    if (!pinThreeFilter) return;
+    try {
+      const payload = { showThreeFilter, threeFilterNumber, threeFilterSubtract, threeFilterPercent, topNThreeCount, topNThreeSubtracts, pinThreeFilter: true };
+      localStorage.setItem(getThreeFilterStorageKey(), JSON.stringify(payload));
+    } catch (e) {}
+  };
+
+  const saveXienFiltersToStorage = () => {
+    if (!pinXienFilter) return;
+    try {
+      const payload = { showXienFilter, xienFilterNumber, xienFilterSubtract, xienFilterPercent, topNXienCount, topNXienSubtracts, pinXienFilter: true };
+      localStorage.setItem(getXienFilterStorageKey(), JSON.stringify(payload));
+    } catch (e) {}
+  };
+
+  const saveXienQuayFiltersToStorage = () => {
+    if (!pinXienQuayFilter) return;
+    try {
+      const payload = { showXienQuayFilter, xienQuayFilterNumber, xienQuayFilterSubtract, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, pinXienQuayFilter: true };
+      localStorage.setItem(getXienQuayFilterStorageKey(), JSON.stringify(payload));
+    } catch (e) {}
+  };
+
+  const loadLotoFiltersFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(getLotoFilterStorageKey());
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return;
+      setShowLotoFilter(!!data.showLotoFilter);
+      setLotoFilterNumber(data.lotoFilterNumber ?? '');
+      setLotoFilterSubtract(data.lotoFilterSubtract ?? '');
+      setLotoFilterPercent(data.lotoFilterPercent ?? '');
+      setTopNCount(data.topNCount ?? '');
+      setTopNSubtracts(data.topNSubtracts ?? {});
+      setPinLotoFilter(!!data.pinLotoFilter);
+    } catch (e) {}
+  };
+
+  const loadTwoSFiltersFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(getTwoSFilterStorageKey());
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return;
+      setShowTwoSFilter(!!data.showTwoSFilter);
+      setTwoSFilterNumber(data.twoSFilterNumber ?? '');
+      setTwoSFilterSubtract(data.twoSFilterSubtract ?? '');
+      setTwoSFilterPercent(data.twoSFilterPercent ?? '');
+      setTopNTwoSCount(data.topNTwoSCount ?? '');
+      setTopNTwoSSubtracts(data.topNTwoSSubtracts ?? {});
+      setTwoSMinSubtracts(Array.isArray(data.twoSMinSubtracts) ? data.twoSMinSubtracts : []);
+      setPinTwoSFilter(!!data.pinTwoSFilter);
+    } catch (e) {}
+  };
+
+  const loadThreeFiltersFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(getThreeFilterStorageKey());
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return;
+      setShowThreeFilter(!!data.showThreeFilter);
+      setThreeFilterNumber(data.threeFilterNumber ?? '');
+      setThreeFilterSubtract(data.threeFilterSubtract ?? '');
+      setThreeFilterPercent(data.threeFilterPercent ?? '');
+      setTopNThreeCount(data.topNThreeCount ?? '');
+      setTopNThreeSubtracts(data.topNThreeSubtracts ?? {});
+      setPinThreeFilter(!!data.pinThreeFilter);
+    } catch (e) {}
+  };
+
+  const loadXienFiltersFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(getXienFilterStorageKey());
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return;
+      setShowXienFilter(!!data.showXienFilter);
+      setXienFilterNumber(data.xienFilterNumber ?? '');
+      setXienFilterSubtract(data.xienFilterSubtract ?? '');
+      setXienFilterPercent(data.xienFilterPercent ?? '');
+      setTopNXienCount(data.topNXienCount ?? '');
+      setTopNXienSubtracts(data.topNXienSubtracts ?? {});
+      setPinXienFilter(!!data.pinXienFilter);
+    } catch (e) {}
+  };
+
+  const loadXienQuayFiltersFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(getXienQuayFilterStorageKey());
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return;
+      setShowXienQuayFilter(!!data.showXienQuayFilter);
+      setXienQuayFilterNumber(data.xienQuayFilterNumber ?? '');
+      setXienQuayFilterSubtract(data.xienQuayFilterSubtract ?? '');
+      setXienQuayFilterPercent(data.xienQuayFilterPercent ?? '');
+      setTopNXienQuayCount(data.topNXienQuayCount ?? '');
+      setTopNXienQuaySubtracts(data.topNXienQuaySubtracts ?? {});
+      setPinXienQuayFilter(!!data.pinXienQuayFilter);
+    } catch (e) {}
+  };
+
+  const buildTopNSelection = () => {
+    const n = parseInt(topNCount, 10);
+    if (isNaN(n) || n <= 0 || !statisticsData?.loto) {
+      setTopNSelection([]);
+      return;
+    }
+    const entries = Object.entries(statisticsData.loto)
+      .map(([number, points]) => ({ number, points: points || 0 }))
+      .sort((a, b) => b.points - a.points)
+      .filter(item => item.points > 0)
+      .slice(0, n);
+    setTopNSelection(entries);
+  };
+
+  const buildTopNTwoSSelection = () => {
+    const n = parseInt(topNTwoSCount, 10);
+    if (isNaN(n) || n <= 0 || !statisticsData?.['2s']) {
+      setTopNTwoSSelection([]);
+      return;
+    }
+    const entries = Object.entries(statisticsData['2s'])
+      .map(([number, amount]) => ({ number, amount: amount || 0 }))
+      .sort((a, b) => b.amount - a.amount)
+      .filter(item => item.amount > 0)
+      .slice(0, n);
+    setTopNTwoSSelection(entries);
+  };
+
+  const buildTopNThreeSelection = () => {
+    const n = parseInt(topNThreeCount, 10);
+    if (isNaN(n) || n <= 0 || !statisticsData?.['3s']) {
+      setTopNThreeSelection([]);
+      return;
+    }
+    const entries = Object.entries(statisticsData['3s'])
+      .map(([key, amount]) => ({ key, amount: amount || 0 }))
+      .sort((a, b) => b.amount - a.amount)
+      .filter(item => item.amount > 0)
+      .slice(0, n);
+    setTopNThreeSelection(entries);
+  };
+
+  const buildTopNXienSelection = () => {
+    const n = parseInt(topNXienCount, 10);
+    if (isNaN(n) || n <= 0 || !statisticsData?.xien) {
+      setTopNXienSelection([]);
+      return;
+    }
+    const entries = Object.entries(statisticsData.xien)
+      .map(([key, amount]) => ({ key, amount: amount || 0 }))
+      .sort((a, b) => b.amount - a.amount)
+      .filter(item => item.amount > 0)
+      .slice(0, n);
+    setTopNXienSelection(entries);
+  };
+
+  const buildTopNXienQuaySelection = () => {
+    const n = parseInt(topNXienQuayCount, 10);
+    if (isNaN(n) || n <= 0 || !statisticsData?.xienquay) {
+      setTopNXienQuaySelection([]);
+      return;
+    }
+    const entries = Object.entries(statisticsData.xienquay)
+      .map(([key, amount]) => ({ key, amount: amount || 0 }))
+      .sort((a, b) => b.amount - a.amount)
+      .filter(item => item.amount > 0)
+      .slice(0, n);
+    setTopNXienQuaySelection(entries);
+  };
+
+  const adjustLotoPointsForDisplay = (numberStr, rawPoints) => {
+    let adjusted = rawPoints || 0;
+
+    const perNumberSubtract = parseInt(topNSubtracts[numberStr] ?? '', 10);
+    if (!isNaN(perNumberSubtract) && perNumberSubtract > 0) {
+      adjusted = Math.max(0, adjusted - perNumberSubtract);
+    }
+
+    const numFilter = (lotoFilterNumber || '').trim();
+    const subtractVal = parseInt(lotoFilterSubtract, 10);
+    if (numFilter !== '' && numberStr === numFilter && !isNaN(subtractVal) && subtractVal > 0) {
+      adjusted = Math.max(0, adjusted - subtractVal);
+    }
+
+    const percentVal = parseInt(lotoFilterPercent, 10);
+    if (!isNaN(percentVal) && percentVal > 0) {
+      const clamped = Math.min(100, Math.max(0, percentVal));
+      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+    }
+
+    return adjusted;
+  };
+
+  const adjustTwoSAmountForDisplay = (numberStr, rawAmount) => {
+    let adjusted = rawAmount || 0;
+
+    // Trừ theo danh sách Top N (2 số)
+    const perNumberSubtract = parseInt(topNTwoSSubtracts[numberStr] ?? '', 10);
+    if (!isNaN(perNumberSubtract) && perNumberSubtract > 0) {
+      adjusted = Math.max(0, adjusted - perNumberSubtract);
+    }
+
+    // Trừ theo một con cụ thể
+    const numFilter = (twoSFilterNumber || '').trim();
+    const subtractVal = parseInt(twoSFilterSubtract, 10);
+    if (numFilter !== '' && numberStr === numFilter && !isNaN(subtractVal) && subtractVal > 0) {
+      adjusted = Math.max(0, adjusted - subtractVal);
+    }
+
+    // Trừ theo các lần tối thiểu đã áp dụng (00-99)
+    if (Array.isArray(twoSMinSubtracts) && twoSMinSubtracts.length > 0) {
+      const totalMin = twoSMinSubtracts.reduce((sum, v) => {
+        const n = parseInt(v, 10); return sum + (isNaN(n) ? 0 : n);
+      }, 0);
+      if (totalMin > 0) adjusted = Math.max(0, adjusted - totalMin);
+    }
+
+    // Trừ theo % toàn bảng
+    const percentVal = parseInt(twoSFilterPercent, 10);
+    if (!isNaN(percentVal) && percentVal > 0) {
+      const clamped = Math.min(100, Math.max(0, percentVal));
+      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+    }
+
+    return adjusted;
+  };
+
+  // Tính toán min dựa trên số tiền hiện hành sau các lần trừ tối thiểu trước đó
+  const computeCurrentTwoSAdjusted = () => {
+    const twoSData = statisticsData?.['2s'] || {};
+    const totalMin = (twoSMinSubtracts || []).reduce((sum, v) => {
+      const n = parseInt(v, 10); return sum + (isNaN(n) ? 0 : n);
+    }, 0);
+    const zeros = [];
+    let minPositive = Infinity;
+    for (let i = 0; i < 100; i++) {
+      const num = i.toString().padStart(2, '0');
+      const base = twoSData[num] || 0;
+      const current = Math.max(0, base - totalMin);
+      if (current === 0) zeros.push(num);
+      if (current > 0 && current < minPositive) minPositive = current;
+    }
+    return { zeros, minPositive };
+  };
+
+  // Áp dụng trừ theo số tiền thấp nhất cho 2 số (00-99) - nhiều lần
+  const applyTwoSMinSubtract = () => {
+    const { zeros, minPositive } = computeCurrentTwoSAdjusted();
+    if (minPositive === Infinity) {
+      alert('Không có dữ liệu tiền cược dương để áp dụng lọc.');
+      return;
+    }
+    if (zeros.length > 0) {
+      const agree = window.confirm(`Các con ${zeros.join(', ')} đang có số tiền cược là 0. Bạn có đồng ý lọc trừ theo mức thấp nhất hiện tại (${minPositive}n) không?`);
+      if (!agree) return;
+    }
+    setTwoSMinSubtracts((prev) => [...prev, String(minPositive)]);
+  };
+
+  const clearTwoSMinSubtractLast = () => {
+    setTwoSMinSubtracts((prev) => prev.slice(0, -1));
+  };
+
+  const clearTwoSMinSubtractAll = () => {
+    setTwoSMinSubtracts([]);
+  };
+
+  const adjustThreeAmountForDisplay = (keyStr, rawAmount) => {
+    let adjusted = rawAmount || 0;
+
+    const perKeySubtract = parseInt(topNThreeSubtracts[keyStr] ?? '', 10);
+    if (!isNaN(perKeySubtract) && perKeySubtract > 0) {
+      adjusted = Math.max(0, adjusted - perKeySubtract);
+    }
+
+    const target = (threeFilterNumber || '').trim();
+    const subtractVal = parseInt(threeFilterSubtract, 10);
+    if (target !== '' && keyStr === target && !isNaN(subtractVal) && subtractVal > 0) {
+      adjusted = Math.max(0, adjusted - subtractVal);
+    }
+
+    const percentVal = parseInt(threeFilterPercent, 10);
+    if (!isNaN(percentVal) && percentVal > 0) {
+      const clamped = Math.min(100, Math.max(0, percentVal));
+      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+    }
+
+    return adjusted;
+  };
+
+  const adjustXienAmountForDisplay = (keyStr, rawAmount) => {
+    let adjusted = rawAmount || 0;
+
+    const perKeySubtract = parseInt(topNXienSubtracts[keyStr] ?? '', 10);
+    if (!isNaN(perKeySubtract) && perKeySubtract > 0) {
+      adjusted = Math.max(0, adjusted - perKeySubtract);
+    }
+
+    const target = (xienFilterNumber || '').trim();
+    const subtractVal = parseInt(xienFilterSubtract, 10);
+    if (target !== '' && keyStr === target && !isNaN(subtractVal) && subtractVal > 0) {
+      adjusted = Math.max(0, adjusted - subtractVal);
+    }
+
+    const percentVal = parseInt(xienFilterPercent, 10);
+    if (!isNaN(percentVal) && percentVal > 0) {
+      const clamped = Math.min(100, Math.max(0, percentVal));
+      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+    }
+
+    return adjusted;
+  };
+
+  const adjustXienQuayAmountForDisplay = (keyStr, rawAmount) => {
+    let adjusted = rawAmount || 0;
+
+    const perKeySubtract = parseInt(topNXienQuaySubtracts[keyStr] ?? '', 10);
+    if (!isNaN(perKeySubtract) && perKeySubtract > 0) {
+      adjusted = Math.max(0, adjusted - perKeySubtract);
+    }
+
+    const target = (xienQuayFilterNumber || '').trim();
+    const subtractVal = parseInt(xienQuayFilterSubtract, 10);
+    if (target !== '' && keyStr === target && !isNaN(subtractVal) && subtractVal > 0) {
+      adjusted = Math.max(0, adjusted - subtractVal);
+    }
+
+    const percentVal = parseInt(xienQuayFilterPercent, 10);
+    if (!isNaN(percentVal) && percentVal > 0) {
+      const clamped = Math.min(100, Math.max(0, percentVal));
+      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+    }
+
+    return adjusted;
+  };
+
+  // Tự động lưu khi filter thay đổi (nếu đã ghim)
+  useEffect(() => { saveLotoFiltersToStorage(); /* eslint-disable-line */ }, [pinLotoFilter, showLotoFilter, lotoFilterNumber, lotoFilterSubtract, lotoFilterPercent, topNCount, topNSubtracts, selectedDate]);
+  useEffect(() => { saveTwoSFiltersToStorage(); /* eslint-disable-line */ }, [pinTwoSFilter, showTwoSFilter, twoSFilterNumber, twoSFilterSubtract, twoSFilterPercent, topNTwoSCount, topNTwoSSubtracts, twoSMinSubtracts, selectedDate]);
+  useEffect(() => { saveThreeFiltersToStorage(); /* eslint-disable-line */ }, [pinThreeFilter, showThreeFilter, threeFilterNumber, threeFilterSubtract, threeFilterPercent, topNThreeCount, topNThreeSubtracts, selectedDate]);
+  useEffect(() => { saveXienFiltersToStorage(); /* eslint-disable-line */ }, [pinXienFilter, showXienFilter, xienFilterNumber, xienFilterSubtract, xienFilterPercent, topNXienCount, topNXienSubtracts, selectedDate]);
+  useEffect(() => { saveXienQuayFiltersToStorage(); /* eslint-disable-line */ }, [pinXienQuayFilter, showXienQuayFilter, xienQuayFilterNumber, xienQuayFilterSubtract, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, selectedDate]);
+
+  // Khôi phục khi đổi ngày hoặc vào màn
+  useEffect(() => { loadLotoFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
+  useEffect(() => { loadTwoSFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
+  useEffect(() => { loadThreeFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
+  useEffect(() => { loadXienFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
+  useEffect(() => { loadXienQuayFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
+
+  // Rebuild danh sách Top N khi dữ liệu hoặc tham số thay đổi
+  useEffect(() => { buildTopNSelection(); /* eslint-disable-line */ }, [statisticsData, topNCount]);
+  useEffect(() => { buildTopNTwoSSelection(); /* eslint-disable-line */ }, [statisticsData, topNTwoSCount]);
+  useEffect(() => { buildTopNThreeSelection(); /* eslint-disable-line */ }, [statisticsData, topNThreeCount]);
+  useEffect(() => { buildTopNXienSelection(); /* eslint-disable-line */ }, [statisticsData, topNXienCount]);
+  useEffect(() => { buildTopNXienQuaySelection(); /* eslint-disable-line */ }, [statisticsData, topNXienQuayCount]);
+
+  // Load data when component mounts or date changes
+  useEffect(() => {
+    if (activeTab === 'betting') {
+      loadStatistics();
+    }
+  }, [selectedDate, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle date change
+  const handleDateChange = (e) => { setSelectedDate(e.target.value); };
+
+  // Handle tab change
+  const handleTabChange = (tab) => { setActiveTab(tab); };
 
   // Load statistics data for all stores of admin
   const loadStatistics = async (date = selectedDate) => {
     setIsLoading(true);
     try {
       const response = await axios.get(getApiUrl('/admin/total-statistics'), {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        params: {
-          adminId: user.id, // Sử dụng adminId để lấy tất cả cửa hàng
-          date: date
-        }
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        params: { adminId: user.id, date: date }
       });
 
       if (response.data.success) {
-        // Transform data to match AdminStoreStatistics format
         const rawStats = response.data.stats;
         
         const transformedStats = {
           totalRevenue: rawStats.totalRevenue,
-          // Use totals directly from backend
           lotoTotal: rawStats.lotoTotal || 0,
           '2sTotal': rawStats['2sTotal'] || 0,
           '3sTotal': rawStats['3sTotal'] || 0,
@@ -47,11 +564,10 @@ const AdminTotalStatistics = ({ user }) => {
           dauTotal: rawStats.dauTotal || 0,
           ditTotal: rawStats.ditTotal || 0,
           boTotal: rawStats.boTotal || 0,
-          tongKepDauDitBoTotal: rawStats.tongKepDauDitBoTotal || 0, // Thêm field này
+          tongKepDauDitBoTotal: rawStats.tongKepDauDitBoTotal || 0,
           xienTotal: rawStats.xienTotal || 0,
           xienquayTotal: rawStats.xienquayTotal || 0,
           
-          // Transform data for display
           loto: rawStats.loto,
           '2s': rawStats['2s'],
           '3s': transformGroupedData(rawStats['3s']),
@@ -63,7 +579,6 @@ const AdminTotalStatistics = ({ user }) => {
           xien: transformXienData(rawStats.xien),
           xienquay: transformXienData(rawStats.xienquay),
           
-          // ✅ QUAN TRỌNG: Thêm các field mới cho tính toán lô
           lotoCalculationString: rawStats.lotoCalculationString,
           totalLotoRevenue: rawStats.totalLotoRevenue,
           lotoMultipliers: rawStats.lotoMultipliers,
@@ -86,11 +601,10 @@ const AdminTotalStatistics = ({ user }) => {
     const result = {};
     Object.entries(data).forEach(([caseType, caseData]) => {
       Object.entries(caseData).forEach(([numbers, details]) => {
-        // Xử lý cả dữ liệu cũ và mới
         if (typeof details === 'object' && details.totalAmount !== undefined) {
           result[numbers] = details.totalAmount;
         } else if (typeof details === 'number') {
-          result[numbers] = details; // Dữ liệu cũ
+          result[numbers] = details;
         }
       });
     });
@@ -112,14 +626,9 @@ const AdminTotalStatistics = ({ user }) => {
     if (!data) return {};
     const result = {};
     Object.entries(data).forEach(([caseType, caseData]) => {
-      // Xử lý cả dữ liệu cũ (array) và mới (object)
       if (Array.isArray(caseData)) {
-        // Dữ liệu cũ
-        caseData.forEach(detail => {
-          result[detail.numbers] = detail.totalAmount;
-        });
+        caseData.forEach(detail => { result[detail.numbers] = detail.totalAmount; });
       } else {
-        // Dữ liệu mới
         Object.entries(caseData).forEach(([numbers, details]) => {
           if (details.numbers && Array.isArray(details.numbers)) {
             result[details.numbers.join('-')] = details.totalAmount;
@@ -132,41 +641,10 @@ const AdminTotalStatistics = ({ user }) => {
     return result;
   };
 
-  // Load data when component mounts or date changes
-  useEffect(() => {
-    if (activeTab === 'betting') {
-      loadStatistics();
-    }
-  }, [selectedDate, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Handle date change
-  const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
-  };
-
-  // Handle tab change
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-  };
-
-  // Format tiền tệ
-  const formatMoney = (amount) => {
-    if (!amount || amount === 0) return '0 đ';
-    return Math.floor(amount).toLocaleString('vi-VN').replace(/,/g, '.') + ' đ';
-  };
-
-  // Format nghìn đồng
-  const formatThousand = (amount) => {
-    if (!amount || amount === 0) return '0n';
-    return Math.floor(amount).toLocaleString('vi-VN').replace(/,/g, '.') + 'n';
-  };
-
   // Generate loto statistics table data
   const generateLotoTableData = () => {
     const lotoData = statisticsData?.loto || {};
     const tableData = [];
-    
-    // Create 5 columns x 20 rows
     for (let row = 0; row < 20; row++) {
       const rowData = [];
       for (let col = 0; col < 5; col++) {
@@ -176,7 +654,6 @@ const AdminTotalStatistics = ({ user }) => {
       }
       tableData.push(rowData);
     }
-    
     return tableData;
   };
 
@@ -184,8 +661,6 @@ const AdminTotalStatistics = ({ user }) => {
   const generate2sTableData = () => {
     const twoSData = statisticsData?.['2s'] || {};
     const tableData = [];
-    
-    // Create 5 columns x 20 rows for 2s (00-99)
     for (let row = 0; row < 20; row++) {
       const rowData = [];
       for (let col = 0; col < 5; col++) {
@@ -195,30 +670,21 @@ const AdminTotalStatistics = ({ user }) => {
       }
       tableData.push(rowData);
     }
-    
     return tableData;
   };
 
   // Render combined bet table
   const renderCombinedBetTable = (betTypes, title) => {
-    // Calculate total for this group
     let groupTotal;
-    
-    // Đặc biệt xử lý cho nhóm tổng/kép/đầu/đít/bộ
     if (betTypes.includes('tong') && betTypes.includes('kep') && betTypes.includes('dau') && betTypes.includes('dit') && betTypes.includes('bo')) {
-      // Sử dụng tổng tiền khách trả cho nhóm này
       groupTotal = statisticsData.tongKepDauDitBoTotal || 0;
-      
-
     } else {
-      // Các nhóm khác vẫn tính theo cách cũ
       groupTotal = betTypes.reduce((sum, betType) => {
         const totalField = `${betType}Total`;
         return sum + (statisticsData[totalField] || 0);
       }, 0);
     }
 
-    // Get bet type names
     const betTypeNames = {
       'tong': 'Tổng',
       'kep': 'Kép', 
@@ -230,17 +696,11 @@ const AdminTotalStatistics = ({ user }) => {
       'xienquay': 'Xiên Quay'
     };
 
-    // Collect all data for the table
     const tableData = [];
     betTypes.forEach(betType => {
       const betData = statisticsData[betType] || {};
       Object.entries(betData).forEach(([number, amount]) => {
-        tableData.push({
-          betType: betTypeNames[betType],
-          number,
-          amount,
-          rowClass: `admin-stats-row-${betType}`
-        });
+        tableData.push({ betType: betTypeNames[betType], number, amount, rowClass: `admin-stats-row-${betType}` });
       });
     });
 
@@ -282,32 +742,28 @@ const AdminTotalStatistics = ({ user }) => {
     );
   };
 
+  // Format tiền tệ
+  const formatMoney = (amount) => { if (!amount || amount === 0) return '0 đ'; return Math.floor(amount).toLocaleString('vi-VN').replace(/,/g, '.') + ' đ'; };
+  // Format nghìn đồng
+  const formatThousand = (amount) => { if (!amount || amount === 0) return '0n'; return Math.floor(amount).toLocaleString('vi-VN').replace(/,/g, '.') + 'n'; };
+
   // Render summary section
   const renderSummary = () => {
     if (!statisticsData) return null;
 
-    // Tính tổng điểm loto để hiển thị tổng tiền đánh đúng
     const lotoTotalPoints = Object.values(statisticsData.loto || {}).reduce((sum, points) => sum + points, 0);
-    
-    // Sử dụng totalLotoRevenue từ backend nếu có, nếu không fallback về cách tính cũ
     const lotoRevenue = statisticsData.totalLotoRevenue || (lotoTotalPoints * 22);
-    
-    // Use new calculation method with store-specific multipliers
 
     return (
       <div className="admin-stats-summary">
-        {/* Tổng doanh thu nổi bật */}
         <div className="admin-stats-total-revenue">
           <h3>Tổng doanh thu</h3>
           <span className="admin-stats-value">{formatMoney(statisticsData.totalRevenue)}</span>
         </div>
-
-        {/* Chi tiết từng loại cược */}
         <div className="admin-stats-summary-grid">
           <div className="admin-stats-card loto-card">
             <h4>Lô tô</h4>
             <span className="admin-stats-value">{formatThousand(lotoRevenue)}</span>
-            {/* Hiển thị công thức tính nếu có */}
             {statisticsData.lotoCalculationString && (
               <div className="loto-calculation">
                 <small>📊 {statisticsData.lotoCalculationString} = {formatThousand(lotoRevenue)}</small>
@@ -374,14 +830,11 @@ const AdminTotalStatistics = ({ user }) => {
           const lotoTableData = generateLotoTableData();
           const lotoTotalPoints = Object.values(statisticsData.loto || {}).reduce((sum, points) => sum + points, 0);
           
-          // Calculate display values for loto tab
-          
           return (
-            <div className="admin-stats-loto-table">
+            <div className="admin-stats-loto-table admin-filter-scope">
               <div className="admin-stats-loto-total">
                 <h4>Tổng kết lô tô</h4>
                 <div>
-                  {/* Hiển thị tổng tiền đánh với công thức chi tiết nếu có */}
                   {statisticsData.lotoCalculationString && statisticsData.totalLotoRevenue ? (
                     <>
                       <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>
@@ -397,6 +850,57 @@ const AdminTotalStatistics = ({ user }) => {
                   <span className="admin-stats-loto-total-value">Tổng điểm: {lotoTotalPoints}đ</span>
                 </div>
               </div>
+
+              {/* Bộ lọc hiển thị bảng Lô tô */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>
+                <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowLotoFilter(prev => !prev)}>{showLotoFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input type="checkbox" checked={pinLotoFilter} onChange={(e) => setPinLotoFilter(e.target.checked)} />
+                  <span>Ghim bộ lọc</span>
+                </label>
+                <button className="admin-stats-tab" onClick={handleRefreshLoto}>Làm mới</button>
+              </div>
+
+              {showLotoFilter && (
+                <div className="panel" style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Chọn ra</span>
+                    <input type="number" min="1" placeholder="vd: 5" value={topNCount} onChange={(e) => setTopNCount(e.target.value)} style={{ width: '80px' }} />
+                    <span>con có số điểm cao nhất của bảng</span>
+                    <button className="admin-stats-tab" onClick={buildTopNSelection}>Chọn</button>
+                  </div>
+
+                  {topNSelection.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '6px 0 10px 0' }}>
+                      {topNSelection.map(item => (
+                        <div key={item.number} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>Lọc con</span>
+                          <input type="text" value={item.number} readOnly style={{ width: '60px', background: '#f0f0f0' }} />
+                          <span>, đang có số điểm</span>
+                          <input type="text" value={item.points} readOnly style={{ width: '80px', background: '#f0f0f0' }} />
+                          <span>, lọc đi</span>
+                          <input type="number" min="0" placeholder="vd: 100" value={topNSubtracts[item.number] ?? ''} onChange={(e) => setTopNSubtracts(prev => ({ ...prev, [item.number]: e.target.value }))} style={{ width: '100px' }} />
+                          <span>điểm</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Lọc con</span>
+                    <input type="text" placeholder="00-99" value={lotoFilterNumber} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); setLotoFilterNumber(v.padStart(v.length > 0 ? Math.min(2, v.length) : 0, '0')); }} style={{ width: '60px' }} />
+                    <span>, số điểm là</span>
+                    <input type="number" min="0" placeholder="vd: 100" value={lotoFilterSubtract} onChange={(e) => setLotoFilterSubtract(e.target.value)} style={{ width: '100px' }} />
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <span>Lọc tất cả</span>
+                    <input type="number" min="0" max="100" placeholder="vd: 50" value={lotoFilterPercent} onChange={(e) => setLotoFilterPercent(e.target.value)} style={{ width: '80px' }} />
+                    <span>% số điểm</span>
+                  </div>
+                </div>
+              )}
+
               <table>
                 <thead>
                   <tr>
@@ -415,22 +919,25 @@ const AdminTotalStatistics = ({ user }) => {
                 <tbody>
                   {lotoTableData.map((row, rowIndex) => (
                     <tr key={rowIndex}>
-                      {row.map((cell, colIndex) => (
-                        <>
-                          <td key={`${colIndex}-num`} className={cell.points > 0 ? 'admin-stats-has-bet' : ''}>
-                            <div className="admin-stats-loto-cell">
-                              <div className="admin-stats-number">{cell.number}</div>
-                            </div>
-                          </td>
-                          <td key={`${colIndex}-points`} className={cell.points > 0 ? 'admin-stats-has-bet' : ''}>
-                            <div className="admin-stats-loto-cell">
-                              {cell.points > 0 && (
-                                <div className="admin-stats-points">{cell.points}đ</div>
-                              )}
-                            </div>
-                          </td>
-                        </>
-                      ))}
+                      {row.map((cell, colIndex) => {
+                        const adjustedPoints = adjustLotoPointsForDisplay(cell.number, cell.points);
+                        return (
+                          <>
+                            <td key={`${colIndex}-num`} className={adjustedPoints > 0 ? 'admin-stats-has-bet' : ''}>
+                              <div className="admin-stats-loto-cell">
+                                <div className="admin-stats-number">{cell.number}</div>
+                              </div>
+                            </td>
+                            <td key={`${colIndex}-points`} className={adjustedPoints > 0 ? 'admin-stats-has-bet' : ''}>
+                              <div className="admin-stats-loto-cell">
+                                {adjustedPoints > 0 && (
+                                  <div className="admin-stats-points">{adjustedPoints}đ</div>
+                                )}
+                              </div>
+                            </td>
+                          </>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
@@ -442,7 +949,7 @@ const AdminTotalStatistics = ({ user }) => {
           const twoSTableData = generate2sTableData();
           
           return (
-            <div className="admin-stats-2s-table">
+            <div className="admin-stats-2s-table admin-filter-scope">
               <div className="admin-stats-loto-total">
                 <h4>Tổng kết 2 số</h4>
                 <div>
@@ -450,6 +957,74 @@ const AdminTotalStatistics = ({ user }) => {
                   <br />
                 </div>
               </div>
+
+              {/* Bộ lọc hiển thị bảng 2 số */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>
+                <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowTwoSFilter(prev => !prev)}>{showTwoSFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input type="checkbox" checked={pinTwoSFilter} onChange={(e) => setPinTwoSFilter(e.target.checked)} />
+                  <span>Ghim bộ lọc</span>
+                </label>
+                <button className="admin-stats-tab" onClick={handleRefreshTwoS}>Làm mới</button>
+              </div>
+
+              {showTwoSFilter && (
+                <div className="panel" style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Chọn ra</span>
+                    <input type="number" min="1" placeholder="vd: 5" value={topNTwoSCount} onChange={(e) => setTopNTwoSCount(e.target.value)} style={{ width: '80px' }} />
+                    <span>con có số tiền cao nhất của bảng</span>
+                    <button className="admin-stats-tab" onClick={buildTopNTwoSSelection}>Chọn</button>
+                  </div>
+
+                  {topNTwoSSelection.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '6px 0 10px 0' }}>
+                      {topNTwoSSelection.map(item => (
+                        <div key={item.number} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>Lọc con</span>
+                          <input type="text" value={item.number} readOnly style={{ width: '60px', background: '#f0f0f0' }} />
+                          <span>, đang có số tiền</span>
+                          <input type="text" value={item.amount} readOnly style={{ width: '80px', background: '#f0f0f0' }} />
+                          <span>, lọc đi</span>
+                          <input type="number" min="0" placeholder="vd: 50" value={topNTwoSSubtracts[item.number] ?? ''} onChange={(e) => setTopNTwoSSubtracts(prev => ({ ...prev, [item.number]: e.target.value }))} style={{ width: '100px' }} />
+                          <span>n</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Dòng lọc: trừ theo số tiền thấp nhất 00-99 (nhiều lần) */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <button className="admin-stats-tab" onClick={applyTwoSMinSubtract}>Trừ theo số tiền thấp nhất (00-99)</button>
+                    {twoSMinSubtracts.length > 0 && (
+                      <>
+                        <span>Đang trừ mỗi con:</span>
+                        {twoSMinSubtracts.map((v, idx) => (
+                          <input key={idx} type="text" readOnly value={v} style={{ width: '60px', background: '#f0f0f0' }} />
+                        ))}
+                        <span>n</span>
+                        <button className="admin-stats-tab" onClick={clearTwoSMinSubtractLast}>Xóa lần cuối</button>
+                        <button className="admin-stats-tab" onClick={clearTwoSMinSubtractAll}>Xóa tất cả</button>
+                      </>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Lọc con</span>
+                    <input type="text" placeholder="00-99" value={twoSFilterNumber} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); setTwoSFilterNumber(v.padStart(v.length > 0 ? Math.min(2, v.length) : 0, '0')); }} style={{ width: '60px' }} />
+                    <span>, số tiền là</span>
+                    <input type="number" min="0" placeholder="vd: 50" value={twoSFilterSubtract} onChange={(e) => setTwoSFilterSubtract(e.target.value)} style={{ width: '100px' }} />
+                    <span>n</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <span>Lọc tất cả</span>
+                    <input type="number" min="0" max="100" placeholder="vd: 50" value={twoSFilterPercent} onChange={(e) => setTwoSFilterPercent(e.target.value)} style={{ width: '80px' }} />
+                    <span>% số tiền</span>
+                  </div>
+                </div>
+              )}
+
               <table>
                 <thead>
                   <tr>
@@ -468,22 +1043,25 @@ const AdminTotalStatistics = ({ user }) => {
                 <tbody>
                   {twoSTableData.map((row, rowIndex) => (
                     <tr key={rowIndex}>
-                      {row.map((cell, colIndex) => (
-                        <>
-                          <td key={`${colIndex}-num`} className={cell.amount > 0 ? 'admin-stats-2s-has-bet' : ''}>
-                            <div className="admin-stats-2s-cell">
-                              <div className="admin-stats-2s-number">{cell.number}</div>
-                            </div>
-                          </td>
-                          <td key={`${colIndex}-amount`} className={cell.amount > 0 ? 'admin-stats-2s-has-bet' : ''}>
-                            <div className="admin-stats-2s-cell">
-                              {cell.amount > 0 && (
-                                <div className="admin-stats-2s-amount">{cell.amount}n</div>
-                              )}
-                            </div>
-                          </td>
-                        </>
-                      ))}
+                      {row.map((cell, colIndex) => {
+                        const adjustedAmount = adjustTwoSAmountForDisplay(cell.number, cell.amount);
+                        return (
+                          <>
+                            <td key={`${colIndex}-num`} className={adjustedAmount > 0 ? 'admin-stats-2s-has-bet' : ''}>
+                              <div className="admin-stats-2s-cell">
+                                <div className="admin-stats-2s-number">{cell.number}</div>
+                              </div>
+                            </td>
+                            <td key={`${colIndex}-amount`} className={adjustedAmount > 0 ? 'admin-stats-2s-has-bet' : ''}>
+                              <div className="admin-stats-2s-cell">
+                                {adjustedAmount > 0 && (
+                                  <div className="admin-stats-2s-amount">{adjustedAmount}n</div>
+                                )}
+                              </div>
+                            </td>
+                          </>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
@@ -505,20 +1083,75 @@ const AdminTotalStatistics = ({ user }) => {
           }
 
           return (
-            <div className="admin-stats-combined-table">
+            <div className="admin-stats-combined-table admin-filter-scope">
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết 3 số</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['3sTotal'])}</span>
                 </div>
               </div>
-              <div className="admin-stats-bet-list">
-                {Object.entries(betData3s).map(([key, value]) => (
-                  <div key={key} className="admin-stats-bet-item">
-                    <span className="admin-stats-bet-number">{key}</span>
-                    <span className="admin-stats-bet-amount">{value}n</span>
+
+              {/* Bộ lọc 3 số */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>
+                <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowThreeFilter(prev => !prev)}>{showThreeFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input type="checkbox" checked={pinThreeFilter} onChange={(e) => setPinThreeFilter(e.target.checked)} />
+                  <span>Ghim bộ lọc</span>
+                </label>
+                <button className="admin-stats-tab" onClick={handleRefreshThree}>Làm mới</button>
+              </div>
+
+              {showThreeFilter && (
+                <div className="panel" style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Chọn ra</span>
+                    <input type="number" min="1" placeholder="vd: 5" value={topNThreeCount} onChange={(e) => setTopNThreeCount(e.target.value)} style={{ width: '80px' }} />
+                    <span>mục có số tiền cao nhất</span>
+                    <button className="admin-stats-tab" onClick={buildTopNThreeSelection}>Chọn</button>
                   </div>
-                ))}
+
+                  {topNThreeSelection.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '6px 0 10px 0' }}>
+                      {topNThreeSelection.map(item => (
+                        <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>Lọc mục</span>
+                          <input type="text" value={item.key} readOnly style={{ width: '120px', background: '#f0f0f0' }} />
+                          <span>, đang có số tiền</span>
+                          <input type="text" value={item.amount} readOnly style={{ width: '80px', background: '#f0f0f0' }} />
+                          <span>, lọc đi</span>
+                          <input type="number" min="0" placeholder="vd: 50" value={topNThreeSubtracts[item.key] ?? ''} onChange={(e) => setTopNThreeSubtracts(prev => ({ ...prev, [item.key]: e.target.value }))} style={{ width: '100px' }} />
+                          <span>n</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Lọc mục</span>
+                    <input type="text" placeholder="vd: 123" value={threeFilterNumber} onChange={(e) => setThreeFilterNumber(e.target.value.trim())} style={{ width: '120px' }} />
+                    <span>, số tiền là</span>
+                    <input type="number" min="0" placeholder="vd: 50" value={threeFilterSubtract} onChange={(e) => setThreeFilterSubtract(e.target.value)} style={{ width: '100px' }} />
+                    <span>n</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <span>Lọc tất cả</span>
+                    <input type="number" min="0" max="100" placeholder="vd: 50" value={threeFilterPercent} onChange={(e) => setThreeFilterPercent(e.target.value)} style={{ width: '80px' }} />
+                    <span>% số tiền</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="admin-stats-bet-list">
+                {Object.entries(betData3s).map(([key, value]) => {
+                  const adjusted = adjustThreeAmountForDisplay(key, value);
+                  return (
+                    <div key={key} className="admin-stats-bet-item">
+                      <span className="admin-stats-bet-number">{key}</span>
+                      <span className="admin-stats-bet-amount">{adjusted}n</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
@@ -534,20 +1167,75 @@ const AdminTotalStatistics = ({ user }) => {
           }
 
           return (
-            <div className="admin-stats-combined-table">
+            <div className="admin-stats-combined-table admin-filter-scope">
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết xiên</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienTotal)}</span>
                 </div>
               </div>
-              <div className="admin-stats-bet-list">
-                {Object.entries(betDataXien).map(([key, value]) => (
-                  <div key={key} className="admin-stats-bet-item">
-                    <span className="admin-stats-bet-number">{key}</span>
-                    <span className="admin-stats-bet-amount">{value}n</span>
+
+              {/* Bộ lọc Xiên */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>
+                <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowXienFilter(prev => !prev)}>{showXienFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input type="checkbox" checked={pinXienFilter} onChange={(e) => setPinXienFilter(e.target.checked)} />
+                  <span>Ghim bộ lọc</span>
+                </label>
+                <button className="admin-stats-tab" onClick={handleRefreshXien}>Làm mới</button>
+              </div>
+
+              {showXienFilter && (
+                <div className="panel" style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Chọn ra</span>
+                    <input type="number" min="1" placeholder="vd: 5" value={topNXienCount} onChange={(e) => setTopNXienCount(e.target.value)} style={{ width: '80px' }} />
+                    <span>mục có số tiền cao nhất</span>
+                    <button className="admin-stats-tab" onClick={buildTopNXienSelection}>Chọn</button>
                   </div>
-                ))}
+
+                  {topNXienSelection.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '6px 0 10px 0' }}>
+                      {topNXienSelection.map(item => (
+                        <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>Lọc mục</span>
+                          <input type="text" value={item.key} readOnly style={{ width: '160px', background: '#f0f0f0' }} />
+                          <span>, đang có số tiền</span>
+                          <input type="text" value={item.amount} readOnly style={{ width: '80px', background: '#f0f0f0' }} />
+                          <span>, lọc đi</span>
+                          <input type="number" min="0" placeholder="vd: 50" value={topNXienSubtracts[item.key] ?? ''} onChange={(e) => setTopNXienSubtracts(prev => ({ ...prev, [item.key]: e.target.value }))} style={{ width: '100px' }} />
+                          <span>n</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Lọc mục</span>
+                    <input type="text" placeholder="vd: 12-34" value={xienFilterNumber} onChange={(e) => setXienFilterNumber(e.target.value.trim())} style={{ width: '160px' }} />
+                    <span>, số tiền là</span>
+                    <input type="number" min="0" placeholder="vd: 50" value={xienFilterSubtract} onChange={(e) => setXienFilterSubtract(e.target.value)} style={{ width: '100px' }} />
+                    <span>n</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <span>Lọc tất cả</span>
+                    <input type="number" min="0" max="100" placeholder="vd: 50" value={xienFilterPercent} onChange={(e) => setXienFilterPercent(e.target.value)} style={{ width: '80px' }} />
+                    <span>% số tiền</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="admin-stats-bet-list">
+                {Object.entries(betDataXien).map(([key, value]) => {
+                  const adjusted = adjustXienAmountForDisplay(key, value);
+                  return (
+                    <div key={key} className="admin-stats-bet-item">
+                      <span className="admin-stats-bet-number">{key}</span>
+                      <span className="admin-stats-bet-amount">{adjusted}n</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
@@ -563,20 +1251,75 @@ const AdminTotalStatistics = ({ user }) => {
           }
 
           return (
-            <div className="admin-stats-combined-table">
+            <div className="admin-stats-combined-table admin-filter-scope">
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết xiên quay</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienquayTotal)}</span>
                 </div>
               </div>
-              <div className="admin-stats-bet-list">
-                {Object.entries(betDataXienQuay).map(([key, value]) => (
-                  <div key={key} className="admin-stats-bet-item">
-                    <span className="admin-stats-bet-number">{key}</span>
-                    <span className="admin-stats-bet-amount">{value}n</span>
+
+              {/* Bộ lọc Xiên quay */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>
+                <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowXienQuayFilter(prev => !prev)}>{showXienQuayFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input type="checkbox" checked={pinXienQuayFilter} onChange={(e) => setPinXienQuayFilter(e.target.checked)} />
+                  <span>Ghim bộ lọc</span>
+                </label>
+                <button className="admin-stats-tab" onClick={handleRefreshXienQuay}>Làm mới</button>
+              </div>
+
+              {showXienQuayFilter && (
+                <div className="panel" style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Chọn ra</span>
+                    <input type="number" min="1" placeholder="vd: 5" value={topNXienQuayCount} onChange={(e) => setTopNXienQuayCount(e.target.value)} style={{ width: '80px' }} />
+                    <span>mục có số tiền cao nhất</span>
+                    <button className="admin-stats-tab" onClick={buildTopNXienQuaySelection}>Chọn</button>
                   </div>
-                ))}
+
+                  {topNXienQuaySelection.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '6px 0 10px 0' }}>
+                      {topNXienQuaySelection.map(item => (
+                        <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>Lọc mục</span>
+                          <input type="text" value={item.key} readOnly style={{ width: '160px', background: '#f0f0f0' }} />
+                          <span>, đang có số tiền</span>
+                          <input type="text" value={item.amount} readOnly style={{ width: '80px', background: '#f0f0f0' }} />
+                          <span>, lọc đi</span>
+                          <input type="number" min="0" placeholder="vd: 50" value={topNXienQuaySubtracts[item.key] ?? ''} onChange={(e) => setTopNXienQuaySubtracts(prev => ({ ...prev, [item.key]: e.target.value }))} style={{ width: '100px' }} />
+                          <span>n</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                    <span>Lọc mục</span>
+                    <input type="text" placeholder="vd: 12-34-56" value={xienQuayFilterNumber} onChange={(e) => setXienQuayFilterNumber(e.target.value.trim())} style={{ width: '180px' }} />
+                    <span>, số tiền là</span>
+                    <input type="number" min="0" placeholder="vd: 50" value={xienQuayFilterSubtract} onChange={(e) => setXienQuayFilterSubtract(e.target.value)} style={{ width: '100px' }} />
+                    <span>n</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <span>Lọc tất cả</span>
+                    <input type="number" min="0" max="100" placeholder="vd: 50" value={xienQuayFilterPercent} onChange={(e) => setXienQuayFilterPercent(e.target.value)} style={{ width: '80px' }} />
+                    <span>% số tiền</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="admin-stats-bet-list">
+                {Object.entries(betDataXienQuay).map(([key, value]) => {
+                  const adjusted = adjustXienQuayAmountForDisplay(key, value);
+                  return (
+                    <div key={key} className="admin-stats-bet-item">
+                      <span className="admin-stats-bet-number">{key}</span>
+                      <span className="admin-stats-bet-amount">{adjusted}n</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
@@ -631,53 +1374,31 @@ const AdminTotalStatistics = ({ user }) => {
         <h3>Báo cáo tổng hợp - {user.name}</h3>
         <div className="admin-stats-date-controls">
           <label htmlFor="admin-stats-date">Chọn ngày:</label>
-          <input
-            id="admin-stats-date"
-            type="date"
-            value={selectedDate}
-            onChange={handleDateChange}
-            className="admin-stats-date-input"
-          />
+          <input id="admin-stats-date" type="date" value={selectedDate} onChange={handleDateChange} className="admin-stats-date-input" />
         </div>
       </div>
 
       {/* Main Tabs */}
       <div className="admin-stats-main-tabs">
-        <button
-          className={`admin-stats-main-tab ${activeTab === 'betting' ? 'admin-stats-main-tab-active' : ''}`}
-          onClick={() => handleTabChange('betting')}
-        >
-          Thống kê cược
-        </button>
-        <button
-          className={`admin-stats-main-tab ${activeTab === 'prizes' ? 'admin-stats-main-tab-active' : ''}`}
-          onClick={() => handleTabChange('prizes')}
-        >
-          Thống kê thưởng
-        </button>
+        <button className={`admin-stats-main-tab ${activeTab === 'betting' ? 'admin-stats-main-tab-active' : ''}`} onClick={() => handleTabChange('betting')}>Thống kê cược</button>
+        <button className={`admin-stats-main-tab ${activeTab === 'prizes' ? 'admin-stats-main-tab-active' : ''}`} onClick={() => handleTabChange('prizes')}>Thống kê thưởng</button>
       </div>
 
       {/* Content */}
       <div className="admin-stats-content">
         {activeTab === 'betting' ? (
           isLoading ? (
-            <div className="admin-stats-loading">
-              <p>Đang tải thống kê...</p>
-            </div>
+            <div className="admin-stats-loading"><p>Đang tải thống kê...</p></div>
           ) : statisticsData ? (
             <>
               {renderSummary()}
               {renderBettingStatistics()}
             </>
           ) : (
-            <div className="admin-stats-no-data">
-              <p>Không có dữ liệu thống kê cho ngày này</p>
-            </div>
+            <div className="admin-stats-no-data"><p>Không có dữ liệu thống kê cho ngày này</p></div>
           )
         ) : (
-          <div className="admin-stats-prizes-placeholder">
-            <p>Chưa có dữ liệu, hãy đợi nhân viên thống kê</p>
-          </div>
+          <div className="admin-stats-prizes-placeholder"><p>Chưa có dữ liệu, hãy đợi nhân viên thống kê</p></div>
         )}
       </div>
     </div>

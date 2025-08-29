@@ -1694,7 +1694,7 @@ const EmployeeInterface = ({ user }) => {
           <div class="divider"></div>
           
           <div class="footer no-break">
-            <p>Quý khách vui lòng kiểm tra lại toàn bộ nội dung cược trước khi rời cửa hàng và mang theo hóa đơn khi lấy thưởng tại cửa hàng!</p>
+            <p>Quý khách vui lòng kiểm tra lại hoá đơn và giữ hoá đơn lấy thưởng trong 3 ngày . Chúc quý khách may mắn !</p>
           </div>
         </div>
         <script>
