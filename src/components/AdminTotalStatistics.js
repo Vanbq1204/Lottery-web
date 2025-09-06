@@ -28,6 +28,11 @@ const AdminTotalStatistics = ({ user }) => {
   const [topNSubtracts, setTopNSubtracts] = useState({}); // { '10': '100', ... }
   // Ghim bộ lọc (persist) - Lô tô
   const [pinLotoFilter, setPinLotoFilter] = useState(false);
+  
+  // UI và logic bộ lọc cho tổng kép đầu đít bộ
+  const [showCombinedFilter, setShowCombinedFilter] = useState(false);
+  const [combinedFilterPercent, setCombinedFilterPercent] = useState('');
+  const [pinCombinedFilter, setPinCombinedFilter] = useState(false);
 
   // UI và logic bộ lọc cho 2 số (tiền)
   const [showTwoSFilter, setShowTwoSFilter] = useState(false);
@@ -72,12 +77,15 @@ const AdminTotalStatistics = ({ user }) => {
   const [topNXienQuaySelection, setTopNXienQuaySelection] = useState([]);
   const [topNXienQuaySubtracts, setTopNXienQuaySubtracts] = useState({});
   const [pinXienQuayFilter, setPinXienQuayFilter] = useState(false);
+  
+  // Bộ lọc cho tổng kép đầu đít bộ đã khai báo ở trên
 
   const getLotoFilterStorageKey = () => `lotoFilter:${user?.id}:${selectedDate}`;
   const getTwoSFilterStorageKey = () => `twoSFilter:${user?.id}:${selectedDate}`;
   const getThreeFilterStorageKey = () => `threeFilter:${user?.id}:${selectedDate}`;
   const getXienFilterStorageKey = () => `xienFilter:${user?.id}:${selectedDate}`;
   const getXienQuayFilterStorageKey = () => `xienQuayFilter:${user?.id}:${selectedDate}`;
+  const getCombinedFilterStorageKey = () => `combinedFilter:${user?.id}:${selectedDate}`;
 
   const resetLotoFilters = () => {
     setShowLotoFilter(false);
@@ -129,18 +137,26 @@ const AdminTotalStatistics = ({ user }) => {
     setTopNXienQuaySelection([]);
     setTopNXienQuaySubtracts({});
   };
+  
+  const resetCombinedFilters = () => {
+    setShowCombinedFilter(false);
+    setCombinedFilterPercent('');
+    setPinCombinedFilter(false);
+  };
 
   const clearPersistedLotoFilters = () => { try { localStorage.removeItem(getLotoFilterStorageKey()); } catch (e) {} };
   const clearPersistedTwoSFilters = () => { try { localStorage.removeItem(getTwoSFilterStorageKey()); } catch (e) {} };
   const clearPersistedThreeFilters = () => { try { localStorage.removeItem(getThreeFilterStorageKey()); } catch (e) {} };
   const clearPersistedXienFilters = () => { try { localStorage.removeItem(getXienFilterStorageKey()); } catch (e) {} };
   const clearPersistedXienQuayFilters = () => { try { localStorage.removeItem(getXienQuayFilterStorageKey()); } catch (e) {} };
+  const clearPersistedCombinedFilters = () => { try { localStorage.removeItem(getCombinedFilterStorageKey()); } catch (e) {} };
 
   const handleRefreshLoto = async () => { clearPersistedLotoFilters(); resetLotoFilters(); await loadStatistics(); };
   const handleRefreshTwoS = async () => { clearPersistedTwoSFilters(); resetTwoSFilters(); await loadStatistics(); };
   const handleRefreshThree = async () => { clearPersistedThreeFilters(); resetThreeFilters(); await loadStatistics(); };
   const handleRefreshXien = async () => { clearPersistedXienFilters(); resetXienFilters(); await loadStatistics(); };
   const handleRefreshXienQuay = async () => { clearPersistedXienQuayFilters(); resetXienQuayFilters(); await loadStatistics(); };
+  const handleRefreshCombined = async () => { clearPersistedCombinedFilters(); resetCombinedFilters(); await loadStatistics(); };
 
   const saveLotoFiltersToStorage = () => {
     if (!pinLotoFilter) return;
@@ -188,6 +204,14 @@ const AdminTotalStatistics = ({ user }) => {
     try {
       const payload = { showXienQuayFilter, xienQuayFilterNumber, xienQuayFilterSubtract, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, pinXienQuayFilter: true };
       localStorage.setItem(getXienQuayFilterStorageKey(), JSON.stringify(payload));
+    } catch (e) {}
+  };
+  
+  const saveCombinedFiltersToStorage = () => {
+    if (!pinCombinedFilter) return;
+    try {
+      const payload = { showCombinedFilter, combinedFilterPercent, pinCombinedFilter: true };
+      localStorage.setItem(getCombinedFilterStorageKey(), JSON.stringify(payload));
     } catch (e) {}
   };
 
@@ -269,6 +293,18 @@ const AdminTotalStatistics = ({ user }) => {
       setTopNXienQuayCount(data.topNXienQuayCount ?? '');
       setTopNXienQuaySubtracts(data.topNXienQuaySubtracts ?? {});
       setPinXienQuayFilter(!!data.pinXienQuayFilter);
+    } catch (e) {}
+  };
+  
+  const loadCombinedFiltersFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(getCombinedFilterStorageKey());
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== 'object') return;
+      setShowCombinedFilter(!!data.showCombinedFilter);
+      setCombinedFilterPercent(data.combinedFilterPercent ?? '');
+      setPinCombinedFilter(!!data.pinCombinedFilter);
     } catch (e) {}
   };
 
@@ -507,6 +543,19 @@ const AdminTotalStatistics = ({ user }) => {
 
     return adjusted;
   };
+  
+  const adjustCombinedAmountForDisplay = (rawAmount) => {
+    let adjusted = rawAmount || 0;
+    
+    // Trừ theo % toàn bảng
+    const percentVal = parseInt(combinedFilterPercent, 10);
+    if (!isNaN(percentVal) && percentVal > 0) {
+      const clamped = Math.min(100, Math.max(0, percentVal));
+      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+    }
+    
+    return adjusted;
+  };
 
   // Tự động lưu khi filter thay đổi (nếu đã ghim)
   useEffect(() => { saveLotoFiltersToStorage(); /* eslint-disable-line */ }, [pinLotoFilter, showLotoFilter, lotoFilterNumber, lotoFilterSubtract, lotoFilterPercent, topNCount, topNSubtracts, selectedDate]);
@@ -514,6 +563,7 @@ const AdminTotalStatistics = ({ user }) => {
   useEffect(() => { saveThreeFiltersToStorage(); /* eslint-disable-line */ }, [pinThreeFilter, showThreeFilter, threeFilterNumber, threeFilterSubtract, threeFilterPercent, topNThreeCount, topNThreeSubtracts, selectedDate]);
   useEffect(() => { saveXienFiltersToStorage(); /* eslint-disable-line */ }, [pinXienFilter, showXienFilter, xienFilterNumber, xienFilterSubtract, xienFilterPercent, topNXienCount, topNXienSubtracts, selectedDate]);
   useEffect(() => { saveXienQuayFiltersToStorage(); /* eslint-disable-line */ }, [pinXienQuayFilter, showXienQuayFilter, xienQuayFilterNumber, xienQuayFilterSubtract, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, selectedDate]);
+  useEffect(() => { saveCombinedFiltersToStorage(); /* eslint-disable-line */ }, [pinCombinedFilter, showCombinedFilter, combinedFilterPercent, selectedDate]);
 
   // Khôi phục khi đổi ngày hoặc vào màn
   useEffect(() => { loadLotoFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
@@ -521,6 +571,7 @@ const AdminTotalStatistics = ({ user }) => {
   useEffect(() => { loadThreeFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
   useEffect(() => { loadXienFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
   useEffect(() => { loadXienQuayFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
+  useEffect(() => { loadCombinedFiltersFromStorage(); /* eslint-disable-line */ }, [selectedDate]);
 
   // Rebuild danh sách Top N khi dữ liệu hoặc tham số thay đổi
   useEffect(() => { buildTopNSelection(); /* eslint-disable-line */ }, [statisticsData, topNCount]);
@@ -700,7 +751,11 @@ const AdminTotalStatistics = ({ user }) => {
     betTypes.forEach(betType => {
       const betData = statisticsData[betType] || {};
       Object.entries(betData).forEach(([number, amount]) => {
-        tableData.push({ betType: betTypeNames[betType], number, amount, rowClass: `admin-stats-row-${betType}` });
+        let adjustedAmount = amount;
+        if (betTypes.includes('tong') && betTypes.includes('kep') && betTypes.includes('dau') && betTypes.includes('dit') && betTypes.includes('bo')) {
+          adjustedAmount = adjustCombinedAmountForDisplay(amount);
+        }
+        tableData.push({ betType: betTypeNames[betType], number, amount: adjustedAmount, rowClass: `admin-stats-row-${betType}` });
       });
     });
 
@@ -740,6 +795,111 @@ const AdminTotalStatistics = ({ user }) => {
         </table>
       </div>
     );
+  };
+
+  // Tính tổng điểm loto sau khi lọc
+  const calculateFilteredLotoTotal = () => {
+    if (!statisticsData || !statisticsData.loto) return 0;
+    
+    let total = 0;
+    for (let i = 0; i < 100; i++) {
+      const number = i.toString().padStart(2, '0');
+      const points = statisticsData.loto[number] || 0;
+      const adjustedPoints = adjustLotoPointsForDisplay(number, points);
+      total += adjustedPoints;
+    }
+    return total;
+  };
+
+  // Tính tổng tiền 2 số sau khi lọc
+  const calculateFiltered2sTotal = () => {
+    if (!statisticsData || !statisticsData['2s']) return 0;
+    
+    let total = 0;
+    for (let i = 0; i < 100; i++) {
+      const number = i.toString().padStart(2, '0');
+      const amount = statisticsData['2s'][number] || 0;
+      const adjustedAmount = adjustTwoSAmountForDisplay(number, amount);
+      total += adjustedAmount;
+    }
+    return total;
+  };
+
+  // Tính tổng tiền 3 số sau khi lọc
+  const calculateFiltered3sTotal = () => {
+    if (!statisticsData || !statisticsData['3s']) return 0;
+    
+    let total = 0;
+    Object.entries(statisticsData['3s'] || {}).forEach(([key, amount]) => {
+      const adjustedAmount = adjustThreeAmountForDisplay(key, amount);
+      total += adjustedAmount;
+    });
+    return total;
+  };
+
+  // Tính tổng tiền xiên sau khi lọc
+  const calculateFilteredXienTotal = () => {
+    if (!statisticsData || !statisticsData.xien) return 0;
+    
+    let total = 0;
+    Object.entries(statisticsData.xien || {}).forEach(([key, amount]) => {
+      const adjustedAmount = adjustXienAmountForDisplay(key, amount);
+      total += adjustedAmount;
+    });
+    return total;
+  };
+
+  // Tính tổng tiền xiên quay sau khi lọc
+  const calculateFilteredXienQuayTotal = () => {
+    if (!statisticsData || !statisticsData.xienquay) return 0;
+    
+    let total = 0;
+    Object.entries(statisticsData.xienquay || {}).forEach(([key, amount]) => {
+      const adjustedAmount = adjustXienQuayAmountForDisplay(key, amount);
+      
+      // Áp dụng hệ số tương ứng với từng loại xiên quay
+      // Đếm số lượng số trong xiên quay bằng cách đếm số dấu gạch ngang + 1
+      const numberCount = key.split('-').length;
+      
+      if (numberCount === 3) {
+        // Xiên 3 nhân với hệ số 4
+        total += adjustedAmount * 4;
+      } else if (numberCount === 4) {
+        // Xiên 4 nhân với hệ số 11
+        total += adjustedAmount * 11;
+      } else {
+        // Các trường hợp khác (nếu có)
+        total += adjustedAmount;
+      }
+    });
+    return total;
+  };
+
+  // Tính tổng tiền tổng kép đầu đít bộ sau khi lọc
+  const calculateFilteredCombinedTotal = () => {
+    if (!statisticsData) return 0;
+    
+    let total = 0;
+    const betTypes = ['tong', 'kep', 'dau', 'dit', 'bo'];
+    
+    betTypes.forEach(betType => {
+      const betData = statisticsData[betType] || {};
+      Object.entries(betData).forEach(([number, amount]) => {
+        const adjustedAmount = adjustCombinedAmountForDisplay(amount);
+        
+        // Áp dụng hệ số tương ứng với từng loại cược
+        if (betType === 'tong' || betType === 'kep' || betType === 'dau' || betType === 'dit') {
+          // Tổng, kép, đầu, đít nhân với 10
+          total += adjustedAmount * 10;
+        } else if (betType === 'bo') {
+          // Bộ nhân với số lượng số của con đó
+          const boSize = number.length;
+          total += adjustedAmount * boSize;
+        }
+      });
+    });
+    
+    return total;
   };
 
   // Format tiền tệ
@@ -848,6 +1008,11 @@ const AdminTotalStatistics = ({ user }) => {
                   )}
                   <br />
                   <span className="admin-stats-loto-total-value">Tổng điểm: {lotoTotalPoints}đ</span>
+                  {(showLotoFilter && (lotoFilterNumber || lotoFilterSubtract || lotoFilterPercent || Object.keys(topNSubtracts).length > 0)) && (
+                    <div style={{marginTop: '5px'}}>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng điểm sau khi lọc: {formatThousand(calculateFilteredLotoTotal())}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -955,6 +1120,11 @@ const AdminTotalStatistics = ({ user }) => {
                 <div>
                   <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['2sTotal'])}</span>
                   <br />
+                  {(showTwoSFilter && (twoSFilterNumber || twoSFilterSubtract || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0)) && (
+                    <div style={{marginTop: '5px'}}>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFiltered2sTotal())}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1070,7 +1240,43 @@ const AdminTotalStatistics = ({ user }) => {
           );
 
         case 'combined-basic':
-          return renderCombinedBetTable(['tong', 'kep', 'dau', 'dit', 'bo'], 'Tổng kết Tổng, Kép, Đầu, Đít, Bộ');
+          return (
+            <div className="admin-stats-combined-table admin-filter-scope">
+              <div className="admin-stats-combined-total">
+                <h4>Tổng kết Tổng, Kép, Đầu, Đít, Bộ</h4>
+                <div>
+                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.tongKepDauDitBoTotal || 0)}</span>
+                  {(showCombinedFilter && combinedFilterPercent) && (
+                    <div style={{marginTop: '5px'}}>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFilteredCombinedTotal())}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Bộ lọc tổng kép đầu đít bộ */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>
+                <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowCombinedFilter(prev => !prev)}>{showCombinedFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input type="checkbox" checked={pinCombinedFilter} onChange={(e) => setPinCombinedFilter(e.target.checked)} />
+                  <span>Ghim bộ lọc</span>
+                </label>
+                <button className="admin-stats-tab" onClick={handleRefreshCombined}>Làm mới</button>
+              </div>
+              
+              {showCombinedFilter && (
+                <div className="panel" style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <span>Lọc tất cả</span>
+                    <input type="number" min="0" max="100" placeholder="vd: 50" value={combinedFilterPercent} onChange={(e) => setCombinedFilterPercent(e.target.value)} style={{ width: '80px' }} />
+                    <span>% số tiền</span>
+                  </div>
+                </div>
+              )}
+              
+              {renderCombinedBetTable(['tong', 'kep', 'dau', 'dit', 'bo'], '')}
+            </div>
+          );
 
         case '3s':
           const betData3s = statisticsData['3s'];
@@ -1088,6 +1294,11 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết 3 số</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['3sTotal'])}</span>
+                  {(showThreeFilter && (threeFilterNumber || threeFilterSubtract || threeFilterPercent || Object.keys(topNThreeSubtracts).length > 0)) && (
+                    <div style={{marginTop: '5px'}}>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFiltered3sTotal())}n</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1172,6 +1383,11 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết xiên</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienTotal)}</span>
+                  {(showXienFilter && (xienFilterNumber || xienFilterSubtract || xienFilterPercent || Object.keys(topNXienSubtracts).length > 0)) && (
+                    <div style={{marginTop: '5px'}}>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFilteredXienTotal())}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1256,6 +1472,11 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết xiên quay</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienquayTotal)}</span>
+                  {(showXienQuayFilter && (xienQuayFilterNumber || xienQuayFilterSubtract || xienQuayFilterPercent || Object.keys(topNXienQuaySubtracts).length > 0)) && (
+                    <div style={{marginTop: '5px'}}>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFilteredXienQuayTotal())}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1405,4 +1626,4 @@ const AdminTotalStatistics = ({ user }) => {
   );
 };
 
-export default AdminTotalStatistics; 
+export default AdminTotalStatistics;
