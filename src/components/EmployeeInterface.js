@@ -2038,7 +2038,7 @@ const EmployeeInterface = ({ user }) => {
         params: {
           startDate: date,
           endDate: date,
-          limit: 100 // Load nhiều hóa đơn hơn
+          limit: 500 // Tăng giới hạn để hiển thị nhiều hóa đơn hơn
         }
       });
       
@@ -3987,4 +3987,4 @@ const EmployeeInterface = ({ user }) => {
   );
 };
 
-export default EmployeeInterface; 
+export default EmployeeInterface;
