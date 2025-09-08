@@ -1489,11 +1489,20 @@ const EmployeeInterface = ({ user }) => {
     const currentTime = `${hours}:${minutes}`;
     
     // Convert amounts to exact format (no conversion)
-    const totalAmount = Math.floor(calculateTotal()).toString();
+    const roundAmount = (amount) => {
+      const fractionalPart = amount % 1;
+      if (fractionalPart >= 0.5) {
+        return Math.ceil(amount);
+      } else {
+        return Math.floor(amount);
+      }
+    };
+
+    const totalAmount = roundAmount(calculateTotal()).toString();
     const customerGiveAmount = parseFloat(customerGive || calculateTotal());
-    const customerPaid = Math.floor(customerGiveAmount).toString();
+    const customerPaid = roundAmount(customerGiveAmount).toString();
     const changeAmountValue = Math.max(0, customerGiveAmount - calculateTotal()); // Ensure non-negative
-    const changeAmount = Math.floor(changeAmountValue).toString();
+    const changeAmount = roundAmount(changeAmountValue).toString();
     
     // Create iframe for printing
     const printFrame = document.createElement('iframe');
@@ -1510,7 +1519,7 @@ const EmployeeInterface = ({ user }) => {
     
     // Create invoice table rows
           const invoiceTableRows = invoiceItems.map(item => {
-        const formattedAmount = Math.floor(item.totalAmount).toString() + 'n';
+        const formattedAmount = roundAmount(item.totalAmount).toString() + 'n';
         const displayHtml = String(item.displayNumbers).replace(/\n/g, '<br/>');
         return `
         <tr>
