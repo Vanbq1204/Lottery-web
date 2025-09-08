@@ -395,7 +395,7 @@ const AdminTotalStatistics = ({ user }) => {
     const percentVal = parseInt(lotoFilterPercent, 10);
     if (!isNaN(percentVal) && percentVal > 0) {
       const clamped = Math.min(100, Math.max(0, percentVal));
-      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+      adjusted = adjusted * (100 - clamped) / 100;
     }
 
     return adjusted;
@@ -429,7 +429,7 @@ const AdminTotalStatistics = ({ user }) => {
     const percentVal = parseInt(twoSFilterPercent, 10);
     if (!isNaN(percentVal) && percentVal > 0) {
       const clamped = Math.min(100, Math.max(0, percentVal));
-      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+      adjusted = adjusted * (100 - clamped) / 100;
     }
 
     return adjusted;
@@ -492,7 +492,7 @@ const AdminTotalStatistics = ({ user }) => {
     const percentVal = parseInt(threeFilterPercent, 10);
     if (!isNaN(percentVal) && percentVal > 0) {
       const clamped = Math.min(100, Math.max(0, percentVal));
-      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+      adjusted = adjusted * (100 - clamped) / 100;
     }
 
     return adjusted;
@@ -515,7 +515,7 @@ const AdminTotalStatistics = ({ user }) => {
     const percentVal = parseInt(xienFilterPercent, 10);
     if (!isNaN(percentVal) && percentVal > 0) {
       const clamped = Math.min(100, Math.max(0, percentVal));
-      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+      adjusted = adjusted * (100 - clamped) / 100;
     }
 
     return adjusted;
@@ -538,7 +538,7 @@ const AdminTotalStatistics = ({ user }) => {
     const percentVal = parseInt(xienQuayFilterPercent, 10);
     if (!isNaN(percentVal) && percentVal > 0) {
       const clamped = Math.min(100, Math.max(0, percentVal));
-      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+      adjusted = adjusted * (100 - clamped) / 100;
     }
 
     return adjusted;
@@ -551,7 +551,7 @@ const AdminTotalStatistics = ({ user }) => {
     const percentVal = parseInt(combinedFilterPercent, 10);
     if (!isNaN(percentVal) && percentVal > 0) {
       const clamped = Math.min(100, Math.max(0, percentVal));
-      adjusted = Math.floor(adjusted * (100 - clamped) / 100);
+      adjusted = adjusted * (100 - clamped) / 100;
     }
     
     return adjusted;
@@ -875,6 +875,114 @@ const AdminTotalStatistics = ({ user }) => {
     return total;
   };
 
+  // Bảng các bộ lô tô và số lượng số thực tế trong từng bộ
+  const BO_DATA = {
+    '00': [0, 5, 50, 55],
+    '01': [1, 10, 6, 60, 51, 15, 56, 65],
+    '02': [2, 20, 7, 70, 52, 25, 57, 75],
+    '03': [3, 30, 8, 80, 53, 35, 58, 85],
+    '04': [4, 40, 9, 90, 54, 45, 59, 95],
+    '05': [5, 50, 0, 55],
+    '06': [6, 60, 1, 10, 56, 65, 51, 15],
+    '07': [7, 70, 2, 20, 57, 75, 52, 25],
+    '08': [8, 80, 3, 30, 58, 85, 53, 35],
+    '09': [9, 90, 4, 40, 59, 95, 54, 45],
+    '10': [10, 1, 15, 51, 60, 6, 65, 56],
+    '11': [11, 16, 61, 66],
+    '12': [12, 21, 17, 71, 62, 26, 67, 76],
+    '13': [13, 31, 18, 81, 63, 36, 68, 86],
+    '14': [14, 41, 19, 91, 64, 46, 69, 96],
+    '15': [15, 51, 10, 1, 65, 56, 60, 6],
+    '16': [16, 61, 11, 66],
+    '17': [17, 71, 12, 21, 67, 76, 62, 26],
+    '18': [18, 81, 13, 31, 68, 86, 63, 36],
+    '19': [19, 91, 14, 41, 69, 96, 64, 46],
+    '20': [20, 2, 25, 52, 70, 7, 75, 57],
+    '21': [21, 12, 26, 62, 71, 17, 76, 67],
+    '22': [22, 27, 72, 77],
+    '23': [23, 32, 28, 82, 73, 37, 78, 87],
+    '24': [24, 42, 29, 92, 74, 47, 79, 97],
+    '25': [25, 52, 20, 2, 75, 57, 70, 7],
+    '26': [26, 62, 21, 12, 76, 67, 71, 17],
+    '27': [27, 72, 22, 77],
+    '28': [28, 82, 23, 32, 78, 87, 73, 37],
+    '29': [29, 92, 24, 42, 79, 97, 74, 47],
+    '30': [30, 3, 35, 53, 80, 8, 85, 58],
+    '31': [31, 13, 36, 63, 81, 18, 86, 68],
+    '32': [32, 23, 37, 73, 82, 28, 87, 78],
+    '33': [33, 38, 83, 88],
+    '34': [34, 43, 39, 93, 84, 48, 89, 98],
+    '35': [35, 53, 30, 3, 85, 58, 80, 8],
+    '36': [36, 63, 31, 13, 86, 68, 81, 18],
+    '37': [37, 73, 32, 23, 87, 78, 82, 28],
+    '38': [38, 83, 33, 88],
+    '39': [39, 93, 34, 43, 89, 98, 84, 48],
+    '40': [40, 4, 45, 54, 90, 9, 95, 59],
+    '41': [41, 14, 46, 64, 91, 19, 96, 69],
+    '42': [42, 24, 47, 74, 92, 29, 97, 79],
+    '43': [43, 34, 48, 84, 93, 39, 98, 89],
+    '44': [44, 49, 94, 99],
+    '45': [45, 54, 40, 4, 95, 59, 90, 9],
+    '46': [46, 64, 41, 14, 96, 69, 91, 19],
+    '47': [47, 74, 42, 24, 97, 79, 92, 29],
+    '48': [48, 84, 43, 34, 98, 89, 93, 39],
+    '49': [49, 94, 44, 99],
+    '50': [50, 5, 55, 0],
+    '51': [51, 15, 56, 65, 1, 10, 6, 60],
+    '52': [52, 25, 57, 75, 2, 20, 7, 70],
+    '53': [53, 35, 58, 85, 3, 30, 8, 80],
+    '54': [54, 45, 59, 95, 4, 40, 9, 90],
+    '55': [55, 50, 5, 0],
+    '56': [56, 65, 51, 15, 6, 60, 1, 10],
+    '57': [57, 75, 52, 25, 7, 70, 2, 20],
+    '58': [58, 85, 53, 35, 8, 80, 3, 30],
+    '59': [59, 95, 54, 45, 9, 90, 4, 40],
+    '60': [60, 6, 65, 56, 10, 1, 15, 51],
+    '61': [61, 16, 66, 11],
+    '62': [62, 26, 67, 76, 12, 21, 17, 71],
+    '63': [63, 36, 68, 86, 13, 31, 18, 81],
+    '64': [64, 46, 69, 96, 14, 41, 19, 91],
+    '65': [65, 56, 60, 6, 15, 51, 10, 1],
+    '66': [66, 61, 16, 11],
+    '67': [67, 76, 62, 26, 17, 71, 12, 21],
+    '68': [68, 86, 63, 36, 18, 81, 13, 31],
+    '69': [69, 96, 64, 46, 19, 91, 14, 41],
+    '70': [70, 7, 75, 57, 20, 2, 25, 52],
+    '71': [71, 17, 76, 67, 21, 12, 26, 62],
+    '72': [72, 27, 77, 22],
+    '73': [73, 37, 78, 87, 23, 32, 28, 82],
+    '74': [74, 47, 79, 97, 24, 42, 29, 92],
+    '75': [75, 57, 70, 7, 25, 52, 20, 2],
+    '76': [76, 67, 71, 17, 26, 62, 21, 12],
+    '77': [77, 72, 27, 22],
+    '78': [78, 87, 73, 37, 28, 82, 23, 32],
+    '79': [79, 97, 74, 47, 29, 92, 24, 42],
+    '80': [80, 8, 85, 58, 30, 3, 35, 53],
+    '81': [81, 18, 86, 68, 31, 13, 36, 63],
+    '82': [82, 28, 87, 78, 32, 23, 37, 73],
+    '83': [83, 38, 88, 33],
+    '84': [84, 48, 89, 98, 34, 43, 39, 93],
+    '85': [85, 58, 80, 8, 35, 53, 30, 3],
+    '86': [86, 68, 81, 18, 36, 63, 31, 13],
+    '87': [87, 78, 82, 28, 37, 73, 32, 23],
+    '88': [88, 83, 38, 33],
+    '89': [89, 98, 84, 48, 39, 93, 34, 43],
+    '90': [90, 9, 95, 59, 40, 4, 45, 54],
+    '91': [91, 19, 96, 69, 41, 14, 46, 64],
+    '92': [92, 29, 97, 79, 42, 24, 47, 74],
+    '93': [93, 39, 98, 89, 43, 34, 48, 84],
+    '94': [94, 49, 99, 44],
+    '95': [95, 59, 90, 9, 45, 54, 40, 4],
+    '96': [96, 69, 91, 19, 46, 64, 41, 14],
+    '97': [97, 79, 92, 29, 47, 74, 42, 24],
+    '98': [98, 89, 93, 39, 48, 84, 43, 34],
+    '99': [99, 94, 49, 44],
+    'chanle': [1, 3, 5, 7, 9, 21, 23, 25, 27, 29, 41, 43, 45, 47, 49, 61, 63, 65, 67, 69, 81, 83, 85, 87, 89],
+    'lechan': [10, 12, 14, 16, 18, 30, 32, 34, 36, 38, 50, 52, 54, 56, 58, 70, 72, 74, 76, 78, 90, 92, 94, 96, 98],
+    'lele': [11, 13, 15, 17, 19, 31, 33, 35, 37, 39, 51, 53, 55, 57, 59, 71, 73, 75, 77, 79, 91, 93, 95, 97, 99],
+    'chanchan': [0, 2, 4, 6, 8, 20, 22, 24, 26, 28, 40, 42, 44, 46, 48, 60, 62, 64, 66, 68, 80, 82, 84, 86, 88]
+  };
+
   // Tính tổng tiền tổng kép đầu đít bộ sau khi lọc
   const calculateFilteredCombinedTotal = () => {
     if (!statisticsData) return 0;
@@ -886,19 +994,16 @@ const AdminTotalStatistics = ({ user }) => {
       const betData = statisticsData[betType] || {};
       Object.entries(betData).forEach(([number, amount]) => {
         const adjustedAmount = adjustCombinedAmountForDisplay(amount);
-        
         // Áp dụng hệ số tương ứng với từng loại cược
         if (betType === 'tong' || betType === 'kep' || betType === 'dau' || betType === 'dit') {
-          // Tổng, kép, đầu, đít nhân với 10
-          total += adjustedAmount * 10;
+          total += parseFloat(adjustedAmount) * 10;
         } else if (betType === 'bo') {
-          // Bộ nhân với số lượng số của con đó
-          const boSize = number.length;
-          total += adjustedAmount * boSize;
+          // Lấy số lượng số thực tế của bộ từ BO_DATA
+          const boSize = Array.isArray(BO_DATA[number]) ? BO_DATA[number].length : 0;
+          total += parseFloat(adjustedAmount) * boSize;
         }
       });
     });
-    
     return total;
   };
 
@@ -1010,7 +1115,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <span className="admin-stats-loto-total-value">Tổng điểm: {lotoTotalPoints}đ</span>
                   {(showLotoFilter && (lotoFilterNumber || lotoFilterSubtract || lotoFilterPercent || Object.keys(topNSubtracts).length > 0)) && (
                     <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng điểm sau khi lọc: {formatThousand(calculateFilteredLotoTotal())}</span>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng điểm sau khi lọc: {calculateFilteredLotoTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1122,7 +1227,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <br />
                   {(showTwoSFilter && (twoSFilterNumber || twoSFilterSubtract || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0)) && (
                     <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFiltered2sTotal())}</span>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered2sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1225,7 +1330,7 @@ const AdminTotalStatistics = ({ user }) => {
                             <td key={`${colIndex}-amount`} className={adjustedAmount > 0 ? 'admin-stats-2s-has-bet' : ''}>
                               <div className="admin-stats-2s-cell">
                                 {adjustedAmount > 0 && (
-                                  <div className="admin-stats-2s-amount">{adjustedAmount}n</div>
+                                  <div className="admin-stats-2s-amount">{adjustedAmount.toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</div>
                                 )}
                               </div>
                             </td>
@@ -1248,7 +1353,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.tongKepDauDitBoTotal || 0)}</span>
                   {(showCombinedFilter && combinedFilterPercent) && (
                     <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFilteredCombinedTotal())}</span>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredCombinedTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1296,7 +1401,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['3sTotal'])}</span>
                   {(showThreeFilter && (threeFilterNumber || threeFilterSubtract || threeFilterPercent || Object.keys(topNThreeSubtracts).length > 0)) && (
                     <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFiltered3sTotal())}n</span>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered3sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1385,7 +1490,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienTotal)}</span>
                   {(showXienFilter && (xienFilterNumber || xienFilterSubtract || xienFilterPercent || Object.keys(topNXienSubtracts).length > 0)) && (
                     <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFilteredXienTotal())}</span>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1474,7 +1579,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienquayTotal)}</span>
                   {(showXienQuayFilter && (xienQuayFilterNumber || xienQuayFilterSubtract || xienQuayFilterPercent || Object.keys(topNXienQuaySubtracts).length > 0)) && (
                     <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {formatThousand(calculateFilteredXienQuayTotal())}</span>
+                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienQuayTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
