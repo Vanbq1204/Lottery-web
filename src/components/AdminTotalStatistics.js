@@ -1225,7 +1225,7 @@ const AdminTotalStatistics = ({ user }) => {
                 <div>
                   <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['2sTotal'])}</span>
                   <br />
-                  {(showTwoSFilter && (twoSFilterNumber || twoSFilterSubtract || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0)) && (
+                  {(twoSFilterNumber || twoSFilterSubtract || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered2sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -1351,7 +1351,7 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết Tổng, Kép, Đầu, Đít, Bộ</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.tongKepDauDitBoTotal || 0)}</span>
-                  {(showCombinedFilter && combinedFilterPercent) && (
+                  {(combinedFilterPercent) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredCombinedTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -1399,7 +1399,7 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết 3 số</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['3sTotal'])}</span>
-                  {(showThreeFilter && (threeFilterNumber || threeFilterSubtract || threeFilterPercent || Object.keys(topNThreeSubtracts).length > 0)) && (
+                  {(threeFilterNumber || threeFilterSubtract || threeFilterPercent || Object.keys(topNThreeSubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered3sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -1488,7 +1488,7 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết xiên</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienTotal)}</span>
-                  {(showXienFilter && (xienFilterNumber || xienFilterSubtract || xienFilterPercent || Object.keys(topNXienSubtracts).length > 0)) && (
+                  {(xienFilterNumber || xienFilterSubtract || xienFilterPercent || Object.keys(topNXienSubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -1577,7 +1577,7 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết xiên quay</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienquayTotal)}</span>
-                  {(showXienQuayFilter && (xienQuayFilterNumber || xienQuayFilterSubtract || xienQuayFilterPercent || Object.keys(topNXienQuaySubtracts).length > 0)) && (
+                  {(xienQuayFilterNumber || xienQuayFilterSubtract || xienQuayFilterPercent || Object.keys(topNXienQuaySubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienQuayTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
