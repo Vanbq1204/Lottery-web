@@ -480,6 +480,9 @@ const AdminPrizeStatistics = () => {
     // Calculate total bet amount from allDetails
     const totalBetAmount = allDetails.reduce((sum, detail) => sum + (detail.betAmount || 0), 0);
 
+    // Get the multiplier from the first detail, assuming it's consistent
+    const totalMultiplier = allDetails.length > 0 ? allDetails[0].multiplier : 85; // Fallback to 85 if no details
+
     return (
       <div className="admin-prize-others-stats">
         <div className="admin-prize-stats-summary">
@@ -520,8 +523,8 @@ const AdminPrizeStatistics = () => {
               <tr className="admin-prize-total-row">
                 <td colSpan="2" style={{fontWeight: 'bold', textAlign: 'right'}}>Tổng tiền cược:</td>
                 <td style={{fontWeight: 'bold'}}>{totalBetAmount}n</td>
-                <td style={{fontWeight: 'bold'}}>x85</td>
-                <td className="admin-prize-prize-amount" style={{textAlign: 'right', fontWeight: 'bold'}}>{formatMoney(totalBetAmount * 85000)}</td>
+                <td style={{fontWeight: 'bold'}}>x{totalMultiplier}</td>
+                <td className="admin-prize-prize-amount" style={{textAlign: 'right', fontWeight: 'bold'}}>{formatMoney(totalBetAmount * totalMultiplier * 1000)}</td>
                 <td></td>
               </tr>
             </tbody>
