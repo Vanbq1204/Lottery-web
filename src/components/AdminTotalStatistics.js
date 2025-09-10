@@ -1113,7 +1113,7 @@ const AdminTotalStatistics = ({ user }) => {
                   )}
                   <br />
                   <span className="admin-stats-loto-total-value">Tổng điểm: {lotoTotalPoints}đ</span>
-                  {(showLotoFilter && (lotoFilterNumber || lotoFilterSubtract || lotoFilterPercent || Object.keys(topNSubtracts).length > 0)) && (
+                  {(lotoFilterNumber || lotoFilterSubtract || lotoFilterPercent || Object.keys(topNSubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng điểm sau khi lọc: {calculateFilteredLotoTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
