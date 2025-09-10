@@ -477,6 +477,9 @@ const AdminPrizeStatistics = () => {
       }
     });
 
+    // Calculate total bet amount from allDetails
+    const totalBetAmount = allDetails.reduce((sum, detail) => sum + (detail.betAmount || 0), 0);
+
     return (
       <div className="admin-prize-others-stats">
         <div className="admin-prize-stats-summary">
@@ -514,6 +517,13 @@ const AdminPrizeStatistics = () => {
                   <td className="admin-prize-detail-string">{detail.detailString}</td>
                 </tr>
               ))}
+              <tr className="admin-prize-total-row">
+                <td colSpan="2" style={{fontWeight: 'bold', textAlign: 'right'}}>Tổng tiền cược:</td>
+                <td style={{fontWeight: 'bold'}}>{totalBetAmount}n</td>
+                <td style={{fontWeight: 'bold'}}>x85</td>
+                <td className="admin-prize-prize-amount" style={{textAlign: 'right', fontWeight: 'bold'}}>{formatMoney(totalBetAmount * 85000)}</td>
+                <td></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -628,4 +638,4 @@ const AdminPrizeStatistics = () => {
   );
 };
 
-export default AdminPrizeStatistics; 
+export default AdminPrizeStatistics;
