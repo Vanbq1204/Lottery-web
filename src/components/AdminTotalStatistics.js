@@ -769,18 +769,14 @@ const AdminTotalStatistics = ({ user }) => {
 
     return (
       <div className="admin-stats-combined-table">
-        <div className="admin-stats-combined-total">
-          <h4>{title}</h4>
-          <div>
-            <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(groupTotal)}</span>
-          </div>
-        </div>
+
         <table>
+          <caption><h4>{title}</h4></caption>
           <thead>
             <tr>
               <th>Loại cược</th>
               <th>Số</th>
-              <th>Tiền đánh(n)</th>
+              <th>Tiền cược(n)</th>
             </tr>
           </thead>
           <tbody>
@@ -791,6 +787,11 @@ const AdminTotalStatistics = ({ user }) => {
                 <td style={{color: '#d32f2f', fontWeight: 600}}>{item.amount}n</td>
               </tr>
             ))}
+
+            <tr className="admin-stats-row-total">
+              <td colSpan="2" style={{textAlign: 'right', fontWeight: 600}}>Tổng tiền cược:</td>
+              <td style={{color: '#d32f2f', fontWeight: 600}}>{formatThousand(tableData.reduce((sum, item) => sum + parseFloat(item.amount), 0))}</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -871,6 +872,18 @@ const AdminTotalStatistics = ({ user }) => {
         // Các trường hợp khác (nếu có)
         total += adjustedAmount;
       }
+    });
+    return total;
+  };
+
+  // Tính tổng tiền xiên quay sau khi lọc (không nhân hệ số)
+  const calculateFilteredXienQuayTotalNoMultiplier = () => {
+    if (!statisticsData || !statisticsData.xienquay) return 0;
+    
+    let total = 0;
+    Object.entries(statisticsData.xienquay || {}).forEach(([key, amount]) => {
+      const adjustedAmount = adjustXienQuayAmountForDisplay(key, amount);
+      total += adjustedAmount;
     });
     return total;
   };
@@ -1010,7 +1023,7 @@ const AdminTotalStatistics = ({ user }) => {
   // Format tiền tệ
   const formatMoney = (amount) => { if (!amount || amount === 0) return '0 đ'; return Math.floor(amount).toLocaleString('vi-VN').replace(/,/g, '.') + ' đ'; };
   // Format nghìn đồng
-  const formatThousand = (amount) => { if (!amount || amount === 0) return '0n'; return Math.floor(amount).toLocaleString('vi-VN').replace(/,/g, '.') + 'n'; };
+  const formatThousand = (amount) => { if (!amount || amount === 0) return '0n'; return amount.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).replace(/,/g, '.') + 'n'; };
 
   // Render summary section
   const renderSummary = () => {
@@ -1577,6 +1590,9 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết xiên quay</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienquayTotal)}</span>
+                  <div className="admin-stats-total-item">
+                    <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}} >Tổng tiền cược: {calculateFilteredXienQuayTotalNoMultiplier().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
+                  </div>
                   {(xienQuayFilterNumber || xienQuayFilterSubtract || xienQuayFilterPercent || Object.keys(topNXienQuaySubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienQuayTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
