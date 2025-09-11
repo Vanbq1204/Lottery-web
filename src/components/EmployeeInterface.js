@@ -1045,7 +1045,7 @@ const EmployeeInterface = ({ user }) => {
           delete newTimeouts[changeKey];
           return newTimeouts;
         });
-      }, 1000); // Đợi 1 giây
+      }, 3000); // Đợi 2 giây
       
       // Lưu timeout mới
       setMergeTimeouts(prev => ({
@@ -3041,7 +3041,7 @@ const EmployeeInterface = ({ user }) => {
                     ['loto', '2s', '3s', 'bo'].forEach(betType => {
                       mergeDuplicateNumbers(betType);
                     });
-                  }, 1500); // Đợi 1.5 giây để đồng bộ với các logic gộp khác
+                  }, 3000); // Đợi 1.5 giây để đồng bộ với các logic gộp khác
                 }
               }}
             />
