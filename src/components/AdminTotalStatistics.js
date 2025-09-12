@@ -600,11 +600,21 @@ const AdminTotalStatistics = ({ user }) => {
   useEffect(() => {
     if (activeTab === 'betting') {
       loadStatistics();
+      // Reset merge state when tab changes or data reloads
+      setIsMerged(false);
+      setOriginalTwoSData(null);
+      setMergeStatus('');
     }
   }, [selectedDate, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle date change
-  const handleDateChange = (e) => { setSelectedDate(e.target.value); };
+  const handleDateChange = (e) => { 
+    setSelectedDate(e.target.value);
+    // Reset merge state when date changes
+    setIsMerged(false);
+    setOriginalTwoSData(null);
+    setMergeStatus('');
+  };
 
   // Handle tab change
   const handleTabChange = (tab) => { setActiveTab(tab); };
@@ -612,6 +622,11 @@ const AdminTotalStatistics = ({ user }) => {
   // Load statistics data for all stores of admin
   const loadStatistics = async (date = selectedDate) => {
     setIsLoading(true);
+    // Reset merge state when loading new statistics
+    setIsMerged(false);
+    setOriginalTwoSData(null);
+    setMergeStatus('');
+    
     try {
       const response = await axios.get(getApiUrl('/admin/total-statistics'), {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
