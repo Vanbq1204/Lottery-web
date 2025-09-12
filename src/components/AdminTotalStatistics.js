@@ -47,6 +47,22 @@ const AdminTotalStatistics = ({ user }) => {
   const [pinTwoSFilter, setPinTwoSFilter] = useState(false);
   // Trừ theo số tiền thấp nhất (00-99) - hỗ trợ nhiều lần
   const [twoSMinSubtracts, setTwoSMinSubtracts] = useState([]); // string[] mỗi phần tử là một lần trừ
+  
+  // Hàm chuyển đổi chuỗi tiếng Việt có dấu thành không dấu
+  const removeVietnameseAccents = (str) => {
+    if (!str) return '';
+    
+    str = str.toLowerCase();
+    str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, 'a');
+    str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, 'e');
+    str = str.replace(/ì|í|ị|ỉ|ĩ/g, 'i');
+    str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, 'o');
+    str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, 'u');
+    str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, 'y');
+    str = str.replace(/đ/g, 'd');
+    
+    return str;
+  };
 
   // UI và logic bộ lọc cho 3 số
   const [showThreeFilter, setShowThreeFilter] = useState(false);
@@ -1019,6 +1035,282 @@ const AdminTotalStatistics = ({ user }) => {
     });
     return total;
   };
+  
+  // Tính tổng tiền sau khi gộp tổng, kép, đầu, đít, bộ vào bảng 2 số
+  const calculateMergedTotal = () => {
+    if (!statisticsData || !isMerged) return 0;
+    
+    let total = 0;
+    const twoSData = statisticsData['2s'] || {};
+    
+    // Tính tổng tiền từ dữ liệu 2 số đã gộp
+    Object.values(twoSData).forEach(amount => {
+      total += parseFloat(amount);
+    });
+    
+    return total;
+  };
+  
+  // State để hiển thị thông báo khi gộp dữ liệu thành công
+  const [mergeStatus, setMergeStatus] = useState('');
+  
+  // State để kiểm soát việc đã gộp hay chưa
+  const [isMerged, setIsMerged] = useState(false);
+  
+  // State để lưu dữ liệu 2 số ban đầu trước khi gộp
+  const [originalTwoSData, setOriginalTwoSData] = useState(null);
+  
+  // Hàm xử lý gộp dữ liệu từ tổng, kép, đầu, đít, bộ vào bảng 2 số
+  const handleMergeTongKepDauDitBo = () => {
+    if (!statisticsData) return;
+    
+    // Nếu đã gộp rồi thì không gộp nữa
+    if (isMerged) {
+      setMergeStatus('Dữ liệu đã được gộp trước đó!');
+      setTimeout(() => {
+        setMergeStatus('');
+      }, 5000);
+      return;
+    }
+    
+    // Lưu dữ liệu 2 số ban đầu trước khi gộp
+    setOriginalTwoSData({...statisticsData['2s']});
+    
+    // Tạo bản sao của dữ liệu 2 số hiện tại
+    const mergedTwoSData = { ...statisticsData['2s'] || {} };
+    
+    // Xử lý dữ liệu tổng
+    if (statisticsData.tong) {
+      Object.entries(statisticsData.tong).forEach(([tongNumber, details]) => {
+        const amount = details.totalAmount || details;
+        
+        // Chuyển đổi tongNumber thành không dấu để so sánh
+        const normalizedTongNumber = removeVietnameseAccents(tongNumber);
+        
+        // Định nghĩa tổng từ 0-9 theo thông tin mới
+        const tongDefinitions = {
+          '0': ['00', '19', '28', '37', '46', '55', '64', '73', '82', '91'],
+          '1': ['01', '10', '29', '38', '47', '56', '65', '74', '83', '92'],
+          '2': ['02', '11', '20', '39', '48', '57', '66', '75', '84', '93'],
+          '3': ['03', '12', '21', '30', '49', '58', '67', '76', '85', '94'],
+          '4': ['04', '13', '22', '31', '40', '59', '68', '77', '86', '95'],
+          '5': ['05', '14', '23', '32', '41', '50', '69', '78', '87', '96'],
+          '6': ['06', '15', '24', '33', '42', '51', '60', '79', '88', '97'],
+          '7': ['07', '16', '25', '34', '43', '52', '61', '70', '89', '98'],
+          '8': ['08', '17', '26', '35', '44', '53', '62', '71', '80', '99'],
+          '9': ['09', '18', '27', '36', '45', '54', '63', '72', '81', '90']
+        };
+        
+        // Xử lý trường hợp tongNumber là 'tổng' hoặc 'tong' với một số
+        let tongValue = parseInt(tongNumber, 10);
+        let actualTongNumber = tongNumber;
+        
+        // Kiểm tra nếu tongNumber có dạng 'tổng X' hoặc 'tong X'
+        if (isNaN(tongValue)) {
+          const tongMatch = tongNumber.match(/t[oố]ng\s*(\d+)/i);
+          if (tongMatch && tongMatch[1]) {
+            actualTongNumber = tongMatch[1];
+            tongValue = parseInt(actualTongNumber, 10);
+          }
+        }
+        
+        // Nếu tổng từ 0-9, sử dụng định nghĩa mới
+        if (tongValue >= 0 && tongValue <= 9 && tongDefinitions[actualTongNumber]) {
+          tongDefinitions[actualTongNumber].forEach(twoSNumber => {
+            mergedTwoSData[twoSNumber] = (mergedTwoSData[twoSNumber] || 0) + amount;
+          });
+        }
+        // Trường hợp cũ (nếu có): tổng là tổng của 2 chữ số
+        else if (tongValue >= 0 && tongValue <= 18) {
+          // Tạo tất cả các cặp số có tổng bằng tongValue
+          for (let i = 0; i <= 9; i++) {
+            const j = tongValue - i;
+            if (j >= 0 && j <= 9) {
+              const twoSNumber = `${i}${j}`;
+              mergedTwoSData[twoSNumber] = (mergedTwoSData[twoSNumber] || 0) + amount;
+            }
+          }
+        }
+      });
+    }
+    
+    // Xử lý dữ liệu kép
+    if (statisticsData.kep) {
+      Object.entries(statisticsData.kep).forEach(([kepType, details]) => {
+        const amount = details.totalAmount || details;
+        
+        // Chuyển đổi kepType thành không dấu để so sánh
+        const normalizedKepType = removeVietnameseAccents(kepType);
+        
+        // Kép bằng: 00 11 22 33 44 55 66 77 88 99
+        if (normalizedKepType === 'bang' || normalizedKepType === 'kep_bang' || 
+            kepType === 'bằng' || kepType === 'kép_bằng' || 
+            kepType === 'kep bang' || kepType === 'kép bằng') {
+          for (let i = 0; i <= 9; i++) {
+            const twoSNumber = `${i}${i}`;
+            mergedTwoSData[twoSNumber] = (mergedTwoSData[twoSNumber] || 0) + amount;
+          }
+        }
+        // Kép lệch: 05 50 16 61 27 72 38 83 49 94
+        else if (normalizedKepType === 'lech' || normalizedKepType === 'kep_lech' || 
+                 kepType === 'lệch' || kepType === 'kép_lệch' || 
+                 kepType === 'kep lech' || kepType === 'kép lệch') {
+          const kepLechPairs = ['05', '50', '16', '61', '27', '72', '38', '83', '49', '94'];
+          kepLechPairs.forEach(pair => {
+            mergedTwoSData[pair] = (mergedTwoSData[pair] || 0) + amount;
+          });
+        }
+        // Trường hợp cũ (nếu có): kép là 2 số giống nhau
+        else if (kepType.length === 1) {
+          const twoSNumber = `${kepType}${kepType}`;
+          mergedTwoSData[twoSNumber] = (mergedTwoSData[twoSNumber] || 0) + amount;
+        }
+        // Trường hợp khác: kiểm tra nếu kepType là 'kép' hoặc 'kep'
+        else if (normalizedKepType === 'kep' || kepType === 'kép') {
+          // Xử lý tất cả các số kép (cả bằng và lệch)
+          // Kép bằng
+          for (let i = 0; i <= 9; i++) {
+            const twoSNumber = `${i}${i}`;
+            mergedTwoSData[twoSNumber] = (mergedTwoSData[twoSNumber] || 0) + amount;
+          }
+          // Kép lệch
+          const kepLechPairs = ['05', '50', '16', '61', '27', '72', '38', '83', '49', '94'];
+          kepLechPairs.forEach(pair => {
+            mergedTwoSData[pair] = (mergedTwoSData[pair] || 0) + amount;
+          });
+        }
+      });
+    }
+    
+    // Xử lý dữ liệu đầu
+    if (statisticsData.dau) {
+      Object.entries(statisticsData.dau).forEach(([dauNumber, details]) => {
+        const amount = details.totalAmount || details;
+        
+        // Chuyển đổi dauNumber thành không dấu để so sánh
+        const normalizedDauNumber = removeVietnameseAccents(dauNumber);
+        
+        // Xử lý trường hợp dauNumber là 'đầu' hoặc 'dau' với một số
+        let actualDauNumber = dauNumber;
+        
+        // Kiểm tra nếu dauNumber có dạng 'đầu X' hoặc 'dau X'
+        if (dauNumber.length > 1) {
+          const dauMatch = dauNumber.match(/[đd][aâầ]u\s*(\d+)/i);
+          if (dauMatch && dauMatch[1]) {
+            actualDauNumber = dauMatch[1];
+          }
+        }
+        
+        // Đầu là chữ số đầu tiên, ví dụ đầu 3 là 30, 31, 32, 33, 34, 35, 36, 37, 38, 39
+        if (actualDauNumber.length === 1) {
+          for (let i = 0; i <= 9; i++) {
+            const twoSNumber = `${actualDauNumber}${i}`;
+            mergedTwoSData[twoSNumber] = (mergedTwoSData[twoSNumber] || 0) + amount;
+          }
+        }
+      });
+    }
+    
+    // Xử lý dữ liệu đít
+    if (statisticsData.dit) {
+      Object.entries(statisticsData.dit).forEach(([ditNumber, details]) => {
+        const amount = details.totalAmount || details;
+        
+        // Chuyển đổi ditNumber thành không dấu để so sánh
+        const normalizedDitNumber = removeVietnameseAccents(ditNumber);
+        
+        // Xử lý trường hợp ditNumber là 'đít' hoặc 'dit' với một số
+        let actualDitNumber = ditNumber;
+        
+        // Kiểm tra nếu ditNumber có dạng 'đít X' hoặc 'dit X'
+        if (ditNumber.length > 1) {
+          const ditMatch = ditNumber.match(/[đd][iíị]t\s*(\d+)/i);
+          if (ditMatch && ditMatch[1]) {
+            actualDitNumber = ditMatch[1];
+          }
+        }
+        
+        // Đít là chữ số cuối cùng, ví dụ đít 3 là 03, 13, 23, 33, 43, 53, 63, 73, 83, 93
+        if (actualDitNumber.length === 1) {
+          for (let i = 0; i <= 9; i++) {
+            const twoSNumber = `${i}${actualDitNumber}`;
+            mergedTwoSData[twoSNumber] = (mergedTwoSData[twoSNumber] || 0) + amount;
+          }
+        }
+      });
+    }
+    
+    // Xử lý dữ liệu bộ
+    if (statisticsData.bo) {
+      Object.entries(statisticsData.bo).forEach(([boNumber, details]) => {
+        const amount = details.totalAmount || details;
+        
+        // Chuyển đổi boNumber thành không dấu để so sánh
+        const normalizedBoNumber = removeVietnameseAccents(boNumber);
+        
+        // Xử lý trường hợp boNumber là 'bộ' hoặc 'bo' với một số
+        let actualBoNumber = boNumber;
+        
+        // Kiểm tra nếu boNumber có dạng 'bộ X' hoặc 'bo X'
+        if (boNumber.length > 2) {
+          const boMatch = boNumber.match(/b[oộ]\s*(\d+)/i);
+          if (boMatch && boMatch[1]) {
+            actualBoNumber = boMatch[1];
+          }
+        }
+        
+        // Bộ là tập hợp các số được định nghĩa trong BO_DATA
+        if (BO_DATA[actualBoNumber] && Array.isArray(BO_DATA[actualBoNumber])) {
+          BO_DATA[actualBoNumber].forEach(num => {
+            const twoSNumber = num.toString().padStart(2, '0');
+            mergedTwoSData[twoSNumber] = (mergedTwoSData[twoSNumber] || 0) + amount;
+          });
+        }
+      });
+    }
+    
+    // Cập nhật dữ liệu 2 số với dữ liệu đã gộp
+    const updatedStats = {
+      ...statisticsData,
+      '2s': mergedTwoSData
+    };
+    
+    setStatisticsData(updatedStats);
+    setIsMerged(true);
+    setMergeStatus('Đã gộp dữ liệu tổng, kép, đầu, đít, bộ vào bảng 2 số!');
+    
+    // Tự động ẩn thông báo sau 5 giây
+    setTimeout(() => {
+      setMergeStatus('');
+    }, 5000);
+  };
+  
+  // Hàm xử lý xóa gộp và khôi phục dữ liệu ban đầu
+  const handleUnmergeTongKepDauDitBo = () => {
+    if (!isMerged || !originalTwoSData) {
+      setMergeStatus('Không có dữ liệu gộp để xóa!');
+      setTimeout(() => {
+        setMergeStatus('');
+      }, 5000);
+      return;
+    }
+    
+    // Khôi phục dữ liệu 2 số ban đầu
+    const updatedStats = {
+      ...statisticsData,
+      '2s': originalTwoSData
+    };
+    
+    setStatisticsData(updatedStats);
+    setIsMerged(false);
+    setOriginalTwoSData(null);
+    setMergeStatus('Đã xóa gộp và khôi phục dữ liệu ban đầu!');
+    
+    // Tự động ẩn thông báo sau 5 giây
+    setTimeout(() => {
+      setMergeStatus('');
+    }, 5000);
+  };
 
   // Format tiền tệ
   const formatMoney = (amount) => { if (!amount || amount === 0) return '0 đ'; return Math.floor(amount).toLocaleString('vi-VN').replace(/,/g, '.') + ' đ'; };
@@ -1238,6 +1530,11 @@ const AdminTotalStatistics = ({ user }) => {
                 <div>
                   <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['2sTotal'])}</span>
                   <br />
+                  {isMerged && (
+                    <div style={{marginTop: '5px'}}>
+                      <span style={{color: '#d32f2f', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi gộp tổng, kép, đầu, đít, bộ: {formatThousand(calculateMergedTotal())}</span>
+                    </div>
+                  )}
                   {(twoSFilterNumber || twoSFilterSubtract || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered2sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
@@ -1247,14 +1544,7 @@ const AdminTotalStatistics = ({ user }) => {
               </div>
 
               {/* Bộ lọc hiển thị bảng 2 số */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>
-                <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowTwoSFilter(prev => !prev)}>{showTwoSFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <input type="checkbox" checked={pinTwoSFilter} onChange={(e) => setPinTwoSFilter(e.target.checked)} />
-                  <span>Ghim bộ lọc</span>
-                </label>
-                <button className="admin-stats-tab" onClick={handleRefreshTwoS}>Làm mới</button>
-              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>                <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowTwoSFilter(prev => !prev)}>{showTwoSFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>                  <input type="checkbox" checked={pinTwoSFilter} onChange={(e) => setPinTwoSFilter(e.target.checked)} />                  <span>Ghim bộ lọc</span>                </label>                <button className="admin-stats-tab" onClick={handleRefreshTwoS}>Làm mới</button>                <button className="admin-stats-tab" onClick={handleMergeTongKepDauDitBo}>Gộp tổng, kép, đầu, đít, bộ</button>                {isMerged && <button className="admin-stats-tab" onClick={handleUnmergeTongKepDauDitBo}>Xóa gộp</button>}                {mergeStatus && <span style={{ color: '#388e3c', fontWeight: 600, marginLeft: '10px' }}>{mergeStatus}</span>}              </div>
 
               {showTwoSFilter && (
                 <div className="panel" style={{ marginBottom: '12px' }}>
