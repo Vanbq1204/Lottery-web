@@ -47,6 +47,8 @@ const AdminTotalStatistics = ({ user }) => {
   const [pinTwoSFilter, setPinTwoSFilter] = useState(false);
   // Trừ theo số tiền thấp nhất (00-99) - hỗ trợ nhiều lần
   const [twoSMinSubtracts, setTwoSMinSubtracts] = useState([]); // string[] mỗi phần tử là một lần trừ
+  // Hệ số cho phần trừ theo số tiền thấp nhất
+  const [twoSCoefficientFactor, setTwoSCoefficientFactor] = useState('');
   
   // Hàm chuyển đổi chuỗi tiếng Việt có dấu thành không dấu
   const removeVietnameseAccents = (str) => {
@@ -122,6 +124,7 @@ const AdminTotalStatistics = ({ user }) => {
     setTopNTwoSSelection([]);
     setTopNTwoSSubtracts({});
     setTwoSMinSubtracts([]);
+    setTwoSCoefficientFactor('');
   };
 
   const resetThreeFilters = () => {
@@ -193,6 +196,7 @@ const AdminTotalStatistics = ({ user }) => {
         topNTwoSCount,
         topNTwoSSubtracts,
         twoSMinSubtracts,
+        twoSCoefficientFactor,
         pinTwoSFilter: true
       };
       localStorage.setItem(getTwoSFilterStorageKey(), JSON.stringify(payload));
@@ -260,6 +264,7 @@ const AdminTotalStatistics = ({ user }) => {
       setTopNTwoSCount(data.topNTwoSCount ?? '');
       setTopNTwoSSubtracts(data.topNTwoSSubtracts ?? {});
       setTwoSMinSubtracts(Array.isArray(data.twoSMinSubtracts) ? data.twoSMinSubtracts : []);
+      setTwoSCoefficientFactor(data.twoSCoefficientFactor ?? '');
       setPinTwoSFilter(!!data.pinTwoSFilter);
     } catch (e) {}
   };
@@ -468,6 +473,30 @@ const AdminTotalStatistics = ({ user }) => {
     }
     return { zeros, minPositive };
   };
+  
+  // Tính toán kết quả với hệ số
+  const calculateResultWithCoefficient = () => {
+    if (!isMerged || !statisticsData) return 0;
+    
+    // Tổng tiền sau khi gộp
+    const mergedTotal = calculateMergedTotal();
+    
+    // Tổng tiền sau khi lọc
+    const filteredTotal = calculateFiltered2sTotal();
+    
+    // Tổng số tiền trừ mỗi con
+    const totalMin = (twoSMinSubtracts || []).reduce((sum, v) => {
+      const n = parseInt(v, 10); return sum + (isNaN(n) ? 0 : n);
+    }, 0);
+    
+    // Hệ số người dùng nhập
+    const coefficient = parseFloat(twoSCoefficientFactor) || 0;
+    
+    // Kết quả = Tổng tiền sau khi gộp - Tổng tiền sau khi lọc - (hệ số * tổng số tiền trừ mỗi con)
+    const result = mergedTotal - filteredTotal - (coefficient * totalMin);
+    
+    return Math.max(0, result);
+  };
 
   // Áp dụng trừ theo số tiền thấp nhất cho 2 số (00-99) - nhiều lần
   const applyTwoSMinSubtract = () => {
@@ -575,7 +604,7 @@ const AdminTotalStatistics = ({ user }) => {
 
   // Tự động lưu khi filter thay đổi (nếu đã ghim)
   useEffect(() => { saveLotoFiltersToStorage(); /* eslint-disable-line */ }, [pinLotoFilter, showLotoFilter, lotoFilterNumber, lotoFilterSubtract, lotoFilterPercent, topNCount, topNSubtracts, selectedDate]);
-  useEffect(() => { saveTwoSFiltersToStorage(); /* eslint-disable-line */ }, [pinTwoSFilter, showTwoSFilter, twoSFilterNumber, twoSFilterSubtract, twoSFilterPercent, topNTwoSCount, topNTwoSSubtracts, twoSMinSubtracts, selectedDate]);
+  useEffect(() => { saveTwoSFiltersToStorage(); /* eslint-disable-line */ }, [pinTwoSFilter, showTwoSFilter, twoSFilterNumber, twoSFilterSubtract, twoSFilterPercent, topNTwoSCount, topNTwoSSubtracts, twoSMinSubtracts, twoSCoefficientFactor, selectedDate]);
   useEffect(() => { saveThreeFiltersToStorage(); /* eslint-disable-line */ }, [pinThreeFilter, showThreeFilter, threeFilterNumber, threeFilterSubtract, threeFilterPercent, topNThreeCount, topNThreeSubtracts, selectedDate]);
   useEffect(() => { saveXienFiltersToStorage(); /* eslint-disable-line */ }, [pinXienFilter, showXienFilter, xienFilterNumber, xienFilterSubtract, xienFilterPercent, topNXienCount, topNXienSubtracts, selectedDate]);
   useEffect(() => { saveXienQuayFiltersToStorage(); /* eslint-disable-line */ }, [pinXienQuayFilter, showXienQuayFilter, xienQuayFilterNumber, xienQuayFilterSubtract, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, selectedDate]);
@@ -614,6 +643,7 @@ const AdminTotalStatistics = ({ user }) => {
     setIsMerged(false);
     setOriginalTwoSData(null);
     setMergeStatus('');
+    setTwoSCoefficientFactor('');
   };
 
   // Handle tab change
@@ -1598,6 +1628,20 @@ const AdminTotalStatistics = ({ user }) => {
                         <span>n</span>
                         <button className="admin-stats-tab" onClick={clearTwoSMinSubtractLast}>Xóa lần cuối</button>
                         <button className="admin-stats-tab" onClick={clearTwoSMinSubtractAll}>Xóa tất cả</button>
+                        
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginTop: '8px', width: '100%' }}>
+                          <span>Với hệ số trả thưởng 2 số</span>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            step="0.01" 
+                            placeholder="vd: 85" 
+                            value={twoSCoefficientFactor} 
+                            onChange={(e) => setTwoSCoefficientFactor(e.target.value)} 
+                            style={{ width: '80px' }} 
+                          />
+                          <span>thì hiện tại bạn sẽ được: {formatThousand(calculateResultWithCoefficient())}</span>
+                        </div>
                       </>
                     )}
                   </div>
