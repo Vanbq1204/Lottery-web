@@ -1045,7 +1045,7 @@ const EmployeeInterface = ({ user }) => {
           delete newTimeouts[changeKey];
           return newTimeouts;
         });
-      }, 3000); // Đợi 2 giây
+      }, 2000); // Đợi 2 giây
       
       // Lưu timeout mới
       setMergeTimeouts(prev => ({

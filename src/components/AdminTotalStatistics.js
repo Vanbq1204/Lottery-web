@@ -511,6 +511,55 @@ const AdminTotalStatistics = ({ user }) => {
     }
     setTwoSMinSubtracts((prev) => [...prev, String(minPositive)]);
   };
+  
+  // Áp dụng trừ theo số tiền thấp nhất nhiều lần liên tiếp
+  const applyMultipleTwoSMinSubtract = (times) => {
+    if (!times || times <= 0) return;
+    
+    // Thực hiện trừ lần đầu
+    const { zeros: initialZeros, minPositive: initialMinPositive } = computeCurrentTwoSAdjusted();
+    if (initialMinPositive === Infinity) {
+      alert('Không có dữ liệu tiền cược dương để áp dụng lọc.');
+      return;
+    }
+    
+    // Kiểm tra xem có con nào đang có số tiền cược là 0 không
+    if (initialZeros.length > 0) {
+      const agree = window.confirm(`Các con ${initialZeros.join(', ')} đang có số tiền cược là 0. Bạn có đồng ý lọc trừ theo mức thấp nhất hiện tại (${initialMinPositive}n) không?`);
+      if (!agree) return;
+    }
+    
+    // Tạo mảng tạm để lưu các giá trị trừ
+    const newSubtracts = [];
+    let currentSubtracts = [...twoSMinSubtracts];
+    
+    // Thực hiện trừ nhiều lần
+    for (let i = 0; i < times; i++) {
+      // Tính toán giá trị minPositive dựa trên trạng thái hiện tại
+      const twoSData = statisticsData?.['2s'] || {};
+      const totalMin = [...currentSubtracts].reduce((sum, v) => {
+        const n = parseInt(v, 10); return sum + (isNaN(n) ? 0 : n);
+      }, 0);
+      
+      let minPositive = Infinity;
+      for (let j = 0; j < 100; j++) {
+        const num = j.toString().padStart(2, '0');
+        const base = twoSData[num] || 0;
+        const current = Math.max(0, base - totalMin);
+        if (current > 0 && current < minPositive) minPositive = current;
+      }
+      
+      // Nếu không còn giá trị dương nào để trừ thì dừng lại
+      if (minPositive === Infinity) break;
+      
+      // Thêm giá trị trừ vào mảng tạm
+      newSubtracts.push(String(minPositive));
+      currentSubtracts = [...currentSubtracts, String(minPositive)];
+    }
+    
+    // Cập nhật state với tất cả các giá trị trừ mới
+    setTwoSMinSubtracts((prev) => [...prev, ...newSubtracts]);
+  };
 
   const clearTwoSMinSubtractLast = () => {
     setTwoSMinSubtracts((prev) => prev.slice(0, -1));
@@ -1618,7 +1667,39 @@ const AdminTotalStatistics = ({ user }) => {
 
                   {/* Dòng lọc: trừ theo số tiền thấp nhất 00-99 (nhiều lần) */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <button className="admin-stats-tab" onClick={applyTwoSMinSubtract}>Trừ theo số tiền thấp nhất (00-99)</button>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                      <button className="admin-stats-tab" onClick={applyTwoSMinSubtract}>Trừ theo số tiền thấp nhất (00-99)</button>
+                      <span>Số lần trừ:</span>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        step="1" 
+                        placeholder="vd: 4" 
+                        style={{ width: '60px' }} 
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const times = parseInt(e.target.value, 10);
+                            if (!isNaN(times) && times > 0) {
+                              applyMultipleTwoSMinSubtract(times);
+                              e.target.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <button 
+                        className="admin-stats-tab" 
+                        onClick={(e) => {
+                          const input = e.target.previousElementSibling;
+                          const times = parseInt(input.value, 10);
+                          if (!isNaN(times) && times > 0) {
+                            applyMultipleTwoSMinSubtract(times);
+                            input.value = '';
+                          }
+                        }}
+                      >
+                        Áp dụng
+                      </button>
+                    </div>
                     {twoSMinSubtracts.length > 0 && (
                       <>
                         <span>Đang trừ mỗi con:</span>
@@ -1640,7 +1721,7 @@ const AdminTotalStatistics = ({ user }) => {
                             onChange={(e) => setTwoSCoefficientFactor(e.target.value)} 
                             style={{ width: '80px' }} 
                           />
-                          <span>thì hiện tại bạn sẽ được: {formatThousand(calculateResultWithCoefficient())}</span>
+                          <span>thì hiện tại bạn sẽ được ít nhất: {formatThousand(calculateResultWithCoefficient())}</span>
                         </div>
                       </>
                     )}
