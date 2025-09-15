@@ -194,7 +194,7 @@ const BettingInterface = ({ user }) => {
                 <label>Số cược</label>
                 <input
                   type="text"
-                  inputMode="numeric"
+                  inputMode="text"
                   name="numbers"
                   value={betData.numbers}
                   onChange={handleInputChange}

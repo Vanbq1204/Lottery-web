@@ -2964,7 +2964,7 @@ const EmployeeInterface = ({ user }) => {
                   <>
                     <input
                       type="text"
-                      inputMode="numeric"
+                      inputMode="text"
                       value={row.numbers}
                       onChange={(e) => handleRowChange(betType, index, 'numbers', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'numbers', e.target.value, e)}
@@ -2974,7 +2974,7 @@ const EmployeeInterface = ({ user }) => {
                     />
                     <input
                       type="text"
-                      inputMode="numeric"
+                      inputMode="text"
                       value={row.amount}
                       onChange={(e) => handleRowChange(betType, index, 'amount', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'amount', e.target.value, e)}
@@ -2987,7 +2987,7 @@ const EmployeeInterface = ({ user }) => {
                   <>
                     <input
                       type="text"
-                      inputMode="numeric"
+                      inputMode="text"
                       value={row.numbers}
                       onChange={(e) => handleRowChange(betType, index, 'numbers', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'numbers', e.target.value, e)}
@@ -2997,7 +2997,7 @@ const EmployeeInterface = ({ user }) => {
                     />
                     <input
                       type="text"
-                      inputMode="numeric"
+                      inputMode="text"
                       value={isLoto ? row.points : row.amount}
                       onChange={(e) => handleRowChange(betType, index, isLoto ? 'points' : 'amount', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, isLoto ? 'points' : 'amount', e.target.value, e)}
