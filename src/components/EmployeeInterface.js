@@ -2964,7 +2964,7 @@ const EmployeeInterface = ({ user }) => {
                   <>
                     <input
                       type="text"
-                      inputMode="text"
+                      inputMode="numeric"
                       value={row.numbers}
                       onChange={(e) => handleRowChange(betType, index, 'numbers', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'numbers', e.target.value, e)}
