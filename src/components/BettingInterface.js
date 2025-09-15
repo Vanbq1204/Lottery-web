@@ -139,6 +139,7 @@ const BettingInterface = ({ user }) => {
                 <label>Tên khách hàng</label>
                 <input
                   type="text"
+                  inputMode="text"
                   name="customerName"
                   value={betData.customerName}
                   onChange={handleInputChange}
@@ -149,6 +150,7 @@ const BettingInterface = ({ user }) => {
                 <label>Số điện thoại</label>
                 <input
                   type="tel"
+                  inputMode="numeric"
                   name="customerPhone"
                   value={betData.customerPhone}
                   onChange={handleInputChange}
@@ -192,6 +194,7 @@ const BettingInterface = ({ user }) => {
                 <label>Số cược</label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   name="numbers"
                   value={betData.numbers}
                   onChange={handleInputChange}
@@ -202,6 +205,7 @@ const BettingInterface = ({ user }) => {
                 <label>Tiền cược (VNĐ)</label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   name="amount"
                   value={betData.amount}
                   onChange={handleInputChange}
@@ -266,4 +270,4 @@ const BettingInterface = ({ user }) => {
   );
 };
 
-export default BettingInterface; 
+export default BettingInterface;
