@@ -2964,6 +2964,7 @@ const EmployeeInterface = ({ user }) => {
                   <>
                     <input
                       type="text"
+                      inputMode="text"
                       value={row.numbers}
                       onChange={(e) => handleRowChange(betType, index, 'numbers', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'numbers', e.target.value, e)}
@@ -2973,6 +2974,7 @@ const EmployeeInterface = ({ user }) => {
                     />
                     <input
                       type="text"
+                      inputMode="numeric"
                       value={row.amount}
                       onChange={(e) => handleRowChange(betType, index, 'amount', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'amount', e.target.value, e)}
@@ -2985,6 +2987,7 @@ const EmployeeInterface = ({ user }) => {
                   <>
                     <input
                       type="text"
+                      inputMode="numeric"
                       value={row.numbers}
                       onChange={(e) => handleRowChange(betType, index, 'numbers', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'numbers', e.target.value, e)}
@@ -2994,6 +2997,7 @@ const EmployeeInterface = ({ user }) => {
                     />
                     <input
                       type="text"
+                      inputMode="numeric"
                       value={isLoto ? row.points : row.amount}
                       onChange={(e) => handleRowChange(betType, index, isLoto ? 'points' : 'amount', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, isLoto ? 'points' : 'amount', e.target.value, e)}
@@ -3058,6 +3062,7 @@ const EmployeeInterface = ({ user }) => {
             <label><strong>Khách hàng:</strong></label>
             <input
               type="text"
+              inputMode="text"
               value={customerName}
               onChange={(e) => {
                 setCustomerName(e.target.value);
@@ -3149,6 +3154,7 @@ const EmployeeInterface = ({ user }) => {
               <div className="customer-give-section">
                 <input
                   type="text"
+                  inputMode="numeric"
                   value={customerGive}
                   onChange={(e) => {
                     setCustomerGive(e.target.value);
