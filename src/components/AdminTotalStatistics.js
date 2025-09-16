@@ -19,9 +19,9 @@ const AdminTotalStatistics = ({ user }) => {
   const [activeDetailTab, setActiveDetailTab] = useState('loto'); // Tab chi tiết trong thống kê cược
   // UI và logic bộ lọc hiển thị cho bảng Lô tô (chỉ tác động giao diện)
   const [showLotoFilter, setShowLotoFilter] = useState(false);
-  const [lotoFilterNumber, setLotoFilterNumber] = useState(''); // "00" - "99"
-  const [lotoFilterSubtract, setLotoFilterSubtract] = useState(''); // số điểm trừ (1 con)
+  const [lotoFilterRows, setLotoFilterRows] = useState([{ number: '', subtract: '' }]); // Mảng các dòng lọc
   const [lotoFilterPercent, setLotoFilterPercent] = useState(''); // % áp dụng toàn bộ
+  const [lotoFilterRowCount, setLotoFilterRowCount] = useState('1'); // Số dòng lọc mặc định là 1
   // Top N con có điểm cao nhất - Lô tô
   const [topNCount, setTopNCount] = useState('');
   const [topNSelection, setTopNSelection] = useState([]); // [{number, points}]
@@ -36,9 +36,9 @@ const AdminTotalStatistics = ({ user }) => {
 
   // UI và logic bộ lọc cho 2 số (tiền)
   const [showTwoSFilter, setShowTwoSFilter] = useState(false);
-  const [twoSFilterNumber, setTwoSFilterNumber] = useState('');
-  const [twoSFilterSubtract, setTwoSFilterSubtract] = useState(''); // số tiền trừ (n)
+  const [twoSFilterRows, setTwoSFilterRows] = useState([{ number: '', subtract: '' }]); // Mảng các dòng lọc
   const [twoSFilterPercent, setTwoSFilterPercent] = useState('');
+  const [twoSFilterRowCount, setTwoSFilterRowCount] = useState('1'); // Số dòng lọc mặc định là 1
   // Top N - 2 số
   const [topNTwoSCount, setTopNTwoSCount] = useState('');
   const [topNTwoSSelection, setTopNTwoSSelection] = useState([]); // [{number, amount}]
@@ -68,9 +68,9 @@ const AdminTotalStatistics = ({ user }) => {
 
   // UI và logic bộ lọc cho 3 số
   const [showThreeFilter, setShowThreeFilter] = useState(false);
-  const [threeFilterNumber, setThreeFilterNumber] = useState('');
-  const [threeFilterSubtract, setThreeFilterSubtract] = useState('');
+  const [threeFilterRows, setThreeFilterRows] = useState([{ number: '', subtract: '' }]); // Mảng các dòng lọc
   const [threeFilterPercent, setThreeFilterPercent] = useState('');
+  const [threeFilterRowCount, setThreeFilterRowCount] = useState('1'); // Số dòng lọc mặc định là 1
   const [topNThreeCount, setTopNThreeCount] = useState('');
   const [topNThreeSelection, setTopNThreeSelection] = useState([]); // [{key, amount}]
   const [topNThreeSubtracts, setTopNThreeSubtracts] = useState({});
@@ -78,9 +78,9 @@ const AdminTotalStatistics = ({ user }) => {
 
   // UI và logic bộ lọc cho Xiên
   const [showXienFilter, setShowXienFilter] = useState(false);
-  const [xienFilterNumber, setXienFilterNumber] = useState('');
-  const [xienFilterSubtract, setXienFilterSubtract] = useState('');
+  const [xienFilterRows, setXienFilterRows] = useState([{ number: '', subtract: '' }]); // Mảng các dòng lọc
   const [xienFilterPercent, setXienFilterPercent] = useState('');
+  const [xienFilterRowCount, setXienFilterRowCount] = useState('1'); // Số dòng lọc mặc định là 1
   const [topNXienCount, setTopNXienCount] = useState('');
   const [topNXienSelection, setTopNXienSelection] = useState([]);
   const [topNXienSubtracts, setTopNXienSubtracts] = useState({});
@@ -88,13 +88,13 @@ const AdminTotalStatistics = ({ user }) => {
 
   // UI và logic bộ lọc cho Xiên quay
   const [showXienQuayFilter, setShowXienQuayFilter] = useState(false);
-  const [xienQuayFilterNumber, setXienQuayFilterNumber] = useState('');
-  const [xienQuayFilterSubtract, setXienQuayFilterSubtract] = useState('');
+  const [xienQuayFilterRows, setXienQuayFilterRows] = useState([{ number: '', subtract: '' }]); // Mảng các dòng lọc
   const [xienQuayFilterPercent, setXienQuayFilterPercent] = useState('');
   const [topNXienQuayCount, setTopNXienQuayCount] = useState('');
   const [topNXienQuaySelection, setTopNXienQuaySelection] = useState([]);
   const [topNXienQuaySubtracts, setTopNXienQuaySubtracts] = useState({});
   const [pinXienQuayFilter, setPinXienQuayFilter] = useState(false);
+  const [xienQuayFilterRowCount, setXienQuayFilterRowCount] = useState('1'); // Số dòng lọc mặc định là 1
   
   // Bộ lọc cho tổng kép đầu đít bộ đã khai báo ở trên
 
@@ -107,8 +107,8 @@ const AdminTotalStatistics = ({ user }) => {
 
   const resetLotoFilters = () => {
     setShowLotoFilter(false);
-    setLotoFilterNumber('');
-    setLotoFilterSubtract('');
+    setLotoFilterRows([{ number: '', subtract: '' }]);
+    setLotoFilterRowCount('1');
     setLotoFilterPercent('');
     setTopNCount('');
     setTopNSelection([]);
@@ -117,9 +117,9 @@ const AdminTotalStatistics = ({ user }) => {
 
   const resetTwoSFilters = () => {
     setShowTwoSFilter(false);
-    setTwoSFilterNumber('');
-    setTwoSFilterSubtract('');
+    setTwoSFilterRows([{ number: '', subtract: '' }]);
     setTwoSFilterPercent('');
+    setTwoSFilterRowCount('1'); // Reset số dòng lọc về 1
     setTopNTwoSCount('');
     setTopNTwoSSelection([]);
     setTopNTwoSSubtracts({});
@@ -129,9 +129,9 @@ const AdminTotalStatistics = ({ user }) => {
 
   const resetThreeFilters = () => {
     setShowThreeFilter(false);
-    setThreeFilterNumber('');
-    setThreeFilterSubtract('');
+    setThreeFilterRows([{ number: '', subtract: '' }]);
     setThreeFilterPercent('');
+    setThreeFilterRowCount('1'); // Reset số dòng lọc về 1
     setTopNThreeCount('');
     setTopNThreeSelection([]);
     setTopNThreeSubtracts({});
@@ -139,9 +139,9 @@ const AdminTotalStatistics = ({ user }) => {
 
   const resetXienFilters = () => {
     setShowXienFilter(false);
-    setXienFilterNumber('');
-    setXienFilterSubtract('');
+    setXienFilterRows([{ number: '', subtract: '' }]);
     setXienFilterPercent('');
+    setXienFilterRowCount('1'); // Reset số dòng lọc về 1
     setTopNXienCount('');
     setTopNXienSelection([]);
     setTopNXienSubtracts({});
@@ -149,12 +149,12 @@ const AdminTotalStatistics = ({ user }) => {
 
   const resetXienQuayFilters = () => {
     setShowXienQuayFilter(false);
-    setXienQuayFilterNumber('');
-    setXienQuayFilterSubtract('');
+    setXienQuayFilterRows([{ number: '', subtract: '' }]);
     setXienQuayFilterPercent('');
     setTopNXienQuayCount('');
     setTopNXienQuaySelection([]);
     setTopNXienQuaySubtracts({});
+    setXienQuayFilterRowCount('1'); // Reset số dòng lọc về 1
   };
   
   const resetCombinedFilters = () => {
@@ -180,7 +180,7 @@ const AdminTotalStatistics = ({ user }) => {
   const saveLotoFiltersToStorage = () => {
     if (!pinLotoFilter) return;
     try {
-      const payload = { showLotoFilter, lotoFilterNumber, lotoFilterSubtract, lotoFilterPercent, topNCount, topNSubtracts, pinLotoFilter: true };
+      const payload = { showLotoFilter, lotoFilterRows, lotoFilterRowCount, lotoFilterPercent, topNCount, topNSubtracts, pinLotoFilter: true };
       localStorage.setItem(getLotoFilterStorageKey(), JSON.stringify(payload));
     } catch (e) {}
   };
@@ -190,8 +190,8 @@ const AdminTotalStatistics = ({ user }) => {
     try {
       const payload = {
         showTwoSFilter,
-        twoSFilterNumber,
-        twoSFilterSubtract,
+        twoSFilterRows,
+        twoSFilterRowCount,
         twoSFilterPercent,
         topNTwoSCount,
         topNTwoSSubtracts,
@@ -206,7 +206,7 @@ const AdminTotalStatistics = ({ user }) => {
   const saveThreeFiltersToStorage = () => {
     if (!pinThreeFilter) return;
     try {
-      const payload = { showThreeFilter, threeFilterNumber, threeFilterSubtract, threeFilterPercent, topNThreeCount, topNThreeSubtracts, pinThreeFilter: true };
+      const payload = { showThreeFilter, threeFilterRows, threeFilterRowCount, threeFilterPercent, topNThreeCount, topNThreeSubtracts, pinThreeFilter: true };
       localStorage.setItem(getThreeFilterStorageKey(), JSON.stringify(payload));
     } catch (e) {}
   };
@@ -214,7 +214,7 @@ const AdminTotalStatistics = ({ user }) => {
   const saveXienFiltersToStorage = () => {
     if (!pinXienFilter) return;
     try {
-      const payload = { showXienFilter, xienFilterNumber, xienFilterSubtract, xienFilterPercent, topNXienCount, topNXienSubtracts, pinXienFilter: true };
+      const payload = { showXienFilter, xienFilterRows, xienFilterRowCount, xienFilterPercent, topNXienCount, topNXienSubtracts, pinXienFilter: true };
       localStorage.setItem(getXienFilterStorageKey(), JSON.stringify(payload));
     } catch (e) {}
   };
@@ -222,7 +222,7 @@ const AdminTotalStatistics = ({ user }) => {
   const saveXienQuayFiltersToStorage = () => {
     if (!pinXienQuayFilter) return;
     try {
-      const payload = { showXienQuayFilter, xienQuayFilterNumber, xienQuayFilterSubtract, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, pinXienQuayFilter: true };
+      const payload = { showXienQuayFilter, xienQuayFilterRows, xienQuayFilterRowCount, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, pinXienQuayFilter: true };
       localStorage.setItem(getXienQuayFilterStorageKey(), JSON.stringify(payload));
     } catch (e) {}
   };
@@ -242,8 +242,18 @@ const AdminTotalStatistics = ({ user }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowLotoFilter(!!data.showLotoFilter);
-      setLotoFilterNumber(data.lotoFilterNumber ?? '');
-      setLotoFilterSubtract(data.lotoFilterSubtract ?? '');
+      
+      // Xử lý tương thích ngược với dữ liệu cũ
+      if (data.lotoFilterRows) {
+        setLotoFilterRows(data.lotoFilterRows);
+      } else if (data.lotoFilterNumber !== undefined && data.lotoFilterSubtract !== undefined) {
+        // Chuyển đổi từ định dạng cũ sang định dạng mới
+        setLotoFilterRows([{ number: data.lotoFilterNumber ?? '', subtract: data.lotoFilterSubtract ?? '' }]);
+      } else {
+        setLotoFilterRows([{ number: '', subtract: '' }]);
+      }
+      
+      setLotoFilterRowCount(data.lotoFilterRowCount ?? '1');
       setLotoFilterPercent(data.lotoFilterPercent ?? '');
       setTopNCount(data.topNCount ?? '');
       setTopNSubtracts(data.topNSubtracts ?? {});
@@ -258,8 +268,18 @@ const AdminTotalStatistics = ({ user }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowTwoSFilter(!!data.showTwoSFilter);
-      setTwoSFilterNumber(data.twoSFilterNumber ?? '');
-      setTwoSFilterSubtract(data.twoSFilterSubtract ?? '');
+      
+      // Xử lý tương thích ngược với dữ liệu cũ
+      if (data.twoSFilterRows) {
+        setTwoSFilterRows(data.twoSFilterRows);
+      } else if (data.twoSFilterNumber !== undefined || data.twoSFilterSubtract !== undefined) {
+        // Chuyển đổi từ định dạng cũ sang định dạng mới
+        setTwoSFilterRows([{ number: data.twoSFilterNumber ?? '', subtract: data.twoSFilterSubtract ?? '' }]);
+      } else {
+        setTwoSFilterRows([{ number: '', subtract: '' }]);
+      }
+      
+      setTwoSFilterRowCount(data.twoSFilterRowCount ?? '1');
       setTwoSFilterPercent(data.twoSFilterPercent ?? '');
       setTopNTwoSCount(data.topNTwoSCount ?? '');
       setTopNTwoSSubtracts(data.topNTwoSSubtracts ?? {});
@@ -276,8 +296,18 @@ const AdminTotalStatistics = ({ user }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowThreeFilter(!!data.showThreeFilter);
-      setThreeFilterNumber(data.threeFilterNumber ?? '');
-      setThreeFilterSubtract(data.threeFilterSubtract ?? '');
+      
+      // Xử lý tương thích ngược với dữ liệu cũ
+      if (data.threeFilterRows) {
+        setThreeFilterRows(data.threeFilterRows);
+      } else if (data.threeFilterNumber !== undefined || data.threeFilterSubtract !== undefined) {
+        // Chuyển đổi từ định dạng cũ sang định dạng mới
+        setThreeFilterRows([{ number: data.threeFilterNumber ?? '', subtract: data.threeFilterSubtract ?? '' }]);
+      } else {
+        setThreeFilterRows([{ number: '', subtract: '' }]);
+      }
+      
+      setThreeFilterRowCount(data.threeFilterRowCount ?? '1');
       setThreeFilterPercent(data.threeFilterPercent ?? '');
       setTopNThreeCount(data.topNThreeCount ?? '');
       setTopNThreeSubtracts(data.topNThreeSubtracts ?? {});
@@ -292,8 +322,18 @@ const AdminTotalStatistics = ({ user }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowXienFilter(!!data.showXienFilter);
-      setXienFilterNumber(data.xienFilterNumber ?? '');
-      setXienFilterSubtract(data.xienFilterSubtract ?? '');
+      
+      // Xử lý tương thích ngược với dữ liệu cũ
+      if (data.xienFilterRows) {
+        setXienFilterRows(data.xienFilterRows);
+      } else if (data.xienFilterNumber !== undefined || data.xienFilterSubtract !== undefined) {
+        // Chuyển đổi từ định dạng cũ sang định dạng mới
+        setXienFilterRows([{ number: data.xienFilterNumber ?? '', subtract: data.xienFilterSubtract ?? '' }]);
+      } else {
+        setXienFilterRows([{ number: '', subtract: '' }]);
+      }
+      
+      setXienFilterRowCount(data.xienFilterRowCount ?? '1');
       setXienFilterPercent(data.xienFilterPercent ?? '');
       setTopNXienCount(data.topNXienCount ?? '');
       setTopNXienSubtracts(data.topNXienSubtracts ?? {});
@@ -308,8 +348,18 @@ const AdminTotalStatistics = ({ user }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowXienQuayFilter(!!data.showXienQuayFilter);
-      setXienQuayFilterNumber(data.xienQuayFilterNumber ?? '');
-      setXienQuayFilterSubtract(data.xienQuayFilterSubtract ?? '');
+      
+      // Xử lý tương thích ngược với dữ liệu cũ
+      if (data.xienQuayFilterRows) {
+        setXienQuayFilterRows(data.xienQuayFilterRows);
+      } else if (data.xienQuayFilterNumber !== undefined || data.xienQuayFilterSubtract !== undefined) {
+        // Chuyển đổi từ định dạng cũ sang định dạng mới
+        setXienQuayFilterRows([{ number: data.xienQuayFilterNumber ?? '', subtract: data.xienQuayFilterSubtract ?? '' }]);
+      } else {
+        setXienQuayFilterRows([{ number: '', subtract: '' }]);
+      }
+      
+      setXienQuayFilterRowCount(data.xienQuayFilterRowCount ?? '1');
       setXienQuayFilterPercent(data.xienQuayFilterPercent ?? '');
       setTopNXienQuayCount(data.topNXienQuayCount ?? '');
       setTopNXienQuaySubtracts(data.topNXienQuaySubtracts ?? {});
@@ -407,10 +457,20 @@ const AdminTotalStatistics = ({ user }) => {
       adjusted = Math.max(0, adjusted - perNumberSubtract);
     }
 
-    const numFilter = (lotoFilterNumber || '').trim();
-    const subtractVal = parseInt(lotoFilterSubtract, 10);
-    if (numFilter !== '' && numberStr === numFilter && !isNaN(subtractVal) && subtractVal > 0) {
-      adjusted = Math.max(0, adjusted - subtractVal);
+    // Trừ theo một hoặc nhiều con cụ thể từ các dòng lọc
+    if (Array.isArray(lotoFilterRows)) {
+      lotoFilterRows.forEach(row => {
+        const numFilter = (row.number || '').trim();
+        const subtractVal = parseInt(row.subtract, 10);
+        
+        if (numFilter !== '' && !isNaN(subtractVal) && subtractVal > 0) {
+          // Tách các số được nhập, phân cách bằng dấu phẩy
+          const filterNumbers = numFilter.split(',').map(num => num.trim().padStart(2, '0'));
+          if (filterNumbers.includes(numberStr)) {
+            adjusted = Math.max(0, adjusted - subtractVal);
+          }
+        }
+      });
     }
 
     const percentVal = parseInt(lotoFilterPercent, 10);
@@ -431,11 +491,20 @@ const AdminTotalStatistics = ({ user }) => {
       adjusted = Math.max(0, adjusted - perNumberSubtract);
     }
 
-    // Trừ theo một con cụ thể
-    const numFilter = (twoSFilterNumber || '').trim();
-    const subtractVal = parseInt(twoSFilterSubtract, 10);
-    if (numFilter !== '' && numberStr === numFilter && !isNaN(subtractVal) && subtractVal > 0) {
-      adjusted = Math.max(0, adjusted - subtractVal);
+    // Trừ theo một hoặc nhiều con cụ thể từ các dòng lọc
+    if (Array.isArray(twoSFilterRows)) {
+      twoSFilterRows.forEach(row => {
+        const numFilter = (row.number || '').trim();
+        const subtractVal = parseInt(row.subtract, 10);
+        
+        if (numFilter !== '' && !isNaN(subtractVal) && subtractVal > 0) {
+          // Tách các số được nhập, phân cách bằng dấu phẩy
+          const filterNumbers = numFilter.split(',').map(num => num.trim().padStart(2, '0'));
+          if (filterNumbers.includes(numberStr)) {
+            adjusted = Math.max(0, adjusted - subtractVal);
+          }
+        }
+      });
     }
 
     // Trừ theo các lần tối thiểu đã áp dụng (00-99)
@@ -577,10 +646,19 @@ const AdminTotalStatistics = ({ user }) => {
       adjusted = Math.max(0, adjusted - perKeySubtract);
     }
 
-    const target = (threeFilterNumber || '').trim();
-    const subtractVal = parseInt(threeFilterSubtract, 10);
-    if (target !== '' && keyStr === target && !isNaN(subtractVal) && subtractVal > 0) {
-      adjusted = Math.max(0, adjusted - subtractVal);
+    // Trừ theo một hoặc nhiều con cụ thể từ các dòng lọc
+    if (Array.isArray(threeFilterRows)) {
+      threeFilterRows.forEach(row => {
+        const filterInput = (row.number || '').trim();
+        const subtractVal = parseInt(row.subtract, 10);
+        
+        if (filterInput !== '' && !isNaN(subtractVal) && subtractVal > 0) {
+          const filterNumbers = filterInput.split(',').map(num => num.trim());
+          if (filterNumbers.some(num => keyStr === num)) {
+            adjusted = Math.max(0, adjusted - subtractVal);
+          }
+        }
+      });
     }
 
     const percentVal = parseInt(threeFilterPercent, 10);
@@ -600,10 +678,19 @@ const AdminTotalStatistics = ({ user }) => {
       adjusted = Math.max(0, adjusted - perKeySubtract);
     }
 
-    const target = (xienFilterNumber || '').trim();
-    const subtractVal = parseInt(xienFilterSubtract, 10);
-    if (target !== '' && keyStr === target && !isNaN(subtractVal) && subtractVal > 0) {
-      adjusted = Math.max(0, adjusted - subtractVal);
+    // Trừ theo một hoặc nhiều con cụ thể từ các dòng lọc
+    if (Array.isArray(xienFilterRows)) {
+      xienFilterRows.forEach(row => {
+        const filterInput = (row.number || '').trim();
+        const subtractVal = parseInt(row.subtract, 10);
+        
+        if (filterInput !== '' && !isNaN(subtractVal) && subtractVal > 0) {
+          const filterNumbers = filterInput.split(',').map(num => num.trim());
+          if (filterNumbers.some(num => keyStr === num)) {
+            adjusted = Math.max(0, adjusted - subtractVal);
+          }
+        }
+      });
     }
 
     const percentVal = parseInt(xienFilterPercent, 10);
@@ -623,10 +710,19 @@ const AdminTotalStatistics = ({ user }) => {
       adjusted = Math.max(0, adjusted - perKeySubtract);
     }
 
-    const target = (xienQuayFilterNumber || '').trim();
-    const subtractVal = parseInt(xienQuayFilterSubtract, 10);
-    if (target !== '' && keyStr === target && !isNaN(subtractVal) && subtractVal > 0) {
-      adjusted = Math.max(0, adjusted - subtractVal);
+    // Trừ theo một hoặc nhiều con cụ thể từ các dòng lọc
+    if (Array.isArray(xienQuayFilterRows)) {
+      xienQuayFilterRows.forEach(row => {
+        const filterInput = (row.number || '').trim();
+        const subtractVal = parseInt(row.subtract, 10);
+        
+        if (filterInput !== '' && !isNaN(subtractVal) && subtractVal > 0) {
+          const filterNumbers = filterInput.split(',').map(num => num.trim());
+          if (filterNumbers.some(num => keyStr === num)) {
+            adjusted = Math.max(0, adjusted - subtractVal);
+          }
+        }
+      });
     }
 
     const percentVal = parseInt(xienQuayFilterPercent, 10);
@@ -652,11 +748,11 @@ const AdminTotalStatistics = ({ user }) => {
   };
 
   // Tự động lưu khi filter thay đổi (nếu đã ghim)
-  useEffect(() => { saveLotoFiltersToStorage(); /* eslint-disable-line */ }, [pinLotoFilter, showLotoFilter, lotoFilterNumber, lotoFilterSubtract, lotoFilterPercent, topNCount, topNSubtracts, selectedDate]);
-  useEffect(() => { saveTwoSFiltersToStorage(); /* eslint-disable-line */ }, [pinTwoSFilter, showTwoSFilter, twoSFilterNumber, twoSFilterSubtract, twoSFilterPercent, topNTwoSCount, topNTwoSSubtracts, twoSMinSubtracts, twoSCoefficientFactor, selectedDate]);
-  useEffect(() => { saveThreeFiltersToStorage(); /* eslint-disable-line */ }, [pinThreeFilter, showThreeFilter, threeFilterNumber, threeFilterSubtract, threeFilterPercent, topNThreeCount, topNThreeSubtracts, selectedDate]);
-  useEffect(() => { saveXienFiltersToStorage(); /* eslint-disable-line */ }, [pinXienFilter, showXienFilter, xienFilterNumber, xienFilterSubtract, xienFilterPercent, topNXienCount, topNXienSubtracts, selectedDate]);
-  useEffect(() => { saveXienQuayFiltersToStorage(); /* eslint-disable-line */ }, [pinXienQuayFilter, showXienQuayFilter, xienQuayFilterNumber, xienQuayFilterSubtract, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, selectedDate]);
+  useEffect(() => { saveLotoFiltersToStorage(); /* eslint-disable-line */ }, [pinLotoFilter, showLotoFilter, lotoFilterRows, lotoFilterPercent, lotoFilterRowCount, topNCount, topNSubtracts, selectedDate]);
+  useEffect(() => { saveTwoSFiltersToStorage(); /* eslint-disable-line */ }, [pinTwoSFilter, showTwoSFilter, twoSFilterRows, twoSFilterRowCount, twoSFilterPercent, topNTwoSCount, topNTwoSSubtracts, twoSMinSubtracts, twoSCoefficientFactor, selectedDate]);
+  useEffect(() => { saveThreeFiltersToStorage(); /* eslint-disable-line */ }, [pinThreeFilter, showThreeFilter, threeFilterRows, threeFilterRowCount, threeFilterPercent, topNThreeCount, topNThreeSubtracts, selectedDate]);
+  useEffect(() => { saveXienFiltersToStorage(); /* eslint-disable-line */ }, [pinXienFilter, showXienFilter, xienFilterRows, xienFilterRowCount, xienFilterPercent, topNXienCount, topNXienSubtracts, selectedDate]);
+  useEffect(() => { saveXienQuayFiltersToStorage(); /* eslint-disable-line */ }, [pinXienQuayFilter, showXienQuayFilter, xienQuayFilterRows, xienQuayFilterRowCount, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, selectedDate]);
   useEffect(() => { saveCombinedFiltersToStorage(); /* eslint-disable-line */ }, [pinCombinedFilter, showCombinedFilter, combinedFilterPercent, selectedDate]);
 
   // Khôi phục khi đổi ngày hoặc vào màn
@@ -1103,7 +1199,18 @@ const AdminTotalStatistics = ({ user }) => {
     'chanle': [1, 3, 5, 7, 9, 21, 23, 25, 27, 29, 41, 43, 45, 47, 49, 61, 63, 65, 67, 69, 81, 83, 85, 87, 89],
     'lechan': [10, 12, 14, 16, 18, 30, 32, 34, 36, 38, 50, 52, 54, 56, 58, 70, 72, 74, 76, 78, 90, 92, 94, 96, 98],
     'lele': [11, 13, 15, 17, 19, 31, 33, 35, 37, 39, 51, 53, 55, 57, 59, 71, 73, 75, 77, 79, 91, 93, 95, 97, 99],
-    'chanchan': [0, 2, 4, 6, 8, 20, 22, 24, 26, 28, 40, 42, 44, 46, 48, 60, 62, 64, 66, 68, 80, 82, 84, 86, 88]
+    'chanchan': [0, 2, 4, 6, 8, 20, 22, 24, 26, 28, 40, 42, 44, 46, 48, 60, 62, 64, 66, 68, 80, 82, 84, 86, 88],
+    // Các bộ chạm
+    'chamkhong': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 90, 80, 70, 60, 50, 40, 30, 20, 10],
+    'chammot': [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 91, 81, 71, 61, 51, 41, 31, 21, 1],
+    'chamhai': [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 92, 82, 72, 62, 52, 42, 32, 12, 2],
+    'chamba': [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 93, 83, 73, 63, 53, 43, 23, 13, 3],
+    'chambon': [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 94, 84, 74, 64, 54, 34, 24, 14, 4],
+    'chamnam': [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 95, 85, 75, 65, 45, 35, 25, 15, 5],
+    'chamsau': [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 96, 86, 76, 56, 46, 36, 26, 16, 6],
+    'chambay': [70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 97, 87, 67, 57, 47, 37, 27, 17, 7],
+    'chamtam': [80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 98, 78, 68, 58, 48, 38, 28, 18, 8],
+    'chamchin': [90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 89, 79, 69, 59, 49, 39, 29, 19, 9]
   };
 
   // Tính tổng tiền tổng kép đầu đít bộ sau khi lọc
@@ -1512,7 +1619,7 @@ const AdminTotalStatistics = ({ user }) => {
                   )}
                   <br />
                   <span className="admin-stats-loto-total-value">Tổng điểm: {lotoTotalPoints}đ</span>
-                  {(lotoFilterNumber || lotoFilterSubtract || lotoFilterPercent || Object.keys(topNSubtracts).length > 0) && (
+                  {((lotoFilterRows && lotoFilterRows.some(row => row.number || row.subtract)) || lotoFilterPercent || Object.keys(topNSubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng điểm sau khi lọc: {calculateFilteredLotoTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -1556,11 +1663,64 @@ const AdminTotalStatistics = ({ user }) => {
                   )}
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span>Lọc con</span>
-                    <input type="text" placeholder="00-99" value={lotoFilterNumber} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); setLotoFilterNumber(v.padStart(v.length > 0 ? Math.min(2, v.length) : 0, '0')); }} style={{ width: '60px' }} />
-                    <span>, số điểm là</span>
-                    <input type="number" min="0" placeholder="vd: 100" value={lotoFilterSubtract} onChange={(e) => setLotoFilterSubtract(e.target.value)} style={{ width: '100px' }} />
+                    <span>Số dòng lọc</span>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      placeholder="vd: 2" 
+                      value={lotoFilterRowCount} 
+                      onChange={(e) => {
+                        const newCount = parseInt(e.target.value, 10) || 1;
+                        setLotoFilterRowCount(e.target.value);
+                        
+                        // Cập nhật mảng dòng lọc khi thay đổi số dòng
+                        const currentRows = [...lotoFilterRows];
+                        if (newCount > currentRows.length) {
+                          // Thêm dòng mới nếu tăng số dòng
+                          const newRows = [...currentRows];
+                          for (let i = currentRows.length; i < newCount; i++) {
+                            newRows.push({ number: '', subtract: '' });
+                          }
+                          setLotoFilterRows(newRows);
+                        } else if (newCount < currentRows.length) {
+                          // Bớt dòng nếu giảm số dòng
+                          setLotoFilterRows(currentRows.slice(0, newCount));
+                        }
+                      }} 
+                      style={{ width: '60px' }} 
+                    />
                   </div>
+                  
+                  {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
+                  {lotoFilterRows.map((row, index) => (
+                    <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <span>Lọc con</span>
+                      <input 
+                        type="text" 
+                        placeholder="12,23,45" 
+                        value={row.number} 
+                        onChange={(e) => {
+                          const newRows = [...lotoFilterRows];
+                          newRows[index].number = e.target.value;
+                          setLotoFilterRows(newRows);
+                        }} 
+                        style={{ width: '120px' }} 
+                      />
+                      <span>, số điểm là</span>
+                      <input 
+                        type="number" 
+                        min="0" 
+                        placeholder="vd: 100" 
+                        value={row.subtract} 
+                        onChange={(e) => {
+                          const newRows = [...lotoFilterRows];
+                          newRows[index].subtract = e.target.value;
+                          setLotoFilterRows(newRows);
+                        }} 
+                        style={{ width: '100px' }} 
+                      />
+                    </div>
+                  ))}
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                     <span>Lọc tất cả</span>
@@ -1629,7 +1789,7 @@ const AdminTotalStatistics = ({ user }) => {
                       <span style={{color: '#d32f2f', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi gộp tổng, kép, đầu, đít, bộ: {formatThousand(calculateMergedTotal())}</span>
                     </div>
                   )}
-                  {(twoSFilterNumber || twoSFilterSubtract || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0) && (
+                  {((twoSFilterRows && twoSFilterRows.some(row => row.number || row.subtract)) || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered2sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -1728,12 +1888,61 @@ const AdminTotalStatistics = ({ user }) => {
                   </div>
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span>Lọc con</span>
-                    <input type="text" placeholder="00-99" value={twoSFilterNumber} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); setTwoSFilterNumber(v.padStart(v.length > 0 ? Math.min(2, v.length) : 0, '0')); }} style={{ width: '60px' }} />
-                    <span>, số tiền là</span>
-                    <input type="number" min="0" placeholder="vd: 50" value={twoSFilterSubtract} onChange={(e) => setTwoSFilterSubtract(e.target.value)} style={{ width: '100px' }} />
-                    <span>n</span>
+                    <span>Số dòng lọc</span>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      placeholder="vd: 2" 
+                      value={twoSFilterRowCount} 
+                      onChange={(e) => {
+                        const newCount = parseInt(e.target.value, 10);
+                        setTwoSFilterRowCount(e.target.value);
+                        
+                        // Tự động điều chỉnh số dòng lọc dựa trên giá trị nhập vào
+                        if (!isNaN(newCount) && newCount > 0) {
+                          const currentRows = [...twoSFilterRows];
+                          if (newCount > currentRows.length) {
+                            // Thêm dòng mới nếu số dòng tăng
+                            const rowsToAdd = newCount - currentRows.length;
+                            const newRows = [...currentRows];
+                            for (let i = 0; i < rowsToAdd; i++) {
+                              newRows.push({ number: '', subtract: '' });
+                            }
+                            setTwoSFilterRows(newRows);
+                          } else if (newCount < currentRows.length) {
+                            // Xóa dòng nếu số dòng giảm
+                            setTwoSFilterRows(currentRows.slice(0, newCount));
+                          }
+                        }
+                      }} 
+                      style={{ width: '60px' }} 
+                    />
                   </div>
+                  
+                  {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
+                  {twoSFilterRows.map((row, index) => (
+                    <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <span>Lọc con</span>
+                      <input 
+                        type="text" 
+                        placeholder="12,23,45" 
+                        value={row.number || ''} 
+                        onChange={(e) => {
+                          const newRows = [...twoSFilterRows];
+                          newRows[index] = { ...newRows[index], number: e.target.value };
+                          setTwoSFilterRows(newRows);
+                        }} 
+                        style={{ width: '120px' }} 
+                      />
+                      <span>, số tiền là</span>
+                      <input type="number" min="0" placeholder="vd: 50" value={row.subtract || ''} onChange={(e) => {
+                        const newRows = [...twoSFilterRows];
+                        newRows[index] = { ...newRows[index], subtract: e.target.value };
+                        setTwoSFilterRows(newRows);
+                      }} style={{ width: '100px' }} />
+                      <span>n</span>
+                    </div>
+                  ))}
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                     <span>Lọc tất cả</span>
@@ -1842,7 +2051,7 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết 3 số</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['3sTotal'])}</span>
-                  {(threeFilterNumber || threeFilterSubtract || threeFilterPercent || Object.keys(topNThreeSubtracts).length > 0) && (
+                  {((threeFilterRows && threeFilterRows.some(row => row.number || row.subtract)) || threeFilterPercent || Object.keys(topNThreeSubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered3sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -1886,12 +2095,61 @@ const AdminTotalStatistics = ({ user }) => {
                   )}
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span>Lọc mục</span>
-                    <input type="text" placeholder="vd: 123" value={threeFilterNumber} onChange={(e) => setThreeFilterNumber(e.target.value.trim())} style={{ width: '120px' }} />
-                    <span>, số tiền là</span>
-                    <input type="number" min="0" placeholder="vd: 50" value={threeFilterSubtract} onChange={(e) => setThreeFilterSubtract(e.target.value)} style={{ width: '100px' }} />
-                    <span>n</span>
+                    <span>Số dòng lọc</span>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      placeholder="vd: 2" 
+                      value={threeFilterRowCount} 
+                      onChange={(e) => {
+                        const newCount = parseInt(e.target.value, 10);
+                        setThreeFilterRowCount(e.target.value);
+                        
+                        // Tự động điều chỉnh số dòng lọc dựa trên giá trị nhập vào
+                        if (!isNaN(newCount) && newCount > 0) {
+                          const currentRows = [...threeFilterRows];
+                          if (newCount > currentRows.length) {
+                            // Thêm dòng mới nếu số dòng tăng
+                            const rowsToAdd = newCount - currentRows.length;
+                            const newRows = [...currentRows];
+                            for (let i = 0; i < rowsToAdd; i++) {
+                              newRows.push({ number: '', subtract: '' });
+                            }
+                            setThreeFilterRows(newRows);
+                          } else if (newCount < currentRows.length) {
+                            // Xóa dòng nếu số dòng giảm
+                            setThreeFilterRows(currentRows.slice(0, newCount));
+                          }
+                        }
+                      }} 
+                      style={{ width: '60px' }} 
+                    />
                   </div>
+                  
+                  {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
+                  {threeFilterRows.map((row, index) => (
+                    <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <span>Lọc mục</span>
+                      <input type="text" placeholder="vd: 123,456,789" 
+                        value={row.number || ''} 
+                        onChange={(e) => {
+                          const newRows = [...threeFilterRows];
+                          newRows[index] = { ...newRows[index], number: e.target.value };
+                          setThreeFilterRows(newRows);
+                        }} 
+                        style={{ width: '180px' }} />
+                      <span>, số tiền là</span>
+                      <input type="number" min="0" placeholder="vd: 50" 
+                        value={row.subtract || ''} 
+                        onChange={(e) => {
+                          const newRows = [...threeFilterRows];
+                          newRows[index] = { ...newRows[index], subtract: e.target.value };
+                          setThreeFilterRows(newRows);
+                        }} 
+                        style={{ width: '100px' }} />
+                      <span>n</span>
+                    </div>
+                  ))}
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                     <span>Lọc tất cả</span>
@@ -1931,7 +2189,7 @@ const AdminTotalStatistics = ({ user }) => {
                 <h4>Tổng kết xiên</h4>
                 <div>
                   <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienTotal)}</span>
-                  {(xienFilterNumber || xienFilterSubtract || xienFilterPercent || Object.keys(topNXienSubtracts).length > 0) && (
+                  {((xienFilterRows && xienFilterRows.some(row => row.number || row.subtract)) || xienFilterPercent || Object.keys(topNXienSubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -1975,11 +2233,72 @@ const AdminTotalStatistics = ({ user }) => {
                   )}
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span>Lọc mục</span>
-                    <input type="text" placeholder="vd: 12-34" value={xienFilterNumber} onChange={(e) => setXienFilterNumber(e.target.value.trim())} style={{ width: '160px' }} />
-                    <span>, số tiền là</span>
-                    <input type="number" min="0" placeholder="vd: 50" value={xienFilterSubtract} onChange={(e) => setXienFilterSubtract(e.target.value)} style={{ width: '100px' }} />
-                    <span>n</span>
+                    <span>Số dòng lọc</span>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      placeholder="vd: 2" 
+                      value={xienFilterRowCount} 
+                      onChange={(e) => {
+                        const newCount = parseInt(e.target.value, 10);
+                        setXienFilterRowCount(e.target.value);
+                        
+                        // Tự động điều chỉnh số dòng lọc dựa trên giá trị nhập vào
+                        if (!isNaN(newCount) && newCount > 0) {
+                          const currentRows = [...xienFilterRows];
+                          if (newCount > currentRows.length) {
+                            // Thêm dòng mới nếu số dòng tăng
+                            const rowsToAdd = newCount - currentRows.length;
+                            const newRows = [...currentRows];
+                            for (let i = 0; i < rowsToAdd; i++) {
+                              newRows.push({ number: '', subtract: '' });
+                            }
+                            setXienFilterRows(newRows);
+                          } else if (newCount < currentRows.length) {
+                            // Xóa dòng nếu số dòng giảm
+                            setXienFilterRows(currentRows.slice(0, newCount));
+                          }
+                        }
+                      }} 
+                      style={{ width: '60px' }} 
+                    />
+                  </div>
+                  
+                  {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
+                  {xienFilterRows.map((row, index) => (
+                    <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <span>Lọc mục</span>
+                      <input type="text" placeholder="vd: 12-34,56-78" 
+                        value={row.number || ''} 
+                        onChange={(e) => {
+                          const newRows = [...xienFilterRows];
+                          newRows[index] = { ...newRows[index], number: e.target.value };
+                          setXienFilterRows(newRows);
+                        }} 
+                        style={{ width: '180px' }} />
+                      <span>, số tiền là</span>
+                      <input type="number" min="0" placeholder="vd: 50" 
+                        value={row.subtract || ''} 
+                        onChange={(e) => {
+                          const newRows = [...xienFilterRows];
+                          newRows[index] = { ...newRows[index], subtract: e.target.value };
+                          setXienFilterRows(newRows);
+                        }} 
+                        style={{ width: '100px' }} />
+                      <span>n</span>
+                    </div>
+                  ))}
+                  
+                  <div style={{ marginBottom: '12px' }}>
+                    <button
+                      onClick={() => {
+                        setXienFilterRows([...xienFilterRows, { number: '', subtract: '' }]);
+                        setXienFilterRowCount(parseInt(xienFilterRowCount, 10) + 1);
+                      }}
+                      style={{ padding: '2px 8px' }}
+                    >
+                      Thêm dòng lọc
+                    </button>
                   </div>
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
@@ -2023,7 +2342,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <div className="admin-stats-total-item">
                     <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}} >Tổng tiền cược: {calculateFilteredXienQuayTotalNoMultiplier().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                   </div>
-                  {(xienQuayFilterNumber || xienQuayFilterSubtract || xienQuayFilterPercent || Object.keys(topNXienQuaySubtracts).length > 0) && (
+                  {((xienQuayFilterRows && xienQuayFilterRows.some(row => row.number || row.subtract)) || xienQuayFilterPercent || Object.keys(topNXienQuaySubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienQuayTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
@@ -2067,12 +2386,61 @@ const AdminTotalStatistics = ({ user }) => {
                   )}
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-                    <span>Lọc mục</span>
-                    <input type="text" placeholder="vd: 12-34-56" value={xienQuayFilterNumber} onChange={(e) => setXienQuayFilterNumber(e.target.value.trim())} style={{ width: '180px' }} />
-                    <span>, số tiền là</span>
-                    <input type="number" min="0" placeholder="vd: 50" value={xienQuayFilterSubtract} onChange={(e) => setXienQuayFilterSubtract(e.target.value)} style={{ width: '100px' }} />
-                    <span>n</span>
+                    <span>Số dòng lọc</span>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      placeholder="vd: 2" 
+                      value={xienQuayFilterRowCount} 
+                      onChange={(e) => {
+                        const newCount = parseInt(e.target.value, 10);
+                        setXienQuayFilterRowCount(e.target.value);
+                        
+                        // Tự động điều chỉnh số dòng lọc dựa trên giá trị nhập vào
+                        if (!isNaN(newCount) && newCount > 0) {
+                          const currentRows = [...xienQuayFilterRows];
+                          if (newCount > currentRows.length) {
+                            // Thêm dòng mới nếu số dòng tăng
+                            const rowsToAdd = newCount - currentRows.length;
+                            const newRows = [...currentRows];
+                            for (let i = 0; i < rowsToAdd; i++) {
+                              newRows.push({ number: '', subtract: '' });
+                            }
+                            setXienQuayFilterRows(newRows);
+                          } else if (newCount < currentRows.length) {
+                            // Xóa dòng nếu số dòng giảm
+                            setXienQuayFilterRows(currentRows.slice(0, newCount));
+                          }
+                        }
+                      }} 
+                      style={{ width: '60px' }} 
+                    />
                   </div>
+                  
+                  {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
+                  {xienQuayFilterRows.map((row, index) => (
+                    <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <span>Lọc mục</span>
+                      <input type="text" placeholder="vd: 12-34-56,23-45-67" 
+                        value={row.number || ''} 
+                        onChange={(e) => {
+                          const newRows = [...xienQuayFilterRows];
+                          newRows[index] = { ...newRows[index], number: e.target.value };
+                          setXienQuayFilterRows(newRows);
+                        }} 
+                        style={{ width: '200px' }} />
+                      <span>, số tiền là</span>
+                      <input type="number" min="0" placeholder="vd: 50" 
+                        value={row.subtract || ''} 
+                        onChange={(e) => {
+                          const newRows = [...xienQuayFilterRows];
+                          newRows[index] = { ...newRows[index], subtract: e.target.value };
+                          setXienQuayFilterRows(newRows);
+                        }} 
+                        style={{ width: '100px' }} />
+                      <span>n</span>
+                    </div>
+                  ))}
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                     <span>Lọc tất cả</span>
