@@ -93,7 +93,7 @@ const AdminInterface = ({ user, onLogout }) => {
         return (
           <div className="admin-content-section">
             <h2>Cửa hàng của tôi</h2>
-            <p>Danh sách các cửa hàng bạn quản lý:</p>
+            <p className ="title-mobile">Danh sách các cửa hàng bạn quản lý:</p>
             
             {isLoading ? (
               <div className="admin-loading">

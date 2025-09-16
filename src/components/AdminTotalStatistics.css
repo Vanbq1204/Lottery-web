@@ -8,8 +8,9 @@
   padding: 16px;
   max-width: 1400px;
   margin: 0 auto;
-  max-height: 90vh;
+  max-height: 100vh;
   overflow-y: auto;
+  margin: 20px 0px;
 }
 
 /* Header */
