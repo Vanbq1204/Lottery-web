@@ -340,8 +340,6 @@
     margin: 0;
   }
   
-
-  
   .admin-sidebar-header {
     padding: 15px;
   }
@@ -357,14 +355,16 @@
   
   .admin-store-card {
     padding: 15px;
+    margin : 0px 20px;
+  }
+  .admin-store-card:last-child {
+    margin-bottom : 20px;
   }
   .admin-content-section h2 {
   text-align: center;
   margin-top : 5px;
 }
-.admin-store-card {
-  margin : 20px;
-}
+
 .title-mobile {
   display: none;
 }
