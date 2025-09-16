@@ -155,7 +155,7 @@ const AdminInterface = ({ user, onLogout }) => {
         );
       case 'time-settings':
         return (
-          <div className="admin-time-settings-section">
+          <div className="admin-content-section">
             <TimeSettings />
           </div>
         );
