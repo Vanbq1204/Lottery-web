@@ -461,9 +461,19 @@
   .admin-main-content {
     margin-left: 0;
     padding-top: 60px; /* space for topbar */
+    overflow: hidden;
+  }
+
+  .admin-content-wrapper {
+    height: calc(100vh - 60px);
+    overflow: hidden;
+    margin: 0;
   }
 
   .admin-content-section {
     padding: 0;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    margin: 0;
   }
 }
