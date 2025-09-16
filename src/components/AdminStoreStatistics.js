@@ -50,6 +50,16 @@ const AdminStoreStatistics = ({ store }) => {
     }
   }, [selectedDate, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Reset activeDetailTab if 4s tab is hidden due to no data
+  useEffect(() => {
+    if (statisticsData && activeDetailTab === '4s') {
+      const has4sData = statisticsData['4sTotal'] && statisticsData['4sTotal'] > 0;
+      if (!has4sData) {
+        setActiveDetailTab('loto');
+      }
+    }
+  }, [statisticsData, activeDetailTab]);
+
   // Handle date change
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);
@@ -208,6 +218,13 @@ const AdminStoreStatistics = ({ store }) => {
             <h4>3 số</h4>
             <span className="admin-stats-value">{formatThousand(statisticsData['3sTotal'])}</span>
           </div>
+          {/* Chỉ hiển thị khối 4 số khi có dữ liệu */}
+          {statisticsData['4sTotal'] > 0 && (
+            <div className="admin-stats-card">
+              <h4>4 số</h4>
+              <span className="admin-stats-value">{formatThousand(statisticsData['4sTotal'])}</span>
+            </div>
+          )}
           <div className="admin-stats-card">
             <h4>Tổng</h4>
             <span className="admin-stats-value">{formatThousand(statisticsData.tongTotal)}</span>
@@ -253,6 +270,12 @@ const AdminStoreStatistics = ({ store }) => {
       { id: 'xien', label: 'Xiên' },
       { id: 'xienquay', label: 'Xiên quay' }
     ];
+
+    // Thêm tab 4s chỉ khi có dữ liệu
+    const has4sData = statisticsData['4sTotal'] && statisticsData['4sTotal'] > 0;
+    if (has4sData) {
+      tabs.splice(3, 0, { id: '4s', label: '4 số' });
+    }
 
     const renderDetailContent = () => {
       switch (activeDetailTab) {
@@ -388,6 +411,35 @@ const AdminStoreStatistics = ({ store }) => {
               </div>
               <div className="admin-stats-bet-list">
                 {Object.entries(betData3s).map(([key, value]) => (
+                  <div key={key} className="admin-stats-bet-item">
+                    <span className="admin-stats-bet-number">{key}</span>
+                    <span className="admin-stats-bet-amount">{value}n</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+
+        case '4s':
+          const betData4s = statisticsData['4s'];
+          if (!betData4s || Object.keys(betData4s).length === 0) {
+            return (
+              <div className="admin-stats-no-data">
+                <p>Không có dữ liệu cho 4 số</p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="admin-stats-combined-table">
+              <div className="admin-stats-combined-total">
+                <h4>Tổng kết 4 số</h4>
+                <div>
+                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['4sTotal'])}</span>
+                </div>
+              </div>
+              <div className="admin-stats-bet-list">
+                {Object.entries(betData4s).map(([key, value]) => (
                   <div key={key} className="admin-stats-bet-item">
                     <span className="admin-stats-bet-number">{key}</span>
                     <span className="admin-stats-bet-amount">{value}n</span>
@@ -558,4 +610,4 @@ const AdminStoreStatistics = ({ store }) => {
   );
 };
 
-export default AdminStoreStatistics; 
+export default AdminStoreStatistics;

@@ -155,7 +155,7 @@ const AdminInterface = ({ user, onLogout }) => {
         );
       case 'time-settings':
         return (
-          <div className="admin-content-section">
+          <div className="admin-time-settings-section">
             <TimeSettings />
           </div>
         );
@@ -205,6 +205,9 @@ const AdminInterface = ({ user, onLogout }) => {
           ☰ Menu
         </button>
         <div className="admin-mobile-topbar-title">Trang quản trị</div>
+        <button className="admin-mobile-logout-button" onClick={onLogout}>
+          🚪 Đăng xuất
+        </button>
       </div>
 
       {/* Overlay for mobile menu */}
@@ -220,4 +223,4 @@ const AdminInterface = ({ user, onLogout }) => {
   );
 };
 
-export default AdminInterface; 
+export default AdminInterface;

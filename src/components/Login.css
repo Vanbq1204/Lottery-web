@@ -576,15 +576,6 @@
   position: relative;
 }
 
-.form-group label {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #2c3e50;
-  font-weight: 600;
-  font-size: 14px;
-}
 
 .label-icon {
   margin-right: 8px;

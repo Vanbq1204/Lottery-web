@@ -147,7 +147,7 @@ const TimeSettings = () => {
         </div>
 
         <div className="settings-form">
-          <div className="form-group">
+          <div className="time-settings-form-group">
             <label htmlFor="cutoff-time">
               <span className="label-text">🕕 Thời gian giới hạn</span>
               <span className="label-desc">Nhân viên không thể nhập cược sau thời gian này</span>
@@ -161,18 +161,18 @@ const TimeSettings = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label className="checkbox-label">
+          <div className="time-settings-form-group">
+            <label className="time-limit-checkbox-wrapper">
               <input
                 type="checkbox"
                 checked={settings.isActive}
                 onChange={handleActiveChange}
-                className="checkbox-input"
+                className="time-limit-checkbox-input"
               />
-              <span className="checkbox-text">
+              <div className="time-limit-checkbox-content">
                 <strong>Kích hoạt giới hạn thời gian</strong>
                 <small>Bỏ tick để tắt giới hạn thời gian nhập cược</small>
-              </span>
+              </div>
             </label>
           </div>
 
@@ -203,4 +203,4 @@ const TimeSettings = () => {
   );
 };
 
-export default TimeSettings; 
+export default TimeSettings;

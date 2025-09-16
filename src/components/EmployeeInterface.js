@@ -223,6 +223,10 @@ const EmployeeInterface = ({ user }) => {
       quantity: 1, 
       rows: [{ numbers: '', amount: '' }]
     },
+    '4s': { 
+      quantity: 1, 
+      rows: [{ numbers: '', amount: '' }]
+    },
     tong: { 
       quantity: 1, 
       rows: [{ numbers: '', amount: '' }]
@@ -474,6 +478,17 @@ const EmployeeInterface = ({ user }) => {
     return numCount * amountValue;
   };
 
+  // Calculate 4S amount: số con x tiền
+  const calculate4SAmount = (numbersStr, amount) => {
+    if (!numbersStr || !amount) return 0;
+    
+    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numCount = numbers.length;
+    const amountValue = parseFloat(amount);
+    
+    return numCount * amountValue;
+  };
+
   // Calculate Tổng amount: tiền x 10 (mỗi tổng có 10 con đề)
   const calculateTongAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
@@ -563,8 +578,8 @@ const EmployeeInterface = ({ user }) => {
     
     const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
     
-          // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s, tong, dau, dit, bo
-      if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
+          // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s, 4s, tong, dau, dit, bo
+      if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
         const uniqueNumbers = [...new Set(numbers)];
         if (uniqueNumbers.length !== numbers.length) {
           // Find duplicated numbers
@@ -594,6 +609,17 @@ const EmployeeInterface = ({ user }) => {
           if (isBlurValidation) {
             if (!/^\d{3}$/.test(num) || parseInt(num) > 999) {
               return { isValid: false, message: 'Chỉ được nhập số từ 000 đến 999' };
+            }
+          }
+        }
+        break;
+        
+      case '4s':
+        // Validate 4-digit numbers (0000-9999) - luôn kiểm tra format
+        for (let num of numbers) {
+          if (isBlurValidation) {
+            if (!/^\d{4}$/.test(num) || parseInt(num) > 9999) {
+              return { isValid: false, message: 'Chỉ được nhập số từ 0000 đến 9999' };
             }
           }
         }
@@ -787,8 +813,8 @@ const EmployeeInterface = ({ user }) => {
 
   // Check for duplicates across all rows of same bet type
   const checkDuplicatesAcrossRows = (betType, currentRowIndex, newValue) => {
-    // Nếu cho phép gộp số trùng và là loto, 2s, 3s, tong, dau, dit, bo, bỏ qua kiểm tra trùng lặp
-    if (allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) {
+    // Nếu cho phép gộp số trùng và là loto, 2s, 3s, 4s, tong, dau, dit, bo, bỏ qua kiểm tra trùng lặp
+    if (allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) {
       return true;
     }
     
@@ -1255,7 +1281,7 @@ const EmployeeInterface = ({ user }) => {
     }
     if (field === 'numbers') {
       // Khi blur numbers, nếu cho phép gộp cho các loại hỗ trợ gộp thì kích hoạt gộp ngay nếu đủ dữ liệu
-      if (allowMergeDuplicates && ['loto','2s','3s','tong','dau','dit','bo'].includes(betType) && !isMerging && !isLoadingInvoice) {
+      if (allowMergeDuplicates && ['loto','2s','3s','4s','tong','dau','dit','bo'].includes(betType) && !isMerging && !isLoadingInvoice) {
         const currentRow = betData[betType].rows[rowIndex];
         const hasNumbers = (value && value.trim() !== '');
         const hasPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
@@ -1286,7 +1312,7 @@ const EmployeeInterface = ({ user }) => {
         return;
       }
       
-      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s, tong, dau, dit, bo)
+      // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s, 4s, tong, dau, dit, bo)
       if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
         // Find which numbers are duplicated
         const currentNumbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
@@ -1349,7 +1375,7 @@ const EmployeeInterface = ({ user }) => {
     }
     
     // Khi blur ô points/amount của các loại hỗ trợ gộp, kích hoạt gộp ngay nếu đủ dữ liệu
-    if (allowMergeDuplicates && ['loto','2s','3s','tong','dau','dit','bo'].includes(betType) && field !== 'numbers') {
+    if (allowMergeDuplicates && ['loto','2s','3s','4s','tong','dau','dit','bo'].includes(betType) && field !== 'numbers') {
       const currentRow = betData[betType].rows[rowIndex];
       const hasNumbers = currentRow?.numbers && currentRow.numbers.toString().trim() !== '';
       const hasAmountOrPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
@@ -1382,6 +1408,7 @@ const EmployeeInterface = ({ user }) => {
       loto: 'Lô tô',
       '2s': '2 số',
       '3s': '3 số',
+      '4s': '4 số',
       tong: 'Tổng',
       kep: 'Kép',
       dau: 'Đầu',
@@ -1413,6 +1440,10 @@ const EmployeeInterface = ({ user }) => {
           } else if (betType === '3s') {
             // 3S calculation
             totalAmount = calculate3SAmount(row.numbers, row.amount);
+            displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
+          } else if (betType === '4s') {
+            // 4S calculation
+            totalAmount = calculate4SAmount(row.numbers, row.amount);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'tong') {
             // Tổng calculation
@@ -1772,6 +1803,7 @@ const EmployeeInterface = ({ user }) => {
           loto: { quantity: 1, rows: [{ numbers: '', points: '' }] },
           '2s': { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           '3s': { quantity: 1, rows: [{ numbers: '', amount: '' }] },
+          '4s': { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           tong: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           kep: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           dau: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
@@ -2634,6 +2666,10 @@ const EmployeeInterface = ({ user }) => {
             quantity: 1, 
             rows: [{ numbers: '', amount: '' }]
           },
+          '4s': { 
+            quantity: 1, 
+            rows: [{ numbers: '', amount: '' }]
+          },
           tong: { 
             quantity: 1, 
             rows: [{ numbers: '', amount: '' }]
@@ -2690,6 +2726,10 @@ const EmployeeInterface = ({ user }) => {
         rows: [{ numbers: '', amount: '' }]
       },
       '3s': { 
+        quantity: 1, 
+        rows: [{ numbers: '', amount: '' }]
+      },
+      '4s': { 
         quantity: 1, 
         rows: [{ numbers: '', amount: '' }]
       },
@@ -2862,6 +2902,10 @@ const EmployeeInterface = ({ user }) => {
       case '3s':
         const count3s = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
         preview = `${count3s} con x ${row.amount} = ${calculate3SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        break;
+      case '4s':
+        const count4s = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
+        preview = `${count4s} con x ${row.amount} = ${calculate4SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
       case 'tong':
         const tongNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
@@ -3052,10 +3096,10 @@ const EmployeeInterface = ({ user }) => {
                 // Lưu vào sessionStorage
                 sessionStorage.setItem('allowMergeDuplicates', checked.toString());
                 
-                // Nếu bật checkbox, gộp chỉ loto, 2s, 3s, bo với delay (không gộp khi đang load hóa đơn)
+                // Nếu bật checkbox, gộp chỉ loto, 2s, 3s, 4s, bo với delay (không gộp khi đang load hóa đơn)
                 if (checked && !isLoadingInvoice) {
                   setTimeout(() => {
-                    ['loto', '2s', '3s', 'bo'].forEach(betType => {
+                    ['loto', '2s', '3s', '4s', 'bo'].forEach(betType => {
                       mergeDuplicateNumbers(betType);
                     });
                   }, 3000); // Đợi 1.5 giây để đồng bộ với các logic gộp khác
@@ -3097,7 +3141,7 @@ const EmployeeInterface = ({ user }) => {
               {renderBetTypeRows('loto')}
               
               {/* Other bet types */}
-              {['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay'].map(betType => 
+              {['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s'].map(betType => 
                 renderBetTypeRows(betType)
               )}
             </tbody>

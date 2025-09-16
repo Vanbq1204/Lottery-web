@@ -46,6 +46,16 @@ const Statistics = () => {
     loadStatistics();
   }, [selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Reset activeTab if 4s tab is hidden due to no data
+  useEffect(() => {
+    if (statisticsData && activeTab === '4s') {
+      const totals = calculateTotals();
+      if (totals['4sTotal'] <= 0) {
+        setActiveTab('loto');
+      }
+    }
+  }, [statisticsData, activeTab]);
+
   // Generate loto statistics table data
   const generateLotoTableData = () => {
     const lotoData = statisticsData?.loto || {};
@@ -83,6 +93,7 @@ const Statistics = () => {
       lotoTotal: 0,
       '2sTotal': 0,
       '3sTotal': 0,
+      '4sTotal': 0,
       tongTotal: 0,
       kepTotal: 0,
       dauTotal: 0,
@@ -97,6 +108,7 @@ const Statistics = () => {
       lotoTotal: statisticsData.lotoTotal || 0,
       '2sTotal': statisticsData['2sTotal'] || 0,
       '3sTotal': statisticsData['3sTotal'] || 0,
+      '4sTotal': statisticsData['4sTotal'] || 0,
       tongTotal: statisticsData.tongTotal || 0,
       kepTotal: statisticsData.kepTotal || 0,
       dauTotal: statisticsData.dauTotal || 0,
@@ -176,6 +188,13 @@ const Statistics = () => {
                 <h4>3 số</h4>
                 <p className="amount">{formatMoney(totals['3sTotal'])}</p>
               </div>
+              {/* Chỉ hiển thị khối 4 số khi có dữ liệu */}
+              {totals['4sTotal'] > 0 && (
+                <div className="summary-card">
+                  <h4>4 số</h4>
+                  <p className="amount">{formatMoney(totals['4sTotal'])}</p>
+                </div>
+              )}
               <div className="summary-card">
                 <h4>Bộ</h4>
                 <p className="amount">{formatMoney(totals.boTotal)}</p>
@@ -220,6 +239,15 @@ const Statistics = () => {
             >
               3 số
             </button>
+            {/* Chỉ hiển thị tab 4s khi có dữ liệu */}
+            {totals['4sTotal'] > 0 && (
+              <button 
+                className={`tab-btn ${activeTab === '4s' ? 'active' : ''}`}
+                onClick={() => setActiveTab('4s')}
+              >
+                4 số
+              </button>
+            )}
             <button 
               className={`tab-btn ${activeTab === 'other' ? 'active' : ''}`}
               onClick={() => setActiveTab('other')}
@@ -287,7 +315,7 @@ const Statistics = () => {
 
             {activeTab === '2s' && (
               <div className="twos-stats">
-                <h3>Tổng kết 2 số</h3>
+                <h3 style={{textAlign: 'center'}}>Tổng kết 2 số</h3>
                 <p className="twos-total">Tổng tiền đánh: <strong>{formatMoney(totals['2sTotal'])}</strong></p>
                 
                 <div className="twos-table-container">
@@ -341,6 +369,34 @@ const Statistics = () => {
                     </div>
                   ) : (
                     <p>Chưa có dữ liệu cược 3 số.</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === '4s' && (
+              <div className="fours-stats">
+                <h3>Tổng kết 4 số</h3>
+                <p className="fours-total">Tổng tiền đánh: <strong>{formatMoney(totals['4sTotal'])}</strong></p>
+                
+                <div className="fours-detail">
+                  {statisticsData?.['4s'] && Object.keys(statisticsData['4s']).length > 0 ? (
+                    <div className="fours-list">
+                      <h4>Chi tiết cược 4 số:</h4>
+                      <div className="bet-items">
+                        {Object.entries(statisticsData['4s'])
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([number, amount]) => (
+                            <div key={number} className="bet-item">
+                              <span className="bet-number">{number}:</span>
+                              <span className="bet-amount">{amount}n</span>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    </div>
+                  ) : (
+                    <p>Chưa có dữ liệu cược 4 số.</p>
                   )}
                 </div>
               </div>
@@ -504,4 +560,4 @@ const Statistics = () => {
   );
 };
 
-export default Statistics; 
+export default Statistics;
