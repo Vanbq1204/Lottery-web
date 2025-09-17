@@ -7,7 +7,9 @@ import './TimeSettings.css';
 const TimeSettings = () => {
   const [settings, setSettings] = useState({
     bettingCutoffTime: '18:30',
-    isActive: true
+    isActive: true,
+    editDeleteCutoffTime: '18:15',
+    editDeleteLimitActive: false
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -85,10 +87,24 @@ const TimeSettings = () => {
     }));
   };
 
+  const handleEditDeleteTimeChange = (e) => {
+    setSettings(prev => ({
+      ...prev,
+      editDeleteCutoffTime: e.target.value
+    }));
+  };
+
   const handleActiveChange = (e) => {
     setSettings(prev => ({
       ...prev,
       isActive: e.target.checked
+    }));
+  };
+
+  const handleEditDeleteLimitActiveChange = (e) => {
+    setSettings(prev => ({
+      ...prev,
+      editDeleteLimitActive: e.target.checked
     }));
   };
 
@@ -149,7 +165,7 @@ const TimeSettings = () => {
         <div className="settings-form">
           <div className="time-settings-form-group">
             <label htmlFor="cutoff-time">
-              <span className="label-text">🕕 Thời gian giới hạn</span>
+              <span className="label-text">🕕 Thời gian giới hạn nhập cược</span>
               <span className="label-desc">Nhân viên không thể nhập cược sau thời gian này</span>
             </label>
             <input
@@ -170,8 +186,39 @@ const TimeSettings = () => {
                 className="time-limit-checkbox-input"
               />
               <div className="time-limit-checkbox-content">
-                <strong>Kích hoạt giới hạn thời gian</strong>
+                <strong>Kích hoạt giới hạn thời gian nhập cược</strong>
                 <small>Bỏ tick để tắt giới hạn thời gian nhập cược</small>
+              </div>
+            </label>
+          </div>
+          
+          <hr className="settings-divider" />
+          
+          <div className="time-settings-form-group">
+            <label htmlFor="edit-delete-cutoff-time">
+              <span className="label-text">🔒 Thời gian giới hạn sửa/xóa hóa đơn</span>
+              <span className="label-desc">Nhân viên không thể sửa hoặc xóa hóa đơn sau thời gian này</span>
+            </label>
+            <input
+              type="time"
+              id="edit-delete-cutoff-time"
+              value={settings.editDeleteCutoffTime}
+              onChange={handleEditDeleteTimeChange}
+              className="time-input"
+            />
+          </div>
+
+          <div className="time-settings-form-group">
+            <label className="time-limit-checkbox-wrapper">
+              <input
+                type="checkbox"
+                checked={settings.editDeleteLimitActive}
+                onChange={handleEditDeleteLimitActiveChange}
+                className="time-limit-checkbox-input"
+              />
+              <div className="time-limit-checkbox-content">
+                <strong>Kích hoạt giới hạn thời gian sửa/xóa hóa đơn</strong>
+                <small>Bỏ tick để cho phép nhân viên sửa/xóa hóa đơn bất kỳ lúc nào</small>
               </div>
             </label>
           </div>
@@ -191,10 +238,11 @@ const TimeSettings = () => {
           <div className="warning-card">
             <h4>⚠️ Lưu ý quan trọng</h4>
             <ul>
-              <li>Sau thời gian giới hạn, nhân viên sẽ không thể lưu hóa đơn mới</li>
-              <li>Hệ thống sẽ hiển thị thông báo từ chối khi nhân viên cố gắng lưu</li>
+              <li>Sau thời gian giới hạn nhập cược, nhân viên sẽ không thể lưu hóa đơn mới</li>
+              <li>Sau thời gian giới hạn sửa/xóa, nhân viên sẽ không thể sửa hoặc xóa hóa đơn</li>
+              <li>Hệ thống sẽ hiển thị thông báo từ chối khi nhân viên cố gắng thực hiện các thao tác này</li>
               <li>Thời gian được tính theo múi giờ Việt Nam (UTC+7)</li>
-              <li>Khuyến nghị đặt thời gian trước 19:00 để có thời gian xử lý dữ liệu</li>
+              <li>Khuyến nghị đặt thời gian giới hạn sửa/xóa sớm hơn thời gian giới hạn nhập cược</li>
             </ul>
           </div>
         </div>

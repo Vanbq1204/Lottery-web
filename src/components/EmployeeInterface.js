@@ -1993,7 +1993,9 @@ const EmployeeInterface = ({ user }) => {
       
       // Xử lý lỗi thời gian đặc biệt
       if (errorData?.code === 'BETTING_TIME_EXPIRED') {
-        alert(`⏰ THỜI GIAN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+        alert(`⏰ THỜI GIAN NHẬP CƯỢC ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+      } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
+        alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
       } else {
         alert('Lỗi khi cập nhật hóa đơn: ' + (errorData?.message || error.message));
       }
@@ -2055,11 +2057,17 @@ const EmployeeInterface = ({ user }) => {
     } catch (error) {
       console.error('Delete invoice error:', error);
       
-      // Xử lý lỗi 404 - hóa đơn không tồn tại
+      // Xử lý các loại lỗi
+      const errorData = error.response?.data;
+      
       if (error.response?.status === 404) {
+        // Lỗi 404 - hóa đơn không tồn tại
         alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
+      } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
+        // Lỗi thời gian sửa/xóa đã hết
+        alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
       } else {
-        alert('Lỗi khi xóa hóa đơn: ' + (error.response?.data?.message || error.message));
+        alert('Lỗi khi xóa hóa đơn: ' + (errorData?.message || error.message));
       }
     }
   };
