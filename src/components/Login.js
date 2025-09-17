@@ -64,51 +64,13 @@ const Login = ({ onLogin }) => {
           </button>
         </div>
         {/* Left Side - Welcome Section */}
-        <div className="login-left-panel">
-          <div className="welcome-content">
-            <div className="welcome-subtitle">
-              <img src="/VJamin-Tech_logo.png" alt="VJ Logo" className="logo-img" />
-            </div>
-            <h1 className="welcome-title">HỆ THỐNG QUẢN LÝ XỔ SỐ</h1>
-            
-            <div className="intro-section">
-              <h3><span className="intro-icon"></span> Dành cho Nhân viên</h3>
-              <ul className="feature-list">
-                <li>Nhập và quản lý thông tin cược nhanh chóng</li>
-                <li>Theo dõi lịch sử cược và kết quả xổ số</li>
-                <li>Tính thưởng nhanh chóng</li>
-                <li>Quản lý thông tin khách hàng</li>
-                <li>Điều chỉnh hệ số thưởng</li>
-              </ul>
-            </div>
-            
-            <div className="intro-section">
-              <h3><span className="intro-icon"></span> Dành cho Chủ cửa hàng</h3>
-              <ul className="feature-list">
-                <li>Quản lý toàn bộ cửa hàng và nhân viên</li>
-                <li>Thống kê doanh thu, thưởng chi tiết</li>
-                <li>Phân tích xu hướng cược</li>
-            
-              </ul>
-            </div>
-            
-            <div className="decorative-elements">
-              <div className="circle-element"></div>
-              <div className="plus-element">+</div>
-              <div className="wave-element"></div>
-            </div>
-          </div>
-        </div>
+        
         
         {/* Right Side - Login Form */}
         <div className="login-right-panel">
           <div className="login-form-container">
             <div className="login-header">
-               <img 
-                 src="/thantaidn.gif" 
-                 alt="Thần tài" 
-                 className="login-header-decoration"
-               />
+          
                <h2 className="login-title">Đăng nhập</h2>
              </div>
             
