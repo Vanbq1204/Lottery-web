@@ -124,13 +124,14 @@ const PrizeInterface = () => {
 
   // Lọc hóa đơn theo trạng thái và tìm kiếm
   const filteredInvoices = winningInvoices.filter(invoice => {
-    // Lọc theo tìm kiếm mã hóa đơn
+    // Lọc theo tìm kiếm mã hóa đơn hoặc tên khách hàng
     if (searchInvoice) {
       const invoiceId = (invoice.originalInvoiceId || invoice.invoiceId).toLowerCase();
+      const customerName = (invoice.customerName || '').toLowerCase();
       const searchTerm = searchInvoice.toLowerCase();
       
-      // Tìm kiếm theo số cuối hoặc mã đầy đủ
-      if (!invoiceId.includes(searchTerm)) {
+      // Tìm kiếm theo số cuối, mã đầy đủ hoặc tên khách hàng
+      if (!invoiceId.includes(searchTerm) && !customerName.includes(searchTerm)) {
         return false;
       }
     }
@@ -179,14 +180,14 @@ const PrizeInterface = () => {
             type="text" 
             value={searchInvoice}
             onChange={(e) => setSearchInvoice(e.target.value)}
-            placeholder="Nhập số cuối hóa đơn (vd: 17710)"
+            placeholder="Nhập mã hóa đơn hoặc tên khách hàng"
             className="search-input"
             style={{
               padding: '8px 12px',
               border: '1px solid #ddd',
               borderRadius: '4px',
               fontSize: '14px',
-              width: '200px'
+              width: '250px'
             }}
           />
         </div>
@@ -233,6 +234,7 @@ const PrizeInterface = () => {
                 <tr>
                   <th>Trả thưởng</th>
                   <th>Mã hóa đơn</th>
+                  <th>Tên khách hàng</th>
                   <th>Tổng tiền thưởng</th>
                   <th>Chi tiết thưởng</th>
                 </tr>
@@ -286,6 +288,7 @@ const PrizeInterface = () => {
                         </button>
                       </td>
                       <td className="code">{invoice.originalInvoiceId || invoice.invoiceId}</td>
+                      <td className="customer-name">{invoice.customerName || 'Khách lẻ'}</td>
                       <td className="money">{formatMoney(invoice.totalPrizeAmount)}</td>
                       <td className="detail" style={{whiteSpace: 'pre-line'}}>{detail}</td>
                     </tr>
@@ -311,4 +314,4 @@ const PrizeInterface = () => {
   );
 };
 
-export default PrizeInterface; 
+export default PrizeInterface;

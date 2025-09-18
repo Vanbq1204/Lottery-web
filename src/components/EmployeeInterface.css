@@ -139,6 +139,166 @@
   font-weight: 500;
 }
 
+/* Dropdown Menu Styles */
+.menu-item-container {
+  position: relative;
+}
+
+.dropdown-toggle {
+  position: relative;
+}
+
+.dropdown-arrow {
+  margin-left: auto;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+  color: rgba(255,255,255,0.7);
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  background: linear-gradient(135deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.25) 100%);
+  border-left: 3px solid rgba(8, 9, 9, 0.4);
+  border-right: 3px solid rgba(8, 9, 9, 0.4);
+  width : 90%;
+  margin : auto;
+  animation: slideDown 0.3s ease;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.95);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  text-align: left;
+  border-radius: 0;
+  margin: 0;
+  position: relative;
+}
+
+.dropdown-item:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
+  padding-left: 25px;
+  color: white;
+  transform: translateX(2px);
+}
+
+/* Loto Unit Settings Styles */
+.loto-unit-settings {
+  padding: 20px;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.loto-unit-settings h2 {
+  color: #2c5530;
+  font-size: 32px;
+  margin-bottom: 30px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.settings-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.setting-item {
+  margin-bottom: 30px;
+}
+
+.setting-item label {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c5530;
+  margin-bottom: 10px;
+}
+
+.setting-item input {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.setting-item input:focus {
+  border-color: #4a7c59;
+  box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.2);
+  outline: none;
+}
+
+.setting-preview {
+  background: #f0f5f1;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #4a7c59;
+}
+
+.setting-preview h3 {
+  color: #2c5530;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.preview-box {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px dashed #4a7c59;
+}
+
+.preview-box p {
+  font-size: 16px;
+  color: #333;
+  margin: 0;
+}
+
+.dropdown-item.active {
+  background: linear-gradient(135deg, rgba(26, 86, 40, 0.25) 0%, rgba(4, 4, 4, 0.15) 100%);
+  font-weight: 600;
+  color: white;
+  box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+}
+
+.dropdown-item .menu-icon {
+  margin-right: 10px;
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+.dropdown-item .menu-label {
+  font-weight: 400;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 200px;
+  }
+}
+
 /* Sidebar Footer */
 .sidebar-footer {
   padding: 20px;
@@ -2290,4 +2450,4 @@
   .lottery-table {
     font-size: 11px;
   }
-} 
+}

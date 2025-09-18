@@ -85,6 +85,15 @@ const EmployeeInterface = ({ user }) => {
   const [isMerging, setIsMerging] = useState(false);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
   
+  // Settings dropdown state
+  const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
+  
+  // Đơn vị lô tùy chỉnh - lưu trong localStorage
+  const [lotoUnit, setLotoUnit] = useState(() => {
+    const saved = localStorage.getItem('lotoUnit');
+    return saved || 'đ'; // Mặc định là 'đ'
+  });
+  
   // Thêm state để track thời gian thay đổi cho logic gộp số trùng
   const [mergeTimeouts, setMergeTimeouts] = useState({});
   const [lastChanges, setLastChanges] = useState({});
@@ -1432,7 +1441,7 @@ const EmployeeInterface = ({ user }) => {
           if (betType === 'loto') {
             // Lô calculation
             totalAmount = calculateLoAmount(row.numbers, row.points);
-            displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.points}đ)`;
+            displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.points}${lotoUnit})`;
           } else if (betType === '2s') {
             // 2S calculation
             totalAmount = calculate2SAmount(row.numbers, row.amount);
@@ -1928,9 +1937,11 @@ const EmployeeInterface = ({ user }) => {
             });
           }
         } else if (item.type === 'loto') {
-          // For loto type: "12, 13 (x20đ)"
+          // For loto type: "12, 13 (x20đ)" or with custom unit
           numbers = item.displayNumbers.split(' (x')[0];
-          const pointsMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)đ\)/);
+          // Sử dụng regex động để khớp với đơn vị lô tùy chỉnh
+          const regexPattern = new RegExp(`\\(x(\\d+\\.?\\d*)${lotoUnit}\\)`);
+          const pointsMatch = item.displayNumbers.match(regexPattern);
           points = pointsMatch ? parseFloat(pointsMatch[1]) : null;
           
           itemsForDB.push({
@@ -2425,6 +2436,11 @@ const EmployeeInterface = ({ user }) => {
     if (window.innerWidth <= 768) {
       setIsMobileMenuOpen(false);
     }
+    
+    // Close settings dropdown when switching to non-settings menu
+    if (menuId !== 'prize-settings' && menuId !== 'loto-multiplier') {
+      setIsSettingsDropdownOpen(false);
+    }
   };
 
   // Handle mobile menu toggle
@@ -2576,9 +2592,11 @@ const EmployeeInterface = ({ user }) => {
             });
           }
         } else if (item.type === 'loto') {
-          // For loto type: "12, 13 (x20đ)"
+          // For loto type: "12, 13 (x20đ)" or with custom unit
           numbers = item.displayNumbers.split(' (x')[0];
-          const pointsMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)đ\)/);
+          // Sử dụng regex động để khớp với đơn vị lô tùy chỉnh
+          const regexPattern = new RegExp(`\\(x(\\d+\\.?\\d*)${lotoUnit}\\)`);
+          const pointsMatch = item.displayNumbers.match(regexPattern);
           points = pointsMatch ? parseFloat(pointsMatch[1]) : null;
           
           itemsForDB.push({
@@ -2849,10 +2867,19 @@ const EmployeeInterface = ({ user }) => {
     { id: 'lottery', label: 'Kết quả xổ số', icon: '🎯' },
     { id: 'prizes', label: 'Tính thưởng', icon: '🏆' },
     { id: 'prize-statistics', label: 'Thống kê thưởng', icon: '💰' },
-    { id: 'prize-settings', label: 'Hệ số thưởng', icon: '⚙️' },
-    { id: 'loto-multiplier', label: 'Hệ số lô', icon: '🎯' },
     { id: 'invoices', label: 'Danh sách hóa đơn', icon: '📋' },
-    { id: 'history', label: 'Lịch sử sửa đổi', icon: '📚' }
+    { id: 'history', label: 'Lịch sử sửa đổi', icon: '📚' },
+    { 
+      id: 'settings', 
+      label: 'Cài đặt', 
+      icon: '⚙️',
+      hasDropdown: true,
+      subItems: [
+        { id: 'prize-settings', label: 'Hệ số thưởng', icon: '🏆' },
+        { id: 'loto-multiplier', label: 'Hệ số lô', icon: '🎯' },
+        { id: 'loto-unit', label: 'Đơn vị lô', icon: '🔤' }
+      ]
+    }
   ];
 
   const getPlaceholderText = (betType) => {
@@ -3966,6 +3993,40 @@ const EmployeeInterface = ({ user }) => {
     );
   };
 
+  // Giao diện cài đặt đơn vị lô
+  const renderLotoUnitSettings = () => {
+    const handleLotoUnitChange = (e) => {
+      const newUnit = e.target.value;
+      setLotoUnit(newUnit);
+      localStorage.setItem('lotoUnit', newUnit);
+    };
+
+    return (
+      <div className="loto-unit-settings">
+        <h2>Cài đặt đơn vị lô</h2>
+        <div className="settings-container">
+          <div className="setting-item">
+            <label htmlFor="lotoUnit">Đơn vị lô trên hóa đơn:</label>
+            <input 
+              type="text" 
+              id="lotoUnit" 
+              value={lotoUnit} 
+              onChange={handleLotoUnitChange} 
+              maxLength={3}
+              placeholder="Nhập đơn vị (vd: đ, k)"
+            />
+          </div>
+          <div className="setting-preview">
+            <h3>Xem trước:</h3>
+            <div className="preview-box">
+              <p>12, 34, 56 (x10{lotoUnit})</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch(activeMenu) {
       case 'betting':
@@ -3982,6 +4043,8 @@ const EmployeeInterface = ({ user }) => {
         return <PrizeSettings />;
       case 'loto-multiplier':
         return <LotoMultiplierSettings />;
+      case 'loto-unit':
+        return renderLotoUnitSettings();
       case 'invoices':
         return renderInvoiceListInterface();
       case 'history':
@@ -4022,14 +4085,45 @@ const EmployeeInterface = ({ user }) => {
 
         <div className="sidebar-menu">
           {menuItems.map(item => (
-            <button
-              key={item.id}
-              className={`menu-item ${activeMenu === item.id ? 'active' : ''}`}
-              onClick={() => handleMenuChange(item.id)}
-            >
-              <span className="menu-icon">{item.icon}</span>
-              <span className="menu-label">{item.label}</span>
-            </button>
+            <div key={item.id} className="menu-item-container">
+              {item.hasDropdown ? (
+                <>
+                  <button
+                    className={`menu-item ${(activeMenu === 'prize-settings' || activeMenu === 'loto-multiplier') ? 'active' : ''} dropdown-toggle`}
+                    onClick={() => setIsSettingsDropdownOpen(!isSettingsDropdownOpen)}
+                  >
+                    <span className="menu-icon">{item.icon}</span>
+                    <span className="menu-label">{item.label}</span>
+                    <span className={`dropdown-arrow ${isSettingsDropdownOpen ? 'open' : ''}`}>▼</span>
+                  </button>
+                  {isSettingsDropdownOpen && (
+                    <div className="dropdown-menu">
+                      {item.subItems.map(subItem => (
+                        <button
+                           key={subItem.id}
+                           className={`dropdown-item ${activeMenu === subItem.id ? 'active' : ''}`}
+                           onClick={() => {
+                             handleMenuChange(subItem.id);
+                             setIsSettingsDropdownOpen(false);
+                           }}
+                         >
+                          <span className="menu-icon">{subItem.icon}</span>
+                          <span className="menu-label">{subItem.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <button
+                  className={`menu-item ${activeMenu === item.id ? 'active' : ''}`}
+                  onClick={() => handleMenuChange(item.id)}
+                >
+                  <span className="menu-icon">{item.icon}</span>
+                  <span className="menu-label">{item.label}</span>
+                </button>
+              )}
+            </div>
           ))}
         </div>
 

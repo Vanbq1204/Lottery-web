@@ -10,6 +10,7 @@ const PrizeSettings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [expanded3s, setExpanded3s] = useState(false);
+  const [expanded4s, setExpanded4s] = useState(false);
   const [expandedXien, setExpandedXien] = useState(false);
   const [expandedXienQuay, setExpandedXienQuay] = useState(false);
 
@@ -23,6 +24,10 @@ const PrizeSettings = () => {
     '3s_g1': '3 số trùng giải 1',
     '3s_g6': '3 số trùng giải 6',
     '3s_2digits_gdb': '3 số trùng 2 số cuối trùng GĐB',
+    // 4 số
+    '4s_full': '4 số trùng hoàn toàn với 4 số cuối GĐB',
+    '4s_3digits': '4 số trùng 3 số cuối với 3 số cuối GĐB',
+    '4s_2digits': '4 số trùng 2 số cuối với 2 số cuối GĐB',
     'tong': 'Tổng',
     'kep': 'Kép',
     'dau': 'Đầu',
@@ -137,10 +142,12 @@ const PrizeSettings = () => {
         <div className="multipliers-grid">
           {(() => {
             const threeNumberTypes = multipliers.filter(m => m.betType.startsWith('3s_'));
+            const fourNumberTypes = multipliers.filter(m => m.betType.startsWith('4s_'));
             const xienTypes = multipliers.filter(m => m.betType.startsWith('xien') && !m.betType.includes('quay') && m.betType !== 'xien');
             const xienQuayTypes = multipliers.filter(m => m.betType.startsWith('xienquay') && m.betType !== 'xienquay');
             const otherTypes = multipliers.filter(m => 
               !m.betType.startsWith('3s_') && 
+              !m.betType.startsWith('4s_') && 
               !m.betType.startsWith('xienquay') &&
               !(m.betType.startsWith('xien') && !m.betType.includes('quay') && m.betType !== 'xien')
             );
@@ -174,6 +181,56 @@ const PrizeSettings = () => {
                     ) : (
                       <div className="dropdown-content">
                         {threeNumberTypes.map((multiplier) => (
+                          <div key={multiplier.betType} className="dropdown-item">
+                            <div className="item-info">
+                              <span className="item-label">
+                                {betTypeNames[multiplier.betType] || multiplier.betType}
+                              </span>
+                              <div className="item-multiplier-info">
+                                <span className="multiplier-value">×{multiplier.multiplier}</span>
+                                <span className="status-badge active">Hoạt động</span>
+                              </div>
+                            </div>
+                            <button 
+                              className="edit-btn-small"
+                              onClick={() => setEditingMultiplier(multiplier)}
+                            >
+                              ✏️
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Card nhóm 4 số */}
+                {fourNumberTypes.length > 0 && (
+                  <div className="multiplier-card">
+                    <div className="card-header">
+                      <h3>4 số (3 loại)</h3>
+                      <button 
+                        className="expand-btn"
+                        onClick={() => setExpanded4s(!expanded4s)}
+                      >
+                        ✏️ Chỉnh sửa
+                      </button>
+                    </div>
+                    
+                    {!expanded4s ? (
+                      <div className="multiplier-info">
+                        <div className="multiplier-value">
+                          <span className="label">Hệ số:</span>
+                          <span className="value">Nhiều mức (3 loại)</span>
+                        </div>
+                        <div className="multiplier-desc">
+                          <span className="label">Mô tả:</span>
+                          <span className="desc">Click "✏️ Chỉnh sửa" để xem và chỉnh sửa từng loại</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="dropdown-content">
+                        {fourNumberTypes.map((multiplier) => (
                           <div key={multiplier.betType} className="dropdown-item">
                             <div className="item-info">
                               <span className="item-label">
@@ -410,4 +467,4 @@ const PrizeSettings = () => {
   );
 };
 
-export default PrizeSettings; 
+export default PrizeSettings;

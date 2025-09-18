@@ -226,6 +226,84 @@ const PrizeStatistics = () => {
     );
   };
 
+  // Render 4S Statistics
+  const render4sStats = () => {
+    const stats4s = statisticsData?.statistics?.['4s'];
+    if (!stats4s || stats4s.totalPrize === 0) {
+      return <div className="no-data">Không có dữ liệu 4 số trúng thưởng</div>;
+    }
+
+    // Tạo dữ liệu cho bảng gộp - gộp các số trùng nhau
+    const allDetails = [];
+    Object.entries(stats4s.cases).forEach(([caseType, caseData]) => {
+      if (caseData.numberGroups) {
+        // Sử dụng numberGroups để gộp
+        Object.entries(caseData.numberGroups).forEach(([number, groupData]) => {
+          allDetails.push({
+            numbers: number,
+            betAmount: groupData.totalBetAmount,
+            multiplier: groupData.multiplier,
+            prizeAmount: groupData.totalPrize,
+            detailString: `${number} (${caseData.label}): ${groupData.totalBetAmount}n x ${groupData.multiplier} = ${groupData.totalPrize.toLocaleString('vi-VN')} đ`,
+            caseLabel: caseData.label,
+            caseType: caseType,
+            count: groupData.count
+          });
+        });
+      } else {
+        // Fallback cho dữ liệu cũ
+        caseData.details.forEach(detail => {
+          allDetails.push({
+            ...detail,
+            caseLabel: caseData.label,
+            caseType: caseType
+          });
+        });
+      }
+    });
+
+    return (
+      <div className="4s-stats">
+        <div className="stats-summary">
+          <div className="summary-card">
+            <h4>Tổng thưởng 4 số</h4>
+            <div className="amount">{formatMoney(stats4s.totalPrize)}</div>
+          </div>
+          <div className="summary-card">
+            <h4>Tổng số case</h4>
+            <div className="count">{stats4s.totalCases}</div>
+          </div>
+        </div>
+
+        <div className="s4-details">
+          <h4>Chi tiết 4 số trúng thưởng</h4>
+          <table className="stats-table merged-table">
+            <thead>
+              <tr>
+                <th style={{width: '20%'}}>Loại</th>
+                <th style={{width: '15%'}}>Số</th>
+                <th style={{width: '15%'}}>Tiền cược</th>
+                <th style={{width: '15%'}}>Hệ số</th>
+                <th style={{width: '35%', textAlign: 'right'}}>Thưởng</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allDetails.map((detail, index) => (
+                <tr key={index} className={`case-${detail.caseType}`}>
+                  <td className="case-type">{detail.caseLabel}</td>
+                  <td className="number">{detail.numbers}</td>
+                  <td>{detail.betAmount}n</td>
+                  <td>x{detail.multiplier}</td>
+                  <td className="prize-amount" style={{textAlign: 'right'}}>{formatMoney(detail.prizeAmount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   // Render Xien Statistics
   const renderXienStats = () => {
     const xienStats = statisticsData?.statistics?.xien;
@@ -510,6 +588,12 @@ const PrizeStatistics = () => {
                 🎯 3 số
               </button>
               <button 
+                className={`tab-button ${activeTab === '4s' ? 'active' : ''}`}
+                onClick={() => setActiveTab('4s')}
+              >
+                🎯 4 số
+              </button>
+              <button 
                 className={`tab-button ${activeTab === 'xien' ? 'active' : ''}`}
                 onClick={() => setActiveTab('xien')}
               >
@@ -533,6 +617,7 @@ const PrizeStatistics = () => {
               {activeTab === 'loto' && renderLotoStats()}
               {activeTab === '2s' && render2sStats()}
               {activeTab === '3s' && render3sStats()}
+              {activeTab === '4s' && render4sStats()}
               {activeTab === 'xien' && renderXienStats()}
               {activeTab === 'xienquay' && renderXienQuayStats()}
               {activeTab === 'others' && renderOthersStats()}
@@ -544,4 +629,4 @@ const PrizeStatistics = () => {
   );
 };
 
-export default PrizeStatistics; 
+export default PrizeStatistics;

@@ -73,19 +73,19 @@
 }
 
 .dropdown-item {
+  margin-top : 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 15px;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
   border-radius: 8px;
   margin-bottom: 8px;
   transition: all 0.2s ease;
+  border : 1px solid rgb(128, 158, 133);
 }
 
 .dropdown-item:hover {
-  background: #e9ecef;
+  background: #0b5b364d;
   border-color: #dee2e6;
 }
 

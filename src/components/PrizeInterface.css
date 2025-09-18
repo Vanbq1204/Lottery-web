@@ -157,6 +157,11 @@
   color: #2c5530;
 }
 
+.prize-table td.customer-name {
+  font-weight: 500;
+  color: #333;
+}
+
 .prize-table td.money,
 .prize-summary-row .money {
   font-weight: 600;
@@ -418,4 +423,4 @@
     font-size: 13px;
     padding: 10px 8px;
   }
-} 
+}

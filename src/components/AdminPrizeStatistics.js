@@ -238,6 +238,84 @@ const AdminPrizeStatistics = () => {
     );
   };
 
+  // Render 4S Statistics
+  const render4sStats = () => {
+    const stats4s = statisticsData?.statistics?.['4s'];
+    if (!stats4s || stats4s.totalPrize === 0) {
+      return <div className="admin-prize-no-data">Không có dữ liệu 4 số trúng thưởng</div>;
+    }
+
+    // Tạo dữ liệu cho bảng gộp - gộp các số trùng nhau
+    const allDetails = [];
+    Object.entries(stats4s.cases).forEach(([caseType, caseData]) => {
+      if (caseData.numberGroups) {
+        // Sử dụng numberGroups để gộp
+        Object.entries(caseData.numberGroups).forEach(([number, groupData]) => {
+          allDetails.push({
+            numbers: number,
+            betAmount: groupData.totalBetAmount,
+            multiplier: groupData.multiplier,
+            prizeAmount: groupData.totalPrize,
+            detailString: `${number} (${caseData.label}): ${groupData.totalBetAmount}n x ${groupData.multiplier} = ${groupData.totalPrize.toLocaleString('vi-VN')} đ`,
+            caseLabel: caseData.label,
+            caseType: caseType,
+            count: groupData.count
+          });
+        });
+      } else {
+        // Fallback cho dữ liệu cũ
+        caseData.details.forEach(detail => {
+          allDetails.push({
+            ...detail,
+            caseLabel: caseData.label,
+            caseType: caseType
+          });
+        });
+      }
+    });
+
+    return (
+      <div className="admin-prize-4s-stats">
+        <div className="admin-prize-stats-summary">
+          <div className="admin-prize-summary-card">
+            <h4>Tổng thưởng 4 số</h4>
+            <div className="admin-prize-amount">{formatMoney(stats4s.totalPrize)}</div>
+          </div>
+          <div className="admin-prize-summary-card">
+            <h4>Tổng số case</h4>
+            <div className="admin-prize-count">{stats4s.totalCases}</div>
+          </div>
+        </div>
+
+        <div className="admin-prize-s4-details">
+          <h4>Chi tiết 4 số trúng thưởng</h4>
+          <table className="admin-prize-stats-table admin-prize-merged-table">
+            <thead>
+              <tr>
+                <th style={{width: '20%'}}>Loại</th>
+                <th style={{width: '15%'}}>Số</th>
+                <th style={{width: '15%'}}>Tiền cược</th>
+                <th style={{width: '15%'}}>Hệ số</th>
+                <th style={{width: '35%', textAlign: 'right'}}>Thưởng</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allDetails.map((detail, index) => (
+                <tr key={index} className={`admin-prize-case-${detail.caseType}`}>
+                  <td className="admin-prize-case-type">{detail.caseLabel}</td>
+                  <td className="admin-prize-number">{detail.numbers}</td>
+                  <td>{detail.betAmount}n</td>
+                  <td>x{detail.multiplier}</td>
+                  <td className="admin-prize-prize-amount" style={{textAlign: 'right'}}>{formatMoney(detail.prizeAmount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   // Render Xien Statistics
   const renderXienStats = () => {
     const xienStats = statisticsData?.statistics?.xien;
@@ -607,6 +685,12 @@ const AdminPrizeStatistics = () => {
                 🎯 3 số
               </button>
               <button 
+                className={`admin-prize-tab-button ${activeTab === '4s' ? 'active' : ''}`}
+                onClick={() => setActiveTab('4s')}
+              >
+                🎯 4 số
+              </button>
+              <button 
                 className={`admin-prize-tab-button ${activeTab === 'xien' ? 'active' : ''}`}
                 onClick={() => setActiveTab('xien')}
               >
@@ -630,6 +714,7 @@ const AdminPrizeStatistics = () => {
               {activeTab === 'loto' && renderLotoStats()}
               {activeTab === '2s' && render2sStats()}
               {activeTab === '3s' && render3sStats()}
+              {activeTab === '4s' && render4sStats()}
               {activeTab === 'xien' && renderXienStats()}
               {activeTab === 'xienquay' && renderXienQuayStats()}
               {activeTab === 'others' && renderOthersStats()}
