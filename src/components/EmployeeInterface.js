@@ -9,6 +9,7 @@ import PrizeSettings from './PrizeSettings';
 import PrizeStatistics from './PrizeStatistics';
 import LotoMultiplierSettings from './LotoMultiplierSettings';
 import QuantityControls from './QuantityControls';
+import QuickLotteryResults from './QuickLotteryResults';
 
 const EmployeeInterface = ({ user }) => {
   const [activeMenu, setActiveMenu] = useState('betting');
@@ -97,6 +98,9 @@ const EmployeeInterface = ({ user }) => {
   // Thêm state để track thời gian thay đổi cho logic gộp số trùng
   const [mergeTimeouts, setMergeTimeouts] = useState({});
   const [lastChanges, setLastChanges] = useState({});
+  
+  // State cho chức năng nhập chuỗi kết quả xổ số
+  const [batchLotteryInput, setBatchLotteryInput] = useState('');
 
   // Bộ data - 100 bộ với định nghĩa các số
   const BO_DATA = {
@@ -2317,6 +2321,98 @@ const EmployeeInterface = ({ user }) => {
     });
   };
 
+  // Hàm phân tích chuỗi kết quả xổ số
+  const parseBatchLotteryInput = () => {
+    if (!batchLotteryInput.trim()) {
+      alert('Vui lòng nhập chuỗi kết quả xổ số!');
+      return;
+    }
+    
+    // Tách chuỗi thành mảng các số
+    
+    const numbers = batchLotteryInput.trim().split(/\s+/);
+    
+    // Kiểm tra số lượng số đã nhập
+    if (numbers.length < 27) {
+      alert('Chuỗi kết quả không đủ số! Cần ít nhất 27 số theo thứ tự các giải.');
+      return;
+    }
+    
+    // Tạo đối tượng kết quả mới
+    const newResults = {
+      gdb: '', // 5 số
+      g1: '',  // 5 số
+      g2: ['', ''], // 2 giải, mỗi giải 5 số
+      g3: ['', '', '', '', '', ''], // 6 giải, mỗi giải 5 số
+      g4: ['', '', '', ''], // 4 giải, mỗi giải 4 số
+      g5: ['', '', '', '', '', ''], // 6 giải, mỗi giải 4 số
+      g6: ['', '', ''], // 3 giải, mỗi giải 3 số
+      g7: ['', '', '', ''] // 4 giải, mỗi giải 2 số
+    };
+    
+    let index = 0;
+    
+    // Giải ĐB - 1 số, 5 chữ số
+    if (index < numbers.length && numbers[index].length === 5) {
+      newResults.gdb = numbers[index++];
+    }
+    
+    // Giải 1 - 1 số, 5 chữ số
+    if (index < numbers.length && numbers[index].length === 5) {
+      newResults.g1 = numbers[index++];
+    }
+    
+    // Giải 2 - 2 số, mỗi số 5 chữ số
+    for (let i = 0; i < 2 && index < numbers.length; i++) {
+      if (numbers[index].length === 5) {
+        newResults.g2[i] = numbers[index++];
+      }
+    }
+    
+    // Giải 3 - 6 số, mỗi số 5 chữ số
+    for (let i = 0; i < 6 && index < numbers.length; i++) {
+      if (numbers[index].length === 5) {
+        newResults.g3[i] = numbers[index++];
+      }
+    }
+    
+    // Giải 4 - 4 số, mỗi số 4 chữ số
+    for (let i = 0; i < 4 && index < numbers.length; i++) {
+      if (numbers[index].length === 4) {
+        newResults.g4[i] = numbers[index++];
+      }
+    }
+    
+    // Giải 5 - 6 số, mỗi số 4 chữ số
+    for (let i = 0; i < 6 && index < numbers.length; i++) {
+      if (numbers[index].length === 4) {
+        newResults.g5[i] = numbers[index++];
+      }
+    }
+    
+    // Giải 6 - 3 số, mỗi số 3 chữ số
+    for (let i = 0; i < 3 && index < numbers.length; i++) {
+      if (numbers[index].length === 3) {
+        newResults.g6[i] = numbers[index++];
+      }
+    }
+    
+    // Giải 7 - 4 số, mỗi số 2 chữ số
+    for (let i = 0; i < 4 && index < numbers.length; i++) {
+      if (numbers[index].length === 2) {
+        newResults.g7[i] = numbers[index++];
+      }
+    }
+    
+    // Cập nhật state với kết quả mới
+    setManualLotteryData(prev => ({
+      ...prev,
+      results: newResults
+    }));
+    
+    alert('Đã phân tích và điền kết quả xổ số thành công!');
+  };
+  
   // Hàm tải kết quả xổ số theo ngày
   const loadLotteryByDate = async (selectedDate = null) => {
     const dateToUse = selectedDate || manualLotteryData.turnNum;
@@ -2865,6 +2961,7 @@ const EmployeeInterface = ({ user }) => {
     { id: 'betting', label: 'Nhập cược', icon: '📝' },
     { id: 'statistics', label: 'Thống kê cược', icon: '📊' },
     { id: 'lottery', label: 'Kết quả xổ số', icon: '🎯' },
+    { id: 'quick-lottery', label: 'Kết quả xổ số nhanh', icon: '🔢' },
     { id: 'prizes', label: 'Tính thưởng', icon: '🏆' },
     { id: 'prize-statistics', label: 'Thống kê thưởng', icon: '💰' },
     { id: 'invoices', label: 'Danh sách hóa đơn', icon: '📋' },
@@ -3690,9 +3787,9 @@ const EmployeeInterface = ({ user }) => {
                   Làm mới
                 </button>
               </div>
-                              <div className="auto-load-notice">
-                  <small>💡 Kết quả đã tự động tải lần đầu. Chọn ngày khác để tải lại</small>
-                </div>
+              <div className="auto-load-notice">
+                <small>💡 Kết quả đã tự động tải lần đầu. Chọn ngày khác để tải lại</small>
+              </div>
             </div>
           )}
         </div>
@@ -3975,12 +4072,28 @@ const EmployeeInterface = ({ user }) => {
             </>
           ) : dataSource === 'manual' ? (
             <>
+              {/* Thêm ô nhập chuỗi kết quả xổ số */}
               <button onClick={saveManualLotteryResults} className="btn btn-save">
                 💾 Lưu kết quả thủ công
               </button>
               <div className="lottery-info">
                 <p><strong>Ngày:</strong> {manualLotteryData.turnNum}</p>
                 <p><strong>Chế độ:</strong> Nhập thủ công</p>
+              </div>
+                   <div className="batch-input-container">
+                <label>Nhập chuỗi kết quả xổ số:</label>
+                <div className="batch-input-wrapper">
+                  <textarea 
+                    className="batch-input"
+                    onChange={(e) => setBatchLotteryInput(e.target.value)}
+                  />
+                  <button 
+                    className="btn btn-parse"
+                    onClick={parseBatchLotteryInput}
+                  >
+                    Phân tích
+                  </button>
+                </div>
               </div>
             </>
           ) : (
@@ -4035,6 +4148,8 @@ const EmployeeInterface = ({ user }) => {
         return <Statistics />;
       case 'lottery':
         return renderLotteryInterface();
+      case 'quick-lottery':
+        return <QuickLotteryResults />;
       case 'prizes':
         return <PrizeInterface />;
       case 'prize-statistics':

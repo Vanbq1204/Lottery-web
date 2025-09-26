@@ -315,7 +315,7 @@
   margin-bottom: 10px;
 }
 
-.tab-button {
+.login-tab-button {
   background: transparent;
   border: none;
   color: #6c757d;
@@ -331,7 +331,7 @@
   position: relative;
 }
 
-.tab-button::after {
+.login-tab-button::after {
   content: '';
   position: absolute;
   bottom: -5px;
@@ -343,11 +343,11 @@
   transform: translateX(-50%);
 }
 
-.tab-button.active {
+.login-tab-button.active {
   color: #2c3e50;
 }
 
-.tab-button.active::after {
+.login-tab-button.active::after {
   width: 80%;
 }
 

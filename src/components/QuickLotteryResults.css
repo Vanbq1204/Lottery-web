@@ -1,0 +1,122 @@
+.quick-lottery-container {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.quick-lottery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.quick-lottery-header h2 {
+  color: #35272e;
+  margin: 0;
+}
+
+.refresh-button {
+  padding: 8px 16px;
+  background-color: #4a7c59;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.3s;
+}
+
+.refresh-button:hover {
+  background-color: #3a6247;
+}
+
+.result-container {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.result-container h3 {
+  color: #4a7c59;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.numbers-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.quick-lottery-number {
+  display: inline-block;
+  margin: 5px;
+  padding: 8px 12px;
+  background-color: #4a7c59;
+  color: white;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}
+
+.copyable-numbers {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 16px;
+  min-height: 20px;
+  word-break: break-all;
+}
+
+.copy-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #3a6247;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.copy-button:hover {
+  background-color: #5a002c;
+}
+
+.copy-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .quick-lottery-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .refresh-button {
+    align-self: flex-end;
+  }
+  
+  .number {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+  
+  .copyable-numbers {
+    font-size: 14px;
+  }
+}

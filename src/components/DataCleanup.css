@@ -1,0 +1,280 @@
+/* DataCleanup.css */
+
+.data-cleanup-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.data-cleanup-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #000;
+}
+
+.data-cleanup-header h2 {
+  color: #000;
+  font-size: 2em;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.data-cleanup-description {
+  color: #666;
+  font-size: 1.1em;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.data-cleanup-info {
+  margin-bottom: 30px;
+}
+
+.cleanup-info-card {
+  background: #f9f9f9;
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.cleanup-info-card h3 {
+  color: #000;
+  margin-bottom: 15px;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.cleanup-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.date-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.date-label {
+  font-weight: 500;
+  color: #333;
+}
+
+.date-value {
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.date-value.danger {
+  background: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #f44336;
+}
+
+.date-value.safe {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.cleanup-action {
+  text-align: center;
+  margin: 30px 0;
+}
+
+.cleanup-check-btn {
+  background: #007bff;
+  color: white;
+  border: 2px solid #007bff;
+  padding: 15px 30px;
+  font-size: 1.1em;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cleanup-check-btn:hover:not(:disabled) {
+  background: #0056b3;
+  border-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.cleanup-check-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cleanup-confirmation {
+  margin-top: 30px;
+}
+
+.cleanup-stats {
+  margin-bottom: 30px;
+}
+
+.cleanup-stats h3 {
+  color: #000;
+  margin-bottom: 20px;
+  font-size: 1.3em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-number {
+  font-size: 2.5em;
+  font-weight: 700;
+  color: #dc3545;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 1em;
+  color: #666;
+  font-weight: 500;
+}
+
+.cleanup-warning {
+  margin-bottom: 30px;
+}
+
+.warning-box {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.warning-box h4 {
+  color: #856404;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.warning-box ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #856404;
+}
+
+.warning-box li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.warning-box strong {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+.cleanup-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.cleanup-cancel-btn,
+.cleanup-confirm-btn {
+  padding: 15px 30px;
+  font-size: 1.1em;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid;
+  min-width: 150px;
+}
+
+.cleanup-cancel-btn {
+  background: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.cleanup-cancel-btn:hover:not(:disabled) {
+  background: #545b62;
+  border-color: #545b62;
+  transform: translateY(-2px);
+}
+
+.cleanup-confirm-btn {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.cleanup-confirm-btn:hover:not(:disabled) {
+  background: #c82333;
+  border-color: #c82333;
+  transform: translateY(-2px);
+}
+
+.cleanup-cancel-btn:disabled,
+.cleanup-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .data-cleanup-container {
+    padding: 15px;
+  }
+  
+  .cleanup-dates {
+    gap: 8px;
+  }
+  
+  .date-info {
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .cleanup-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .cleanup-cancel-btn,
+  .cleanup-confirm-btn {
+    width: 100%;
+  }
+}

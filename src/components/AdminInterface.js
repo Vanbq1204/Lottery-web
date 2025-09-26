@@ -7,6 +7,7 @@ import AdminStoreStatistics from './AdminStoreStatistics';
 import AdminTotalStatistics from './AdminTotalStatistics';
 import AdminPrizeStatistics from './AdminPrizeStatistics';
 import TimeSettings from './TimeSettings';
+import DataCleanup from './DataCleanup';
 
 const AdminInterface = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('my-store');
@@ -19,7 +20,8 @@ const AdminInterface = ({ user, onLogout }) => {
     { id: 'my-store', label: 'Cửa hàng của tôi', icon: '🏪' },
     { id: 'reports', label: 'Báo cáo tổng hợp', icon: '📊' },
     { id: 'prize-stats', label: 'Thống kê thưởng tổng hợp', icon: '🏆' },
-    { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' }
+    { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' },
+    { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' }
   ];
 
   // Load stores when component mounts
@@ -157,6 +159,12 @@ const AdminInterface = ({ user, onLogout }) => {
         return (
           <div className="admin-content-section">
             <TimeSettings />
+          </div>
+        );
+      case 'data-cleanup':
+        return (
+          <div className="admin-content-section">
+            <DataCleanup user={user} />
           </div>
         );
       default:

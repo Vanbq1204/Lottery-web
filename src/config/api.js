@@ -11,7 +11,7 @@ const API_CONFIG = {
 // Cấu hình API bên ngoài
 const EXTERNAL_API_CONFIG = {
   development: {
-    lotteryAPI: 'https://xoso188.net/api/front/open/lottery/history/list/5/miba'
+    lotteryAPI: 'https://xoso188.net/api/front/open/lottery/history/list/game?limitNum=5&gameCode=hano'
   },
   production: {
     lotteryAPI: 'https://xoso188.net/api/front/open/lottery/history/list/5/miba'
