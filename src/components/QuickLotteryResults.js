@@ -1,190 +1,168 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './QuickLotteryResults.css';
+import Tesseract from 'tesseract.js';
 
 const QuickLotteryResults = () => {
-  const [lotteryNumbers, setLotteryNumbers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [copySuccess, setCopySuccess] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [recognizedText, setRecognizedText] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const fileInputRef = useRef(null);
+  const pasteAreaRef = useRef(null);
 
   useEffect(() => {
-    // Tạo một div ẩn để chứa kết quả xổ số từ minhngoc.com.vn
-    const hiddenDiv = document.createElement('div');
-    hiddenDiv.id = 'box_kqxs_minhngoc';
-    hiddenDiv.style.display = 'none';
-    document.body.appendChild(hiddenDiv);
-
-    // Tạo script jQuery
-    const jqueryScript = document.createElement('script');
-    jqueryScript.src = '//www.minhngoc.com.vn/jquery/jquery-1.7.2.js';
-    jqueryScript.async = true;
-    hiddenDiv.appendChild(jqueryScript);
-
-    // Tạo CSS link
-    const cssLink = document.createElement('link');
-    cssLink.rel = 'stylesheet';
-    cssLink.type = 'text/css';
-    cssLink.href = '//www.minhngoc.com.vn/style/bangketqua_mini.css';
-    hiddenDiv.appendChild(cssLink);
-
-    // Tạo script cấu hình
-    const configScript = document.createElement('script');
-    configScript.innerHTML = 'bgcolor="#bfbfbf";titlecolor="#730038";dbcolor="#000000";fsize="12px";kqwidth="300px";';
-    hiddenDiv.appendChild(configScript);
-
-    // Tạo script kết quả xổ số
-    const kqScript = document.createElement('script');
-    kqScript.src = '//www.minhngoc.com.vn/getkqxs/mien-bac.js';
-    kqScript.async = true;
-    hiddenDiv.appendChild(kqScript);
-
-    // Đợi script tải xong và xử lý kết quả
-    const timer = setTimeout(() => {
-      extractLotteryNumbers();
-    }, 2000);
-
-    return () => {
-      // Dọn dẹp khi component unmount
-      clearTimeout(timer);
-      if (document.body.contains(hiddenDiv)) {
-        document.body.removeChild(hiddenDiv);
+    // Thêm sự kiện paste cho document
+    const handlePaste = (e) => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          handleImageFile(blob);
+          break;
+        }
       }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    
+    return () => {
+      document.removeEventListener('paste', handlePaste);
     };
   }, []);
 
-  const extractLotteryNumbers = () => {
-    // Lấy tất cả các phần tử chứa số xổ số từ bảng kết quả
-    const numberElements = document.querySelectorAll('#box_kqxs_minhngoc .giaidb, #box_kqxs_minhngoc .giai1, #box_kqxs_minhngoc .giai2, #box_kqxs_minhngoc .giai3, #box_kqxs_minhngoc .giai4, #box_kqxs_minhngoc .giai5, #box_kqxs_minhngoc .giai6, #box_kqxs_minhngoc .giai7');
-    
-    const numbers = [];
-    
-    // Nếu không tìm thấy số nào
-    if (numberElements.length === 0) {
-      setIsLoading(false);
+  const handleImageFile = (file) => {
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    handleImageFile(file);
+  };
+
+  const handlePasteAreaClick = () => {
+    pasteAreaRef.current.focus();
+  };
+
+  const processImage = () => {
+    if (!imageFile) {
+      alert('Vui lòng chọn hoặc dán một ảnh trước!');
       return;
     }
-    
-    // Trích xuất các số từ các phần tử HTML
-    numberElements.forEach(function(element) {
-      const extractedNumbers = element.textContent.trim().split(' ');
-      extractedNumbers.forEach(function(number) {
-        if (number && !isNaN(number)) {
-          numbers.push(number);
+
+    setIsProcessing(true);
+    setProgress(0);
+    setRecognizedText('');
+
+    Tesseract.recognize(
+      imageFile,
+      'eng+vie', // Ngôn ngữ: tiếng Anh và tiếng Việt
+      {
+        logger: progress => {
+          if (progress.status === 'recognizing text') {
+            const percent = Math.round(progress.progress * 100);
+            setProgress(percent);
+          }
         }
-      });
+      }
+    ).then(({ data: { text } }) => {
+      // Xử lý văn bản để hiển thị thành một hàng ngang
+      // Tách văn bản thành các dòng và loại bỏ khoảng trắng thừa
+      const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+      // Nối các dòng lại thành một chuỗi duy nhất, cách nhau bởi dấu cách
+      const singleLineText = lines.join(' ');
+      // Hiển thị kết quả
+      setRecognizedText(singleLineText);
+      setIsProcessing(false);
+      setProgress(0);
+    }).catch(error => {
+      console.error('Lỗi khi nhận dạng văn bản:', error);
+      setRecognizedText('Đã xảy ra lỗi khi xử lý ảnh. Vui lòng thử lại.');
+      setIsProcessing(false);
     });
-    
-    setLotteryNumbers(numbers);
-    setIsLoading(false);
   };
 
-  const handleCopyNumbers = () => {
-    const textToCopy = lotteryNumbers.join(' ');
-    navigator.clipboard.writeText(textToCopy)
-      .then(() => {
-        setCopySuccess('Đã sao chép!');
-        setTimeout(() => {
-          setCopySuccess('');
-        }, 2000);
-      })
-      .catch(err => {
-        console.error('Không thể sao chép: ', err);
-        setCopySuccess('Lỗi sao chép!');
-        setTimeout(() => {
-          setCopySuccess('');
-        }, 2000);
-      });
-  };
-
-  const refreshResults = () => {
-    setIsLoading(true);
-    // Xóa div cũ nếu có
-    const oldDiv = document.getElementById('box_kqxs_minhngoc');
-    if (oldDiv) {
-      document.body.removeChild(oldDiv);
+  const handleCopyText = () => {
+    if (recognizedText) {
+      navigator.clipboard.writeText(recognizedText)
+        .then(() => {
+          alert('Đã sao chép văn bản!');
+        })
+        .catch(err => {
+          console.error('Không thể sao chép: ', err);
+          alert('Lỗi khi sao chép văn bản!');
+        });
     }
-    
-    // Tạo lại div và scripts
-    const hiddenDiv = document.createElement('div');
-    hiddenDiv.id = 'box_kqxs_minhngoc';
-    hiddenDiv.style.display = 'none';
-    document.body.appendChild(hiddenDiv);
-
-    // Tạo script jQuery
-    const jqueryScript = document.createElement('script');
-    jqueryScript.src = '//www.minhngoc.com.vn/jquery/jquery-1.7.2.js';
-    jqueryScript.async = true;
-    hiddenDiv.appendChild(jqueryScript);
-
-    // Tạo CSS link
-    const cssLink = document.createElement('link');
-    cssLink.rel = 'stylesheet';
-    cssLink.type = 'text/css';
-    cssLink.href = '//www.minhngoc.com.vn/style/bangketqua_mini.css';
-    hiddenDiv.appendChild(cssLink);
-
-    // Tạo script cấu hình
-    const configScript = document.createElement('script');
-    configScript.innerHTML = 'bgcolor="#bfbfbf";titlecolor="#730038";dbcolor="#000000";fsize="12px";kqwidth="300px";';
-    hiddenDiv.appendChild(configScript);
-
-    // Tạo script kết quả xổ số
-    const kqScript = document.createElement('script');
-    kqScript.src = '//www.minhngoc.com.vn/getkqxs/mien-bac.js';
-    kqScript.async = true;
-    hiddenDiv.appendChild(kqScript);
-
-    // Đợi script tải xong và xử lý kết quả
-    setTimeout(() => {
-      extractLotteryNumbers();
-    }, 2000);
   };
 
   return (
     <div className="quick-lottery-container">
-      <div className="quick-lottery-header">
-        <h2>Kết Quả Xổ Số Nhanh</h2>
-        <button onClick={refreshResults} className="refresh-button">
-          🔄 Làm mới
-        </button>
-      </div>
-      
-      {/* Div hiển thị kết quả đã xử lý */}
-      <div className="result-container" id="processed-results">
-        <h3>Các Số Trúng Thưởng</h3>
-        <div id="lottery-numbers">
-          {isLoading ? (
-            <p>Đang tải kết quả...</p>
-          ) : lotteryNumbers.length > 0 ? (
-            <div className="numbers-container">
-              {lotteryNumbers.map((number, index) => (
-                <span key={index} className="quick-lottery-number">{number}</span>
-              ))}
-            </div>
-          ) : (
-            <p>Không tìm thấy số xổ số. Vui lòng thử lại sau.</p>
-          )}
-        </div>
-      </div>
-      
-      {/* Div hiển thị kết quả dạng một dòng để copy */}
-      <div className="result-container">
-        <h3>Dòng Kết Quả Để Sao Chép</h3>
-        <div className="copyable-numbers">
-          {isLoading ? (
-            <p>Đang tải kết quả...</p>
-          ) : lotteryNumbers.length > 0 ? (
-            lotteryNumbers.join(' ')
-          ) : (
-            <p>Không tìm thấy số xổ số.</p>
-          )}
+      <h1>Nhận dạng văn bản từ ảnh</h1>
+      <div className="upload-section">
+        <p>Chọn ảnh chứa văn bản để nhận dạng</p>
+        <input 
+          type="file" 
+          accept="image/*" 
+          onChange={handleFileChange}
+          ref={fileInputRef}
+        />
+        <p>Hoặc dán ảnh trực tiếp vào đây (Ctrl+V)</p>
+        <div 
+          className="paste-area" 
+          onClick={handlePasteAreaClick}
+          ref={pasteAreaRef}
+          tabIndex="0"
+        >
+          <span>Nhấp vào đây và dán ảnh (Ctrl+V)</span>
         </div>
         <button 
-          onClick={handleCopyNumbers} 
-          className="copy-button"
-          disabled={isLoading || lotteryNumbers.length === 0}
+          onClick={processImage}
+          disabled={isProcessing || !imageFile}
         >
-          {copySuccess || 'Sao chép kết quả'}
+          Xử lý ảnh
         </button>
+        {isProcessing && (
+          <div className="loading">
+            <p>Đang xử lý ảnh, vui lòng đợi...</p>
+            <div className="progress">
+              <div 
+                className="progress-bar" 
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="preview-section">
+        <div className="image-preview">
+          <h3>Ảnh đã tải lên</h3>
+          {imagePreview ? (
+            <img src={imagePreview} alt="Ảnh xem trước" />
+          ) : (
+            <p>Chưa có ảnh nào được tải lên</p>
+          )}
+        </div>
+        <div className="text-result">
+          <h3>Văn bản được nhận dạng</h3>
+          {recognizedText ? (
+            <>
+              <div>{recognizedText}</div>
+              <button onClick={handleCopyText} className="copy-button">
+                Sao chép văn bản
+              </button>
+            </>
+          ) : (
+            <p>Chưa có văn bản nào được nhận dạng</p>
+          )}
+        </div>
       </div>
     </div>
   );

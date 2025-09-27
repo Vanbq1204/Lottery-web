@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhận dạng văn bản từ ảnh</title>
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .upload-section {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .paste-area {
+            width: 100%;
+            height: 100px;
+            border: 2px dashed #aaa;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            transition: all 0.3s;
+        }
+        .paste-area:hover {
+            background-color: #e0e0e0;
+            border-color: #888;
+        }
+        .preview-section {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .image-preview, .text-result {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 300px;
+        }
+        .text-result {
+            white-space: pre-line;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+        }
+        img {
+            max-width: 100%;
+            max-height: 300px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .progress {
+            height: 20px;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nhận dạng văn bản từ ảnh</h1>
+    <div class="container">
+        <div class="upload-section">
+            <p>Chọn ảnh chứa văn bản để nhận dạng</p>
+            <input type="file" id="imageInput" accept="image/*">
+            <p>Hoặc dán ảnh trực tiếp vào đây (Ctrl+V)</p>
+            <div class="paste-area" id="pasteArea">
+                <span>Nhấp vào đây và dán ảnh (Ctrl+V)</span>
+            </div>
+            <button id="processButton">Xử lý ảnh</button>
+            <div class="loading" id="loading">
+                <p>Đang xử lý ảnh, vui lòng đợi...</p>
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <div class="image-preview">
+                <h3>Ảnh đã tải lên</h3>
+                <img id="imagePreview" src="" alt="Ảnh xem trước">
+            </div>
+            <div class="text-result">
+                <h3>Văn bản được nhận dạng</h3>
+                <div id="textResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.getElementById('imageInput');
+            const processButton = document.getElementById('processButton');
+            const imagePreview = document.getElementById('imagePreview');
+            const textResult = document.getElementById('textResult');
+            const loading = document.getElementById('loading');
+            const progressBar = document.getElementById('progressBar');
+            const pasteArea = document.getElementById('pasteArea');
+            
+            let imageFile = null;
+            
+            // Hiển thị ảnh xem trước khi người dùng chọn file
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    imageFile = file;
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imagePreview.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Xử lý sự kiện paste ảnh
+            function handlePaste(e) {
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const blob = items[i].getAsFile();
+                        imageFile = blob;
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            imagePreview.src = event.target.result;
+                        };
+                        reader.readAsDataURL(blob);
+                        break;
+                    }
+                }
+            }
+            
+            // Thêm sự kiện paste cho cả document và khu vực paste
+            document.addEventListener('paste', handlePaste);
+            pasteArea.addEventListener('paste', handlePaste);
+            pasteArea.addEventListener('click', function() {
+                pasteArea.focus();
+            });
+            
+            // Xử lý ảnh khi người dùng nhấn nút
+            processButton.addEventListener('click', function() {
+                if (!imageFile) {
+                    alert('Vui lòng chọn hoặc dán một ảnh trước!');
+                    return;
+                }
+                
+                // Hiển thị trạng thái đang tải
+                loading.style.display = 'block';
+                textResult.innerHTML = '';
+                
+                // Sử dụng Tesseract.js để nhận dạng văn bản từ ảnh
+                Tesseract.recognize(
+                    imageFile,
+                    'eng+vie', // Ngôn ngữ: tiếng Anh và tiếng Việt
+                    {
+                        logger: progress => {
+                            if (progress.status === 'recognizing text') {
+                                const percent = Math.round(progress.progress * 100);
+                                progressBar.style.width = percent + '%';
+                            }
+                        }
+                    }
+                ).then(({ data: { text } }) => {
+                    // Xử lý văn bản để hiển thị thành một hàng ngang
+                    // Tách văn bản thành các dòng và loại bỏ khoảng trắng thừa
+                    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+                    // Nối các dòng lại thành một chuỗi duy nhất, cách nhau bởi dấu cách
+                    const singleLineText = lines.join(' ');
+                    // Hiển thị kết quả
+                    textResult.innerText = singleLineText;
+                    loading.style.display = 'none';
+                    progressBar.style.width = '0%';
+                }).catch(error => {
+                    console.error('Lỗi khi nhận dạng văn bản:', error);
+                    textResult.innerText = 'Đã xảy ra lỗi khi xử lý ảnh. Vui lòng thử lại.';
+                    loading.style.display = 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
