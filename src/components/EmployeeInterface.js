@@ -46,7 +46,7 @@ const EmployeeInterface = ({ user }) => {
   const [lotteryResults, setLotteryResults] = useState([]);
   const [selectedLotteryDate, setSelectedLotteryDate] = useState('');
   const [currentLotteryResult, setCurrentLotteryResult] = useState(null);
-  const [dataSource, setDataSource] = useState('api'); // 'api' hoặc 'manual'
+  const [dataSource, setDataSource] = useState('manual'); // 'api' hoặc 'manual'
   // Get current date in DD/MM/YYYY format for Vietnam
   const getCurrentVietnamDateFormatted = () => {
     const now = new Date();
@@ -2528,6 +2528,17 @@ const EmployeeInterface = ({ user }) => {
     
     setActiveMenu(menuId);
     
+    // Nếu chọn tab kết quả xổ số, đảm bảo tab mặc định là nhập thủ công
+    if (menuId === 'lottery') {
+      setDataSource('manual');
+      
+      // Tự động tải kết quả xổ số cho ngày hiện tại
+      const today = getCurrentVietnamDateFormatted();
+      setTimeout(async () => {
+        await loadLotteryByDate(today);
+      }, 100);
+    }
+    
     // Close mobile menu when menu item is clicked
     if (window.innerWidth <= 768) {
       setIsMobileMenuOpen(false);
@@ -3703,8 +3714,8 @@ const EmployeeInterface = ({ user }) => {
         <div className="lottery-header">
           <h3>Kết quả xổ số Miền Bắc</h3>
           
-          {/* Chọn nguồn dữ liệu */}
-          <div className="data-source-selector">
+          {/* Chỉ hiển thị tab nhập thủ công */}
+          <div className="data-source-selector" style={{ display: 'none' }}>
             <label className="data-source-label">Nguồn dữ liệu:</label>
             <div className="data-source-buttons">
               <button 
