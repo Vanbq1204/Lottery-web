@@ -2149,7 +2149,6 @@ const EmployeeInterface = ({ user }) => {
       }
     } catch (error) {
       console.error('Lỗi khi tải kết quả xổ số:', error);
-      alert('Không thể tải kết quả xổ số từ API');
     } finally {
       setIsLoadingLottery(false);
     }
