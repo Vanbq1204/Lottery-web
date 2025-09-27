@@ -155,7 +155,7 @@ const QuickLotteryResults = () => {
           {recognizedText ? (
             <>
               <div>{recognizedText}</div>
-              <button onClick={handleCopyText} className="copy-button">
+              <button onClick={handleCopyText} className="quick-lottery-copy-button">
                 Sao chép văn bản
               </button>
             </>
