@@ -3,6 +3,7 @@ import { getApiUrl } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AdminStoreStatistics.css';
+import AdminStoreDetailPrizeStats from './AdminStoreDetailPrizeStats';
 
 const AdminStoreStatistics = ({ store }) => {
   // Get current date in Vietnam timezone (UTC+7)
@@ -601,9 +602,11 @@ const AdminStoreStatistics = ({ store }) => {
             </div>
           )
         ) : (
-          <div className="admin-stats-prizes-placeholder">
-            <p>Chưa có dữ liệu, hãy đợi nhân viên thống kê</p>
-          </div>
+          <AdminStoreDetailPrizeStats 
+            storeId={store._id}
+            storeName={store.name}
+            onBack={() => handleTabChange('betting')}
+          />
         )}
       </div>
     </div>
