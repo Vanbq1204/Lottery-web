@@ -228,7 +228,10 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
               {allDetails.map((detail, index) => (
                 <tr key={index} className={`admin-prize-case-${detail.caseType}`}>
                   <td className="admin-prize-case-type">{detail.caseLabel}</td>
-                  <td className="admin-prize-number">{detail.numbers}</td>
+                  <td className="admin-prize-number">
+                    {detail.numbers}
+                    {detail.isXienNhay && <span style={{color: 'red', fontWeight: 'bold'}}> nháy</span>}
+                  </td>
                   <td>{detail.betAmount}n</td>
                   <td>x{detail.multiplier}</td>
                   <td className="admin-prize-prize-amount" style={{textAlign: 'right'}}>{formatMoney(detail.prizeAmount)}</td>
@@ -306,7 +309,10 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
               {allDetails.map((detail, index) => (
                 <tr key={index} className={`admin-prize-case-${detail.caseType}`}>
                   <td className="admin-prize-case-type">{detail.caseLabel}</td>
-                  <td className="admin-prize-number">{detail.numbers}</td>
+                  <td className="admin-prize-number">
+                    {detail.numbers}
+                    {detail.isXienNhay && <span style={{color: 'red', fontWeight: 'bold'}}> nháy</span>}
+                  </td>
                   <td>{detail.betAmount}n</td>
                   <td>x{detail.multiplier}</td>
                   <td className="admin-prize-prize-amount" style={{textAlign: 'right'}}>{formatMoney(detail.prizeAmount)}</td>
@@ -337,7 +343,8 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
             prizeAmount: groupData.totalPrize,
             caseLabel: caseData.label,
             caseType: caseType,
-            count: groupData.count
+            count: groupData.count,
+            isXienNhay: groupData.isXienNhay || false
           });
         });
       }
@@ -375,7 +382,10 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
               {allDetails.map((detail, index) => (
                 <tr key={index} className={`admin-prize-case-${detail.caseType}`}>
                   <td className="admin-prize-case-type">{detail.caseLabel}</td>
-                  <td className="admin-prize-number">{detail.numbers}</td>
+                  <td className="admin-prize-number">
+                    {detail.numbers}
+                    {detail.isXienNhay && <span style={{color: 'red', fontWeight: 'bold'}}> nháy</span>}
+                  </td>
                   <td>{detail.betAmount}n</td>
                   <td>x{detail.multiplier}</td>
                   <td className="admin-prize-prize-amount" style={{textAlign: 'right'}}>{formatMoney(detail.prizeAmount)}</td>

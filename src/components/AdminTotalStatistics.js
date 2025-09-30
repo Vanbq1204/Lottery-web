@@ -899,11 +899,8 @@ const AdminTotalStatistics = ({ user }) => {
         caseData.forEach(detail => { result[detail.numbers] = detail.totalAmount; });
       } else {
         Object.entries(caseData).forEach(([numbers, details]) => {
-          if (details.numbers && Array.isArray(details.numbers)) {
-            result[details.numbers.join('-')] = details.totalAmount;
-          } else {
-            result[numbers] = details.totalAmount;
-          }
+          // Giữ nguyên key gốc từ backend (bao gồm cả '(xiên nháy)' nếu có)
+          result[numbers] = details.totalAmount;
         });
       }
     });
@@ -2364,12 +2361,45 @@ const AdminTotalStatistics = ({ user }) => {
               )}
 
               <div className="admin-stats-bet-list">
-                {Object.entries(betDataXien).map(([key, value]) => {
+                {Object.entries(betDataXien)
+                  .sort(([keyA], [keyB]) => {
+                    const isXienNhayA = keyA.includes('(xiên nháy)');
+                    const isXienNhayB = keyB.includes('(xiên nháy)');
+                    // Ưu tiên xiên nháy lên đầu
+                    if (isXienNhayA && !isXienNhayB) return -1;
+                    if (!isXienNhayA && isXienNhayB) return 1;
+                    return keyA.localeCompare(keyB);
+                  })
+                  .map(([key, value]) => {
                   const adjusted = adjustXienAmountForDisplay(key, value);
+                  const isXienNhay = key.includes('(xiên nháy)');
+                  // Hiển thị tiền đánh gốc cho xiên nháy (chia ngược lại hệ số 1.2)
+                  const displayAmount = isXienNhay ? Math.round(adjusted / 1.2) : adjusted;
                   return (
-                    <div key={key} className="admin-stats-bet-item">
-                      <span className="admin-stats-bet-number">{key}</span>
-                      <span className="admin-stats-bet-amount">{adjusted}n</span>
+                    <div key={key} className="admin-stats-bet-item" style={{padding: '8px'}}>
+                      <span className="admin-stats-bet-number">
+                         {isXienNhay ? (
+                           <>
+                             {key.replace(' (xiên nháy)', '')}
+                             <span style={{color: 'red'}}> nháy</span>
+                           </>
+                         ) : (
+                           <>
+                             {key}
+                           </>
+                         )}
+                       </span>
+                       <span className="admin-stats-bet-amount" style={{
+                         background: 'gray',
+                         color: 'white',
+                         padding: '2px 6px',
+                         borderRadius: '3px',
+                         fontSize: '12px',
+                         fontWeight: '600',
+                         marginTop: '4px'
+                       }}>
+                         {displayAmount}n
+                       </span>
                     </div>
                   );
                 })}

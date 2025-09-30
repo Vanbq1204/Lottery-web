@@ -258,7 +258,7 @@ const EmployeeInterface = ({ user }) => {
     },
     xien: { 
       quantity: 1, 
-      rows: [{ numbers: '', amount: '' }]
+      rows: [{ numbers: '', amount: '', isXienNhay: false }]
     },
     xienquay: { 
       quantity: 1, 
@@ -531,7 +531,7 @@ const EmployeeInterface = ({ user }) => {
   };
 
   // Calculate Xiên amount
-  const calculateXienAmount = (numbersStr, amount) => {
+  const calculateXienAmount = (numbersStr, amount, isXienNhay = false) => {
     if (!numbersStr || !amount) return 0;
     
     // Split by spaces/commas to get individual xiên combinations
@@ -540,7 +540,14 @@ const EmployeeInterface = ({ user }) => {
     const amountValue = parseFloat(amount);
     
     // Each xiên combination costs the specified amount
-    return numXien * amountValue;
+    let totalAmount = numXien * amountValue;
+    
+    // Apply 1.2x multiplier for xiên nháy
+    if (isXienNhay) {
+      totalAmount *= 1.2;
+    }
+    
+    return totalAmount;
   };
 
   // Calculate Xiên Quay amount
@@ -586,7 +593,7 @@ const EmployeeInterface = ({ user }) => {
   };
 
   // Validation functions
-  const validateNumbers = (betType, numbersStr, isBlurValidation = false) => {
+  const validateNumbers = (betType, numbersStr, isBlurValidation = false, isXienNhay = false) => {
     if (!numbersStr.trim()) return { isValid: true, message: '' };
     
     const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
@@ -729,9 +736,16 @@ const EmployeeInterface = ({ user }) => {
           for (let xienStr of numbers) {
             const xienNumbers = xienStr.split('-');
             
-            // Check if it's xiên 2, 3, or 4
-            if (xienNumbers.length < 2 || xienNumbers.length > 4) {
-              return { isValid: false, message: 'Xiên chỉ được phép nhập xiên 2, xiên 3, hoặc xiên 4' };
+            // Check if it's xiên nháy - only allow xiên 2
+            if (isXienNhay) {
+              if (xienNumbers.length !== 2) {
+                return { isValid: false, message: 'Xiên nháy chỉ được phép nhập xiên 2' };
+              }
+            } else {
+              // Check if it's xiên 2, 3, or 4
+              if (xienNumbers.length < 2 || xienNumbers.length > 4) {
+                return { isValid: false, message: 'Xiên chỉ được phép nhập xiên 2, xiên 3, hoặc xiên 4' };
+              }
             }
             
             // Validate each number in the xiên (00-99)
@@ -1305,7 +1319,9 @@ const EmployeeInterface = ({ user }) => {
       }
       
       // Validate the input
-      const validation = validateNumbers(betType, value, true);
+      const currentRow = betData[betType].rows[rowIndex];
+      const isXienNhay = betType === 'xien' && currentRow?.isXienNhay;
+      const validation = validateNumbers(betType, value, true, isXienNhay);
       const errorKey = `${betType}-${rowIndex}`;
       
       if (!validation.isValid) {
@@ -1485,8 +1501,9 @@ const EmployeeInterface = ({ user }) => {
             }
           } else if (betType === 'xien') {
             // Xiên calculation
-            totalAmount = calculateXienAmount(row.numbers, row.amount);
-            displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
+            totalAmount = calculateXienAmount(row.numbers, row.amount, row.isXienNhay);
+            const xienLabel = row.isXienNhay ? ' (xiên nháy)' : '';
+            displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)}${xienLabel} (x${row.amount}n)`;
           } else if (betType === 'xienquay') {
             // Xiên quay calculation
             totalAmount = calculateXienQuayAmount(row.numbers, row.amount);
@@ -1868,7 +1885,8 @@ const EmployeeInterface = ({ user }) => {
               rows: items.map(item => ({
                 numbers: item.numbers,
                 points: item.points || '',
-                amount: item.amount || ''
+                amount: item.amount || '',
+                isXienNhay: betType === 'xien' ? (item.isXienNhay || false) : undefined
               }))
             };
           }
@@ -1963,7 +1981,21 @@ const EmployeeInterface = ({ user }) => {
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
           
-          itemsForDB.push({
+          // Get isXienNhay from betData for xien type
+          let isXienNhay = false;
+          if (item.type === 'xien') {
+            // Find the corresponding row in betData to get isXienNhay
+            const betTypeData = betData[item.type];
+            if (betTypeData && betTypeData.rows) {
+              // Extract the item index from item.id (format: "xien-0", "xien-1", etc.)
+              const itemIndex = parseInt(item.id.split('-')[1]);
+              if (betTypeData.rows[itemIndex]) {
+                isXienNhay = betTypeData.rows[itemIndex].isXienNhay || false;
+              }
+            }
+          }
+          
+          const itemForDB = {
             betType: item.type,
             betTypeLabel: item.typeLabel,
             numbers: numbers,
@@ -1971,7 +2003,14 @@ const EmployeeInterface = ({ user }) => {
             points: points,
             amount: amount,
             totalAmount: item.totalAmount
-          });
+          };
+          
+          // Add isXienNhay field only for xien type
+          if (item.type === 'xien') {
+            itemForDB.isXienNhay = isXienNhay;
+          }
+          
+          itemsForDB.push(itemForDB);
         }
       });
 
@@ -2742,7 +2781,21 @@ const EmployeeInterface = ({ user }) => {
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
           
-          itemsForDB.push({
+          // Get isXienNhay from betData for xien type
+          let isXienNhay = false;
+          if (item.type === 'xien') {
+            // Find the corresponding row in betData to get isXienNhay
+            const betTypeData = betData[item.type];
+            if (betTypeData && betTypeData.rows) {
+              // Extract the item index from item.id (format: "xien-0", "xien-1", etc.)
+              const itemIndex = parseInt(item.id.split('-')[1]);
+              if (betTypeData.rows[itemIndex]) {
+                isXienNhay = betTypeData.rows[itemIndex].isXienNhay || false;
+              }
+            }
+          }
+          
+          const itemForDB = {
             betType: item.type,
             betTypeLabel: item.typeLabel,
             numbers: numbers,
@@ -2750,7 +2803,14 @@ const EmployeeInterface = ({ user }) => {
             points: points,
             amount: amount,
             totalAmount: item.totalAmount
-          });
+          };
+          
+          // Add isXienNhay field only for xien type
+          if (item.type === 'xien') {
+            itemForDB.isXienNhay = isXienNhay;
+          }
+          
+          itemsForDB.push(itemForDB);
         }
       });
 
@@ -3078,7 +3138,8 @@ const EmployeeInterface = ({ user }) => {
         break;
       case 'xien':
         const xienCount = row.numbers.trim().split(/[\s,]+/).filter(x => x.length > 0).length;
-        preview = `${xienCount} xiên x ${row.amount} = ${calculateXienAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        const xienNhayLabel = row.isXienNhay ? ' x 1.2 (xiên nháy)' : '';
+        preview = `${xienCount} xiên x ${row.amount}${xienNhayLabel} = ${calculateXienAmount(row.numbers, row.amount, row.isXienNhay).toLocaleString()} VNĐ`;
         break;
       case 'xienquay':
         const xienQuayItems = row.numbers.trim().split(/[\s,]+/).filter(x => x.length > 0);
@@ -3203,6 +3264,16 @@ const EmployeeInterface = ({ user }) => {
                       placeholder={getAmountPlaceholder(betType)}
                       className="amount-input"
                     />
+                    {betType === 'xien' && (
+                      <label className="xien-nhay-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={row.isXienNhay || false}
+                          onChange={(e) => handleRowChange(betType, index, 'isXienNhay', e.target.checked)}
+                        />
+                        <span>Xiên nháy</span>
+                      </label>
+                    )}
                   </>
                 )}
               </div>
@@ -3320,7 +3391,28 @@ const EmployeeInterface = ({ user }) => {
                 {invoiceItems.map((item) => (
                   <tr key={item.id}>
                     <td className="bet-type-label">{item.typeLabel}</td>
-                    <td className="bet-numbers-cell">{String(item.displayNumbers).split('\n').map((line, i) => (<React.Fragment key={i}>{line}{i < String(item.displayNumbers).split('\n').length - 1 ? <br/> : null}</React.Fragment>))}</td>
+                    <td className="bet-numbers-cell">
+                      {String(item.displayNumbers).split('\n').map((line, i) => {
+                        // Check if this line contains 'xiên nháy'
+                        if (line.includes('(xiên nháy)')) {
+                          const parts = line.split('(xiên nháy)');
+                          return (
+                            <React.Fragment key={i}>
+                              {parts[0]}
+                              <span style={{color: 'red'}}>(xiên nháy)</span>
+                              {parts[1]}
+                              {i < String(item.displayNumbers).split('\n').length - 1 ? <br/> : null}
+                            </React.Fragment>
+                          );
+                        }
+                        return (
+                          <React.Fragment key={i}>
+                            {line}
+                            {i < String(item.displayNumbers).split('\n').length - 1 ? <br/> : null}
+                          </React.Fragment>
+                        );
+                      })}
+                    </td>
                     <td className="bet-total-cell">
                       <span>{item.totalAmount.toLocaleString()}n</span>
                     </td>

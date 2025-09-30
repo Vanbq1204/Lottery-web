@@ -510,12 +510,24 @@ const Statistics = () => {
                       <div className="bet-items">
                         {Object.entries(statisticsData.xien)
                           .sort(([a], [b]) => a.localeCompare(b))
-                          .map(([combo, amount]) => (
-                            <div key={combo} className="bet-item">
-                              <span className="bet-number">{combo}:</span>
-                              <span className="bet-amount">{amount}n</span>
-                            </div>
-                          ))
+                          .map(([combo, amount]) => {
+                            const isXienNhay = combo.includes('(xiên nháy)');
+                            return (
+                              <div key={combo} className="bet-item">
+                                <span className="bet-number">
+                                  {isXienNhay ? (
+                                    <>
+                                      {combo.replace(' (xiên nháy)', '')}:
+                                      <span style={{color: 'red'}}> (xiên nháy)</span>
+                                    </>
+                                  ) : (
+                                    <>{combo}:</>
+                                  )}
+                                </span>
+                                <span className="bet-amount">{amount}n</span>
+                              </div>
+                            );
+                          })
                         }
                       </div>
                     </div>

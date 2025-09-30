@@ -353,7 +353,8 @@ const AdminPrizeStatistics = () => {
             detailString: `${numbers}: ${groupData.totalBetAmount}n x ${groupData.multiplier} = ${groupData.totalPrize.toLocaleString('vi-VN')} đ`,
             xienType: xienType,
             caseType: caseType,
-            count: groupData.count
+            count: groupData.count,
+            isXienNhay: groupData.isXienNhay || false
           });
         });
       } else {
@@ -404,7 +405,10 @@ const AdminPrizeStatistics = () => {
               {allDetails.map((detail, index) => (
                 <tr key={index} className={`admin-prize-xien-${detail.caseType}`}>
                   <td className="admin-prize-xien-type">{detail.xienType}</td>
-                  <td className="admin-prize-number">{detail.numbers}</td>
+                  <td className="admin-prize-number">
+                    {detail.numbers}
+                    {detail.isXienNhay && <span style={{color: 'red', fontWeight: 'bold'}}> nháy</span>}
+                  </td>
                   <td>{detail.betAmount}n</td>
                   <td>x{detail.multiplier}</td>
                   <td className="admin-prize-prize-amount" style={{textAlign: 'right'}}>{formatMoney(detail.prizeAmount)}</td>

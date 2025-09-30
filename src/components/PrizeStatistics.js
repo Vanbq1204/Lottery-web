@@ -368,7 +368,10 @@ const PrizeStatistics = () => {
             <tbody>
               {allDetails.map((detail, index) => (
                 <tr key={index} className={`xien-${detail.caseType}`}>
-                  <td className="xien-type">{detail.xienType}</td>
+                  <td className="xien-type">
+                    {detail.xienType}
+                    {detail.isXienNhay && <span style={{color: 'red', fontWeight: 'bold'}}> nháy</span>}
+                  </td>
                   <td className="number">{detail.numbers}</td>
                   <td>{detail.betAmount}n</td>
                   <td>x{detail.multiplier}</td>
