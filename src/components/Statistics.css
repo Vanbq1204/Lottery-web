@@ -497,6 +497,31 @@
   }
 
   /* Other Stats */
+/* Xiên Nháy Stats */
+.xiennhay-stats {
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+
+.xiennhay-total,
+.xiennhay-customer-payment {
+  color: #2c3e50;
+  font-size: 16px;
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: rgba(23, 162, 184, 0.1);
+  border-radius: 6px;
+  border-left: 4px solid #17a2b8;
+}
+
+.xiennhay-customer-payment {
+  background: rgba(40, 167, 69, 0.1);
+  border-left-color: #28a745;
+}
+
 .other-stats {
   padding: 20px;
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);

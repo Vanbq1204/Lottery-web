@@ -100,8 +100,23 @@ const Statistics = () => {
       ditTotal: 0,
       boTotal: 0,
       xienTotal: 0,
+      xienNhayTotal: 0,
       xienquayTotal: 0
     };
+
+    // Tính toán riêng cho xiên và xiên nháy
+    let xienTotal = 0;
+    let xienNhayTotal = 0;
+    
+    if (statisticsData?.xien) {
+      Object.entries(statisticsData.xien).forEach(([combo, amount]) => {
+        if (combo.includes('(xiên nháy)')) {
+          xienNhayTotal += amount;
+        } else {
+          xienTotal += amount;
+        }
+      });
+    }
 
     return {
       totalRevenue: statisticsData.totalRevenue || 0,
@@ -114,7 +129,8 @@ const Statistics = () => {
       dauTotal: statisticsData.dauTotal || 0,
       ditTotal: statisticsData.ditTotal || 0,
       boTotal: statisticsData.boTotal || 0,
-      xienTotal: statisticsData.xienTotal || 0,
+      xienTotal: xienTotal,
+      xienNhayTotal: xienNhayTotal,
       xienquayTotal: statisticsData.xienquayTotal || 0
     };
   };
@@ -208,6 +224,10 @@ const Statistics = () => {
                 <p className="amount">{formatMoney(totals.xienTotal)}</p>
               </div>
               <div className="summary-card">
+                <h4>Xiên nháy</h4>
+                <p className="amount">{formatMoney(totals.xienNhayTotal * 1.2)}</p>
+              </div>
+              <div className="summary-card">
                 <h4>Xiên quay</h4>
                 <p className="amount">{formatMoney(totals.xienquayTotal)}</p>
               </div>
@@ -259,6 +279,12 @@ const Statistics = () => {
               onClick={() => setActiveTab('xien')}
             >
               Xiên
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'xiennhay' ? 'active' : ''}`}
+              onClick={() => setActiveTab('xiennhay')}
+            >
+              Xiên nháy
             </button>
             <button 
               className={`tab-btn ${activeTab === 'xienquay' ? 'active' : ''}`}
@@ -509,30 +535,52 @@ const Statistics = () => {
                       <h4>Chi tiết cược xiên:</h4>
                       <div className="bet-items">
                         {Object.entries(statisticsData.xien)
+                          .filter(([combo]) => !combo.includes('(xiên nháy)'))
                           .sort(([a], [b]) => a.localeCompare(b))
-                          .map(([combo, amount]) => {
-                            const isXienNhay = combo.includes('(xiên nháy)');
-                            return (
-                              <div key={combo} className="bet-item">
-                                <span className="bet-number">
-                                  {isXienNhay ? (
-                                    <>
-                                      {combo.replace(' (xiên nháy)', '')}:
-                                      <span style={{color: 'red'}}> (xiên nháy)</span>
-                                    </>
-                                  ) : (
-                                    <>{combo}:</>
-                                  )}
-                                </span>
-                                <span className="bet-amount">{amount}n</span>
-                              </div>
-                            );
-                          })
+                          .map(([combo, amount]) => (
+                            <div key={combo} className="bet-item">
+                              <span className="bet-number">{combo}:</span>
+                              <span className="bet-amount">{amount}n</span>
+                            </div>
+                          ))
                         }
                       </div>
                     </div>
                   ) : (
                     <p>Chưa có dữ liệu cược xiên.</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'xiennhay' && (
+              <div className="xiennhay-stats">
+                <h3>Tổng kết xiên nháy</h3>
+                <p className="xiennhay-total">Tổng tiền đánh: <strong>{formatMoney(totals.xienNhayTotal)}</strong></p>
+                <p className="xiennhay-customer-payment">Tổng tiền khách trả: <strong>{formatMoney(totals.xienNhayTotal * 1.2)}</strong></p>
+                
+                <div className="xiennhay-detail">
+                  {statisticsData?.xien && Object.keys(statisticsData.xien).length > 0 ? (
+                    <div className="xiennhay-list">
+                      <h4>Chi tiết cược xiên nháy:</h4>
+                      <div className="bet-items">
+                        {Object.entries(statisticsData.xien)
+                          .filter(([combo]) => combo.includes('(xiên nháy)'))
+                          .sort(([a], [b]) => a.localeCompare(b))
+                          .map(([combo, amount]) => (
+                            <div key={combo} className="bet-item">
+                              <span className="bet-number">
+                                {combo.replace(' (xiên nháy)', '')}:
+                                <span style={{color: 'red'}}> (xiên nháy)</span>
+                              </span>
+                              <span className="bet-amount">{amount}n</span>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    </div>
+                  ) : (
+                    <p>Chưa có dữ liệu cược xiên nháy.</p>
                   )}
                 </div>
               </div>
