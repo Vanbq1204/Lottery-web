@@ -459,7 +459,7 @@ const EmployeeInterface = ({ user }) => {
     if (!numbersStr || !points) return 0;
     
     // Split numbers by spaces and commas, filter out empty strings
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const pointsValue = parseFloat(points);
     
@@ -473,7 +473,7 @@ const EmployeeInterface = ({ user }) => {
   const calculate2SAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
     
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
     
@@ -484,7 +484,7 @@ const EmployeeInterface = ({ user }) => {
   const calculate3SAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
     
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
     
@@ -495,7 +495,7 @@ const EmployeeInterface = ({ user }) => {
   const calculate4SAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
     
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
     
@@ -506,7 +506,7 @@ const EmployeeInterface = ({ user }) => {
   const calculateTongAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
     
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
     
@@ -523,7 +523,7 @@ const EmployeeInterface = ({ user }) => {
   const calculateDauDitAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
     
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
     
@@ -535,7 +535,7 @@ const EmployeeInterface = ({ user }) => {
     if (!numbersStr || !amount) return 0;
     
     // Split by spaces/commas to get individual xiên combinations
-    const xienCombinations = numbersStr.trim().split(/[\s,]+/).filter(x => x.length > 0);
+    const xienCombinations = numbersStr.trim().split(/[\s,.]+/).filter(x => x.length > 0);
     const numXien = xienCombinations.length;
     const amountValue = parseFloat(amount);
     
@@ -555,7 +555,7 @@ const EmployeeInterface = ({ user }) => {
     if (!numbersStr || !amount) return 0;
     
     // Split by spaces/commas to get individual xiên quay combinations
-    const xienQuayCombinations = numbersStr.trim().split(/[\s,]+/).filter(x => x.length > 0);
+    const xienQuayCombinations = numbersStr.trim().split(/[\s,.]+/).filter(x => x.length > 0);
     const amountValue = parseFloat(amount);
     
     let totalAmount = 0;
@@ -578,7 +578,7 @@ const EmployeeInterface = ({ user }) => {
   const calculateBoAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
     
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const amountValue = parseFloat(amount);
     
     let totalAmount = 0;
@@ -596,7 +596,7 @@ const EmployeeInterface = ({ user }) => {
   const validateNumbers = (betType, numbersStr, isBlurValidation = false, isXienNhay = false) => {
     if (!numbersStr.trim()) return { isValid: true, message: '' };
     
-    const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+    const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     
           // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s, 4s, tong, dau, dit, bo
       if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
@@ -855,13 +855,13 @@ const EmployeeInterface = ({ user }) => {
         if (index === currentRowIndex) {
           // Use the new value for current row
           if (newValue.trim()) {
-            const numbers = newValue.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const numbers = newValue.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             allBoNumbers.push(...numbers);
           }
         } else {
           // Use existing value for other rows
           if (row.numbers && row.numbers.trim()) {
-            const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const numbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             allBoNumbers.push(...numbers);
           }
         }
@@ -878,13 +878,13 @@ const EmployeeInterface = ({ user }) => {
       if (index === currentRowIndex) {
         // Use the new value for current row
         if (newValue.trim()) {
-          const numbers = newValue.trim().split(/[\s,]+/).filter(n => n.length > 0);
+          const numbers = newValue.trim().split(/[\s,.]+/).filter(n => n.length > 0);
           allNumbers.push(...numbers);
         }
       } else {
         // Use existing value for other rows
         if (row.numbers.trim()) {
-          const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+          const numbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
           allNumbers.push(...numbers);
         }
       }
@@ -993,7 +993,7 @@ const EmployeeInterface = ({ user }) => {
       
       // Check for duplicates within the input (real-time) - chỉ khi không cho phép gộp số trùng
       if (value.trim() && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
-        const numbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        const numbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         const uniqueNumbers = [...new Set(numbers)];
         
         if (uniqueNumbers.length !== numbers.length) {
@@ -1008,13 +1008,13 @@ const EmployeeInterface = ({ user }) => {
             // Check for duplicates across rows (real-time) - chỉ khi không cho phép gộp số trùng
             if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
             // Find which numbers are duplicated
-            const currentNumbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const currentNumbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             const bet = betData[betType];
             const duplicates = [];
             
             bet.rows.forEach((row, index) => {
               if (index !== rowIndex && row.numbers.trim()) {
-                const existingNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+                const existingNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
                 const commonNumbers = currentNumbers.filter(num => existingNumbers.includes(num));
                 duplicates.push(...commonNumbers);
               }
@@ -1149,7 +1149,7 @@ const EmployeeInterface = ({ user }) => {
       
       validRows.forEach((row, validIndex) => {
         const actualRowIndex = rows.indexOf(row);
-        const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        const numbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         const points = parseFloat(row.points || row.amount || 0);
         
         console.log(`📋 Hàng ${actualRowIndex}: "${row.numbers}" x${points}n`);
@@ -1211,7 +1211,7 @@ const EmployeeInterface = ({ user }) => {
           const row = newRows[rowIndex];
           if (row) {
             const points = parseFloat(row.points || row.amount || 0);
-            const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const numbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             const occurrencesInRow = numbers.filter(n => n === duplicateNum).length;
             
             totalPoints += points * occurrencesInRow;
@@ -1227,7 +1227,7 @@ const EmployeeInterface = ({ user }) => {
         uniqueRowIndexes.forEach(rowIndex => {
           const row = newRows[rowIndex];
           if (row && row.numbers) {
-            const numbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const numbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             const remainingNumbers = numbers.filter(n => n !== duplicateNum);
             
             newRows[rowIndex] = {
@@ -1344,13 +1344,13 @@ const EmployeeInterface = ({ user }) => {
       // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s, 4s, tong, dau, dit, bo)
       if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
         // Find which numbers are duplicated
-        const currentNumbers = value.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        const currentNumbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         const bet = betData[betType];
         const duplicates = [];
         
         bet.rows.forEach((row, index) => {
           if (index !== rowIndex && row.numbers.trim()) {
-            const existingNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const existingNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             const commonNumbers = currentNumbers.filter(num => existingNumbers.includes(num));
             duplicates.push(...commonNumbers);
           }
@@ -1421,11 +1421,11 @@ const EmployeeInterface = ({ user }) => {
     
     if (betType === 'xien' || betType === 'xienquay') {
       // For xiên and xiên quay, keep the dash format but add commas between combinations
-      const combinations = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+      const combinations = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
       return combinations.join(', ');
     } else {
       // For other bet types, split numbers and join with commas
-      const numbers = numbersStr.trim().split(/[\s,]+/).filter(n => n.length > 0);
+      const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
       return numbers.join(', ');
     }
   };
@@ -1489,7 +1489,7 @@ const EmployeeInterface = ({ user }) => {
           } else if (betType === 'bo') {
             // Bộ calculation
             totalAmount = calculateBoAmount(row.numbers, row.amount);
-            const boNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+            const boNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             if (boNumbers.length > 0) {
               const boDetails = boNumbers.map(num => {
                 const count = BO_DATA[num] ? BO_DATA[num].length : 0;
@@ -3094,23 +3094,23 @@ const EmployeeInterface = ({ user }) => {
     let preview = '';
     switch(betType) {
       case 'loto':
-        const loCount = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
+        const loCount = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${loCount} con x ${row.points} điểm x ${lotoMultiplier} = ${calculateLoAmount(row.numbers, row.points).toLocaleString()} VNĐ`;
         break;
       case '2s':
-        const count2s = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
+        const count2s = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${count2s} con x ${row.amount} = ${calculate2SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
       case '3s':
-        const count3s = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
+        const count3s = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${count3s} con x ${row.amount} = ${calculate3SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
       case '4s':
-        const count4s = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0).length;
+        const count4s = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${count4s} con x ${row.amount} = ${calculate4SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
       case 'tong':
-        const tongNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        const tongNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         if (tongNumbers.length > 0) {
           preview = `Tổng ${tongNumbers.join(',')} x ${row.amount} = ${calculateTongAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         } else {
@@ -3121,7 +3121,7 @@ const EmployeeInterface = ({ user }) => {
         preview = `Kép x ${row.amount} = ${calculateKepAmount(row.amount).toLocaleString()} VNĐ`;
         break;
       case 'dau':
-        const dauNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        const dauNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         if (dauNumbers.length > 0) {
           preview = `Đầu ${dauNumbers.join(',')} x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         } else {
@@ -3129,7 +3129,7 @@ const EmployeeInterface = ({ user }) => {
         }
         break;
       case 'dit':
-        const ditNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+        const ditNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         if (ditNumbers.length > 0) {
           preview = `Đít ${ditNumbers.join(',')} x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         } else {
@@ -3137,12 +3137,12 @@ const EmployeeInterface = ({ user }) => {
         }
         break;
       case 'xien':
-        const xienCount = row.numbers.trim().split(/[\s,]+/).filter(x => x.length > 0).length;
+        const xienCount = row.numbers.trim().split(/[\s,.]+/).filter(x => x.length > 0).length;
         const xienNhayLabel = row.isXienNhay ? ' x 1.2 (xiên nháy)' : '';
         preview = `${xienCount} xiên x ${row.amount}${xienNhayLabel} = ${calculateXienAmount(row.numbers, row.amount, row.isXienNhay).toLocaleString()} VNĐ`;
         break;
       case 'xienquay':
-        const xienQuayItems = row.numbers.trim().split(/[\s,]+/).filter(x => x.length > 0);
+        const xienQuayItems = row.numbers.trim().split(/[\s,.]+/).filter(x => x.length > 0);
         let xienQuayDetail = '';
         let totalMultiplier = 0;
         
@@ -3161,7 +3161,7 @@ const EmployeeInterface = ({ user }) => {
         break;
       case 'bo':
         if (row.numbers && row.amount) {
-          const boNumbers = row.numbers.trim().split(/[\s,]+/).filter(n => n.length > 0);
+          const boNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
           if (boNumbers.length > 0) {
             let previewDetail = '';
             let totalAmount = 0;
