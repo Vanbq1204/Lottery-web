@@ -83,6 +83,33 @@ const AdminStoreStatistics = ({ store }) => {
     return Math.floor(amount).toLocaleString('vi-VN').replace(/,/g, '.') + 'n';
   };
 
+  // Tính tổng tiền cược xiên nháy (tiền gốc)
+  const calculateXienNhayBetTotal = () => {
+    let total = 0;
+    Object.entries(statisticsData.xien || {}).forEach(([key, amount]) => {
+      if (key.includes('(xiên nháy)')) {
+        total += amount;
+      }
+    });
+    return total;
+  };
+
+  // Tính tổng tiền đánh xiên nháy (nhân với 1.2)
+  const calculateXienNhayTotal = () => {
+    return Math.round(calculateXienNhayBetTotal() * 1.2);
+  };
+
+  // Tính tổng tiền xiên thường (loại bỏ xiên nháy)
+  const calculateXienTotal = () => {
+    let total = 0;
+    Object.entries(statisticsData.xien || {}).forEach(([key, amount]) => {
+      if (!key.includes('(xiên nháy)')) {
+        total += amount;
+      }
+    });
+    return total;
+  };
+
   // Generate loto statistics table data
   const generateLotoTableData = () => {
     const lotoData = statisticsData?.loto || {};
@@ -248,7 +275,11 @@ const AdminStoreStatistics = ({ store }) => {
           </div>
           <div className="admin-stats-card">
             <h4>Xiên</h4>
-            <span className="admin-stats-value">{formatThousand(statisticsData.xienTotal)}</span>
+            <span className="admin-stats-value">{formatThousand(calculateXienTotal())}</span>
+          </div>
+          <div className="admin-stats-card">
+            <h4>Xiên nháy</h4>
+            <span className="admin-stats-value">{formatThousand(calculateXienNhayTotal())}</span>
           </div>
           <div className="admin-stats-card">
             <h4>Xiên quay</h4>
@@ -269,6 +300,7 @@ const AdminStoreStatistics = ({ store }) => {
       { id: '3s', label: '3 số' },
       { id: 'combined-basic', label: 'Tổng, Kép, Đầu, Đít, Bộ' },
       { id: 'xien', label: 'Xiên' },
+      { id: 'xiennhay', label: 'Xiên nháy' },
       { id: 'xienquay', label: 'Xiên quay' }
     ];
 
@@ -465,34 +497,18 @@ const AdminStoreStatistics = ({ store }) => {
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết xiên</h4>
                 <div>
-                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienTotal)}</span>
+                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(calculateXienTotal())}</span>
                 </div>
               </div>
               <div className="admin-stats-bet-list">
                 {Object.entries(betDataXien)
-                  .sort(([keyA], [keyB]) => {
-                    const isXienNhayA = keyA.includes('(xiên nháy)');
-                    const isXienNhayB = keyB.includes('(xiên nháy)');
-                    // Ưu tiên xiên nháy lên đầu
-                    if (isXienNhayA && !isXienNhayB) return -1;
-                    if (!isXienNhayA && isXienNhayB) return 1;
-                    return keyA.localeCompare(keyB);
-                  })
+                  .filter(([key]) => !key.includes('(xiên nháy)'))
+                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                   .map(([key, value]) => {
-                  const isXienNhay = key.includes('(xiên nháy)');
                   return (
                     <div key={key} className="admin-stats-bet-item" style={{padding: '8px'}}>
                       <span className="admin-stats-bet-number">
-                         {isXienNhay ? (
-                           <>
-                             {key.replace(' (xiên nháy)', '')}
-                             <span style={{color: 'red'}}> nháy</span>
-                           </>
-                         ) : (
-                           <>
-                             {key}
-                           </>
-                         )}
+                        {key}
                        </span>
                        <span className="admin-stats-bet-amount" style={{
                          background: 'gray',
@@ -505,6 +521,56 @@ const AdminStoreStatistics = ({ store }) => {
                        }}>
                          {value}n
                        </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+
+        case 'xiennhay':
+          const betDataXienNhay = statisticsData['xien'];
+          if (!betDataXienNhay || Object.keys(betDataXienNhay).length === 0) {
+            return (
+              <div className="admin-stats-no-data">
+                <p>Không có dữ liệu cho xiên nháy</p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="admin-stats-combined-table admin-filter-scope">
+              <div className="admin-stats-combined-total">
+                 <h4>Tổng kết xiên nháy</h4>
+                 <div>
+                     <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền cược: {formatThousand(calculateXienNhayBetTotal())}</span>
+                     <div style={{marginTop: '5px'}}>
+                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(calculateXienNhayTotal())}</span>
+                     </div>
+                   </div>
+               </div>
+
+              <div className="admin-stats-bet-list">
+                {Object.entries(betDataXienNhay)
+                  .filter(([key]) => key.includes('(xiên nháy)'))
+                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+                  .map(([key, value]) => {
+                  const displayAmount = value;
+                  return (
+                    <div key={key} className="admin-stats-bet-item" style={{padding: '8px'}}>
+                      <span className="admin-stats-bet-number">
+                        {key.replace(' (xiên nháy)', '')}
+                        <span style={{color: 'red'}}> nháy</span>
+                      </span>
+                      <span className="admin-stats-bet-amount" style={{
+                        background: 'gray',
+                        color: 'white',
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        marginTop: '4px'
+                      }}>{displayAmount}n</span>
                     </div>
                   );
                 })}

@@ -99,6 +99,12 @@ const EmployeeInterface = ({ user }) => {
   const [mergeTimeouts, setMergeTimeouts] = useState({});
   const [lastChanges, setLastChanges] = useState({});
   
+  // State cho số điện thoại cửa hàng
+  const [storePhone, setStorePhone] = useState(() => {
+    const saved = localStorage.getItem('storePhone');
+    return saved || '';
+  });
+  
   // State cho chức năng nhập chuỗi kết quả xổ số
   const [batchLotteryInput, setBatchLotteryInput] = useState('');
 
@@ -1726,6 +1732,7 @@ const EmployeeInterface = ({ user }) => {
         <div class="receipt">
           <div class="header">
             <div class="title">${storeInfo?.name || '92 NGUYỄN AN NINH'}</div>
+            ${storePhone ? `<div style="font-weight: bold; font-size: 16px; text-align: center; margin: 2px 0;">${storePhone}</div>` : ''}
             <div>----------------------</div>
           </div>
           
@@ -1738,6 +1745,7 @@ const EmployeeInterface = ({ user }) => {
               <span>Khách hàng:</span>
               <span>${customerName || 'Khách lẻ'}</span>
             </div>
+
             <div class="info-row">
               <span>Ngày lập:</span>
               <span>${date} ${currentTime}</span>
@@ -3343,6 +3351,21 @@ const EmployeeInterface = ({ user }) => {
               }}
               placeholder="Nhập tên khách hàng"
               className="customer-name-input"
+            />
+          </div>
+          <div className="phone-section">
+            <label><strong>SĐT cửa hàng:</strong></label>
+            <input
+              type="tel"
+              inputMode="tel"
+              value={storePhone}
+              onChange={(e) => {
+                const phoneValue = e.target.value;
+                setStorePhone(phoneValue);
+                localStorage.setItem('storePhone', phoneValue);
+              }}
+              placeholder="Nhập số điện thoại cửa hàng"
+              className="store-phone-input"
             />
           </div>
         </div>

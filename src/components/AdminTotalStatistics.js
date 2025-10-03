@@ -1059,8 +1059,55 @@ const AdminTotalStatistics = ({ user }) => {
     
     let total = 0;
     Object.entries(statisticsData.xien || {}).forEach(([key, amount]) => {
-      const adjustedAmount = adjustXienAmountForDisplay(key, amount);
-      total += adjustedAmount;
+      if (!key.includes('(xiên nháy)')) {
+        const adjustedAmount = adjustXienAmountForDisplay(key, amount);
+        total += adjustedAmount;
+      }
+    });
+    return total;
+  };
+
+  // Tính tổng tiền cược xiên nháy (tiền gốc - chia cho 1.2 vì backend đã nhân)
+  const calculateXienNhayBetTotal = () => {
+    if (!statisticsData || !statisticsData.xien) return 0;
+    
+    let total = 0;
+    Object.entries(statisticsData.xien || {}).forEach(([key, amount]) => {
+      if (key.includes('(xiên nháy)')) {
+        total += Math.round(amount / 1.2);
+      }
+    });
+    return total;
+  };
+
+  // Tính tổng tiền đánh xiên nháy (nhân với 1.2)
+  const calculateXienNhayTotal = () => {
+    return Math.round(calculateXienNhayBetTotal() * 1.2);
+  };
+
+  // Tính tổng tiền xiên nháy sau khi lọc (nhân với 1.2)
+  const calculateFilteredXienNhayTotal = () => {
+    if (!statisticsData || !statisticsData.xien) return 0;
+    
+    let total = 0;
+    Object.entries(statisticsData.xien || {}).forEach(([key, amount]) => {
+      if (key.includes('(xiên nháy)')) {
+        const adjustedAmount = adjustXienAmountForDisplay(key, amount);
+        total += adjustedAmount;
+      }
+    });
+    return Math.round(total * 1.2);
+  };
+
+  // Tính tổng tiền xiên thường riêng biệt
+  const calculateXienTotal = () => {
+    if (!statisticsData || !statisticsData.xien) return 0;
+    
+    let total = 0;
+    Object.entries(statisticsData.xien || {}).forEach(([key, amount]) => {
+      if (!key.includes('(xiên nháy)')) {
+        total += amount;
+      }
     });
     return total;
   };
@@ -1587,7 +1634,11 @@ const AdminTotalStatistics = ({ user }) => {
           </div>
           <div className="admin-stats-card">
             <h4>Xiên</h4>
-            <span className="admin-stats-value">{formatThousand(statisticsData.xienTotal)}</span>
+            <span className="admin-stats-value">{formatThousand(calculateXienTotal())}</span>
+          </div>
+          <div className="admin-stats-card">
+            <h4>Xiên nháy</h4>
+            <span className="admin-stats-value">{formatThousand(calculateXienNhayTotal())}</span>
           </div>
           <div className="admin-stats-card">
             <h4>Xiên quay</h4>
@@ -1608,6 +1659,7 @@ const AdminTotalStatistics = ({ user }) => {
       { id: '3s', label: '3 số' },
       { id: 'combined-basic', label: 'Tổng, Kép, Đầu, Đít, Bộ' },
       { id: 'xien', label: 'Xiên' },
+      { id: 'xiennhay', label: 'Xiên nháy' },
       { id: 'xienquay', label: 'Xiên quay' }
     ];
 
@@ -2239,7 +2291,7 @@ const AdminTotalStatistics = ({ user }) => {
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết xiên</h4>
                 <div>
-                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienTotal)}</span>
+                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(calculateXienTotal())}</span>
                   {((xienFilterRows && xienFilterRows.some(row => row.number || row.subtract)) || xienFilterPercent || Object.keys(topNXienSubtracts).length > 0) && (
                     <div style={{marginTop: '5px'}}>
                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
@@ -2362,32 +2414,67 @@ const AdminTotalStatistics = ({ user }) => {
 
               <div className="admin-stats-bet-list">
                 {Object.entries(betDataXien)
-                  .sort(([keyA], [keyB]) => {
-                    const isXienNhayA = keyA.includes('(xiên nháy)');
-                    const isXienNhayB = keyB.includes('(xiên nháy)');
-                    // Ưu tiên xiên nháy lên đầu
-                    if (isXienNhayA && !isXienNhayB) return -1;
-                    if (!isXienNhayA && isXienNhayB) return 1;
-                    return keyA.localeCompare(keyB);
-                  })
+                  .filter(([key]) => !key.includes('(xiên nháy)'))
+                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                   .map(([key, value]) => {
                   const adjusted = adjustXienAmountForDisplay(key, value);
-                  const isXienNhay = key.includes('(xiên nháy)');
-                  // Hiển thị tiền đánh gốc cho xiên nháy (chia ngược lại hệ số 1.2)
-                  const displayAmount = isXienNhay ? Math.round(adjusted / 1.2) : adjusted;
                   return (
                     <div key={key} className="admin-stats-bet-item" style={{padding: '8px'}}>
                       <span className="admin-stats-bet-number">
-                         {isXienNhay ? (
-                           <>
-                             {key.replace(' (xiên nháy)', '')}
-                             <span style={{color: 'red'}}> nháy</span>
-                           </>
-                         ) : (
-                           <>
-                             {key}
-                           </>
-                         )}
+                        {key}
+                       </span>
+                       <span className="admin-stats-bet-amount" style={{
+                         background: 'gray',
+                         color: 'white',
+                         padding: '2px 6px',
+                         borderRadius: '3px',
+                         fontSize: '12px',
+                         fontWeight: '600',
+                         marginTop: '4px'
+                       }}>
+                         {adjusted}n
+                       </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+
+        case 'xiennhay':
+          const betDataXienNhay = statisticsData['xien'];
+          if (!betDataXienNhay || Object.keys(betDataXienNhay).length === 0) {
+            return (
+              <div className="admin-stats-no-data">
+                <p>Không có dữ liệu cho xiên nháy</p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="admin-stats-combined-table admin-filter-scope">
+              <div className="admin-stats-combined-total">
+                 <h4>Tổng kết xiên nháy</h4>
+                 <div>
+                     <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền cược: {formatThousand(calculateXienNhayBetTotal())}</span>
+                     <div style={{marginTop: '5px'}}>
+                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(calculateXienNhayTotal())}</span>
+                     </div>
+                   </div>
+               </div>
+
+              <div className="admin-stats-bet-list">
+                {Object.entries(betDataXienNhay)
+                  .filter(([key]) => key.includes('(xiên nháy)'))
+                  .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+                  .map(([key, value]) => {
+                  // Hiển thị tiền cược gốc cho xiên nháy (chia cho 1.2 vì data từ backend đã nhân)
+                  const displayAmount = Math.round(value / 1.2);
+                  return (
+                    <div key={key} className="admin-stats-bet-item" style={{padding: '8px'}}>
+                      <span className="admin-stats-bet-number">
+                        {key.replace(' (xiên nháy)', '')}
+                        <span style={{color: 'red'}}> nháy</span>
                        </span>
                        <span className="admin-stats-bet-amount" style={{
                          background: 'gray',
