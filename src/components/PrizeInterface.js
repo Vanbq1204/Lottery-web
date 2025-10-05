@@ -18,6 +18,46 @@ const PrizeInterface = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [paidFilter, setPaidFilter] = useState('all'); // 'all', 'paid', 'unpaid'
   const [searchInvoice, setSearchInvoice] = useState(''); // Tìm kiếm theo mã hóa đơn
+  const [showTimeNotification, setShowTimeNotification] = useState(false);
+  const [hasCalculatedToday, setHasCalculatedToday] = useState(false);
+  
+  // Kiểm tra xem đã qua 18h30 chưa
+  const checkTimeForNotification = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Debug: Log thời gian hiện tại
+    console.log(`Current time: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
+    
+    // Hiển thị notification sau 18h30 (18:30) và chưa tính thưởng trong ngày
+    const isAfter1830 = currentHour > 18 || (currentHour === 18 && currentMinute >= 30);
+    const shouldShow = isAfter1830 && !hasCalculatedToday;
+    console.log(`Should show notification: ${shouldShow} (isAfter1830: ${isAfter1830}, hasCalculated: ${hasCalculatedToday})`);
+    
+    return shouldShow;
+  };
+  
+  // Effect để kiểm tra thời gian mỗi phút
+  useEffect(() => {
+    const checkTime = () => {
+      setShowTimeNotification(checkTimeForNotification());
+    };
+    
+    // Kiểm tra ngay lập tức
+    checkTime();
+    
+    // Kiểm tra mỗi phút
+    const interval = setInterval(checkTime, 60000);
+    
+    return () => clearInterval(interval);
+  }, [hasCalculatedToday]);
+  
+  // Effect để kiểm tra trạng thái đã tính thưởng khi thay đổi ngày
+  useEffect(() => {
+    const calculated = sessionStorage.getItem(`calculated_${selectedDate}`);
+    setHasCalculatedToday(calculated === 'true');
+  }, [selectedDate]);
 
   // Lấy danh sách hóa đơn trúng thưởng
   const loadWinningInvoices = async (date = null, filterPaid = null) => {
@@ -82,6 +122,10 @@ const PrizeInterface = () => {
       );
       
       alert(`${response.data.message}`);
+      
+      // Đánh dấu đã tính thưởng cho ngày hôm nay
+      setHasCalculatedToday(true);
+      sessionStorage.setItem(`calculated_${selectedDate}`, 'true');
       
       // Tải lại danh sách sau khi tính thưởng
       await loadWinningInvoices(selectedDate, paidFilter);
@@ -192,13 +236,47 @@ const PrizeInterface = () => {
           />
         </div>
         
-        <button 
-          className="calculate-btn"
-          onClick={calculatePrizes}
-          disabled={isCalculating}
-        >
-          {isCalculating ? '⏳ Đang tính...' : '🔄 Tính thưởng'}
-        </button>
+        <div className="calculate-btn-container" style={{ position: 'relative', display: 'inline-block' }}>
+          <button 
+            className="calculate-btn"
+            onClick={calculatePrizes}
+            disabled={isCalculating}
+          >
+            {isCalculating ? '⏳ Đang tính...' : '🔄 Tính thưởng'}
+          </button>
+          
+          {showTimeNotification && (
+            <div className="time-notification-tooltip" style={{
+              position: 'absolute',
+              top: '-60px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: '#ff6b6b',
+              color: 'white',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              zIndex: 1000,
+              animation: 'pulse 2s infinite'
+            }}>
+              ⏰ Đã đến 18h30p Hãy ấn vào đây để tính thưởng
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 0,
+                height: 0,
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: '6px solid #ff6b6b'
+              }}></div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="prize-stats">

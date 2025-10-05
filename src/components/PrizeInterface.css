@@ -424,3 +424,32 @@
     padding: 10px 8px;
   }
 }
+
+/* Animation cho tooltip thông báo thời gian */
+@keyframes pulse {
+  0% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.time-notification-tooltip {
+  animation: pulse 2s infinite;
+}
+
+/* Responsive cho tooltip */
+@media (max-width: 768px) {
+  .time-notification-tooltip {
+    font-size: 11px;
+    padding: 6px 10px;
+    top: '-50px';
+  }
+}
