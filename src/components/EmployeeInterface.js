@@ -785,10 +785,10 @@ const EmployeeInterface = ({ user }) => {
           for (let num of numbers) {
             // Validate bo name format (00-99, chammot/chamhai/chamba/etc, hoặc chanle, lechan, lele, chanchan)
             const isValidBoName = /^\d{2}$/.test(num) || 
-                                 ['chammot', 'chamhai', 'chamba', 'chambon', 'chamnam', 'chamsau', 'chambay', 'chamtam', 'chinchin', 'chamkhong'].includes(num) || 
+                                 ['chammot', 'chamhai', 'chamba', 'chambon', 'chamnam', 'chamsau', 'chambay', 'chamtam', 'chamchin', 'chamkhong'].includes(num) || 
                                  ['chanle', 'lechan', 'lele', 'chanchan'].includes(num);
             if (!isValidBoName) {
-              return { isValid: false, message: 'Tên bộ phải là số từ 00 đến 99, chammot/chamhai/chamba/chambon/chamnam/chamsau/chambay/chamtam/chinchin/chammuoi, hoặc chanle/lechan/lele/chanchan' };
+              return { isValid: false, message: 'Tên bộ phải là số từ 00 đến 99, chammot/chamhai/chamba/chambon/chamnam/chamsau/chambay/chamtam/chamchin/chammuoi, hoặc chanle/lechan/lele/chanchan' };
             }
             
             // Check if bo exists
