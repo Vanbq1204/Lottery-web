@@ -1591,7 +1591,6 @@ const AdminTotalStatistics = ({ user }) => {
           <div className="admin-stats-card loto-card">
             <h4>Lô tô</h4>
             <span className="admin-stats-value">{formatThousand(lotoRevenue)}</span>
-         
           </div>
           <div className="admin-stats-card">
             <h4>2 số</h4>
@@ -1676,9 +1675,9 @@ const AdminTotalStatistics = ({ user }) => {
               <div className="admin-stats-loto-total">
                 <h4>Tổng kết lô tô</h4>
                 <div>
-              
+                 
                     <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>
-                      Tổng tiền đánh: {formatThousand(lotoTotalPoints * 22.5)}
+                      Tổng tiền đánh: {formatThousand(statisticsData.totalLotoRevenue || (lotoTotalPoints * 22.5))}
                     </span>
                 
                   <br />
