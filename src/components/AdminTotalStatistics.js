@@ -1579,7 +1579,7 @@ const AdminTotalStatistics = ({ user }) => {
     if (!statisticsData) return null;
 
     const lotoTotalPoints = Object.values(statisticsData.loto || {}).reduce((sum, points) => sum + points, 0);
-    const lotoRevenue = statisticsData.totalLotoRevenue || (lotoTotalPoints * 22);
+    const lotoRevenue = statisticsData.totalLotoRevenue || (lotoTotalPoints * 22.5);
 
     return (
       <div className="admin-stats-summary">
@@ -1591,11 +1591,7 @@ const AdminTotalStatistics = ({ user }) => {
           <div className="admin-stats-card loto-card">
             <h4>Lô tô</h4>
             <span className="admin-stats-value">{formatThousand(lotoRevenue)}</span>
-            {statisticsData.lotoCalculationString && (
-              <div className="loto-calculation">
-                <small>📊 {statisticsData.lotoCalculationString} = {formatThousand(lotoRevenue)}</small>
-              </div>
-            )}
+         
           </div>
           <div className="admin-stats-card">
             <h4>2 số</h4>
@@ -1680,17 +1676,11 @@ const AdminTotalStatistics = ({ user }) => {
               <div className="admin-stats-loto-total">
                 <h4>Tổng kết lô tô</h4>
                 <div>
-                  {statisticsData.lotoCalculationString && statisticsData.totalLotoRevenue ? (
-                    <>
-                      <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>
-                        Tổng tiền đánh: {statisticsData.lotoCalculationString} = {formatThousand(statisticsData.totalLotoRevenue)}
-                      </span>
-                    </>
-                  ) : (
+              
                     <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>
-                      Tổng tiền đánh: {formatThousand(lotoTotalPoints * 22)}
+                      Tổng tiền đánh: {formatThousand(lotoTotalPoints * 22.5)}
                     </span>
-                  )}
+                
                   <br />
                   <span className="admin-stats-loto-total-value">Tổng điểm: {lotoTotalPoints}đ</span>
                   {((lotoFilterRows && lotoFilterRows.some(row => row.number || row.subtract)) || lotoFilterPercent || Object.keys(topNSubtracts).length > 0) && (
