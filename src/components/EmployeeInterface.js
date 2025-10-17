@@ -788,7 +788,7 @@ const EmployeeInterface = ({ user }) => {
                                  ['chammot', 'chamhai', 'chamba', 'chambon', 'chamnam', 'chamsau', 'chambay', 'chamtam', 'chamchin', 'chamkhong'].includes(num) || 
                                  ['chanle', 'lechan', 'lele', 'chanchan'].includes(num);
             if (!isValidBoName) {
-              return { isValid: false, message: 'Tên bộ phải là số từ 00 đến 99, chammot/chamhai/chamba/chambon/chamnam/chamsau/chambay/chamtam/chamchin/chammuoi, hoặc chanle/lechan/lele/chanchan' };
+              return { isValid: false, message: 'Tên bộ phải là số từ 00 đến 99, chamkhong/chammot/chamhai/chamba/chambon/chamnam/chamsau/chambay/chamtam/chamchin, hoặc chanle/lechan/lele/chanchan' };
             }
             
             // Check if bo exists
