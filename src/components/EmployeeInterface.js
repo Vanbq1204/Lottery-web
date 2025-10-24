@@ -18,6 +18,9 @@ const EmployeeInterface = ({ user }) => {
   const [customerGive, setCustomerGive] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
+  // Prize calculation state
+  const [isCalculatingPrize, setIsCalculatingPrize] = useState(false);
+  
   // Invoice ID state - tạo một lần và giữ nguyên
   const [currentInvoiceId, setCurrentInvoiceId] = useState('');
   
@@ -4276,7 +4279,7 @@ const EmployeeInterface = ({ user }) => {
       case 'quick-lottery':
         return <QuickLotteryResults />;
       case 'prizes':
-        return <PrizeInterface />;
+        return <PrizeInterface onCalculatingChange={setIsCalculatingPrize} />;
       case 'prize-statistics':
         return <PrizeStatistics />;
       case 'prize-settings':
@@ -4329,14 +4332,15 @@ const EmployeeInterface = ({ user }) => {
               {item.hasDropdown ? (
                 <>
                   <button
-                    className={`menu-item ${(activeMenu === 'prize-settings' || activeMenu === 'loto-multiplier') ? 'active' : ''} dropdown-toggle`}
-                    onClick={() => setIsSettingsDropdownOpen(!isSettingsDropdownOpen)}
+                    className={`menu-item ${(activeMenu === 'prize-settings' || activeMenu === 'loto-multiplier') ? 'active' : ''} dropdown-toggle ${isCalculatingPrize ? 'menu-disabled' : ''}`}
+                    onClick={() => !isCalculatingPrize && setIsSettingsDropdownOpen(!isSettingsDropdownOpen)}
+                    disabled={isCalculatingPrize}
                   >
                     <span className="menu-icon">{item.icon}</span>
                     <span className="menu-label">{item.label}</span>
                     <span className={`dropdown-arrow ${isSettingsDropdownOpen ? 'open' : ''}`}>▼</span>
                   </button>
-                  {isSettingsDropdownOpen && (
+                  {isSettingsDropdownOpen && !isCalculatingPrize && (
                     <div className="dropdown-menu">
                       {item.subItems.map(subItem => (
                         <button
@@ -4356,8 +4360,9 @@ const EmployeeInterface = ({ user }) => {
                 </>
               ) : (
                 <button
-                  className={`menu-item ${activeMenu === item.id ? 'active' : ''}`}
-                  onClick={() => handleMenuChange(item.id)}
+                  className={`menu-item ${activeMenu === item.id ? 'active' : ''} ${isCalculatingPrize ? 'menu-disabled' : ''}`}
+                  onClick={() => !isCalculatingPrize && handleMenuChange(item.id)}
+                  disabled={isCalculatingPrize}
                 >
                   <span className="menu-icon">{item.icon}</span>
                   <span className="menu-label">{item.label}</span>

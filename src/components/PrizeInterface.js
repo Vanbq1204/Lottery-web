@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './PrizeInterface.css';
 
-const PrizeInterface = () => {
+const PrizeInterface = ({ onCalculatingChange }) => {
   const [winningInvoices, setWinningInvoices] = useState([]);
   // Get current date in Vietnam timezone (UTC+7)
   const getCurrentVietnamDate = () => {
@@ -112,8 +112,34 @@ const PrizeInterface = () => {
 
   // Tính thưởng cho ngày được chọn
   const calculatePrizes = async () => {
+    // Định nghĩa event handlers
+    let handleBeforeUnload;
+    let handleVisibilityChange;
+    
     try {
       setIsCalculating(true);
+      // Thông báo cho parent component về trạng thái tính thưởng
+      if (onCalculatingChange) {
+        onCalculatingChange(true);
+      }
+      
+      // Thêm event listener để ngăn chặn việc rời khỏi trang
+      handleBeforeUnload = (e) => {
+        e.preventDefault();
+        e.returnValue = 'Đang tính thưởng, vui lòng không đóng trang hoặc chuyển tab!';
+        return 'Đang tính thưởng, vui lòng không đóng trang hoặc chuyển tab!';
+      };
+      
+      handleVisibilityChange = () => {
+        if (document.hidden) {
+          alert('⚠️ Cảnh báo: Đang tính thưởng, vui lòng không chuyển tab khác để đảm bảo quá trình hoàn tất!');
+        }
+      };
+      
+      // Thêm event listeners
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      
       const token = localStorage.getItem('token');
       
       const response = await axios.post(getApiUrl('/prize/calculate'), 
@@ -134,7 +160,18 @@ const PrizeInterface = () => {
       console.error('Lỗi tính thưởng:', error);
       alert('Lỗi khi tính thưởng: ' + (error.response?.data?.message || error.message));
     } finally {
+      // Xóa event listeners sau khi hoàn thành hoặc có lỗi
+      if (handleBeforeUnload) {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      }
+      if (handleVisibilityChange) {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
       setIsCalculating(false);
+      // Thông báo cho parent component về trạng thái tính thưởng
+      if (onCalculatingChange) {
+        onCalculatingChange(false);
+      }
     }
   };
 
@@ -186,6 +223,67 @@ const PrizeInterface = () => {
 
   return (
     <div className="prize-interface">
+      {/* Loading Overlay */}
+      {isCalculating && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          color: 'white',
+          fontSize: '18px',
+          fontWeight: 'bold'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            color: '#333',
+            padding: '30px 40px',
+            borderRadius: '15px',
+            textAlign: 'center',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+            maxWidth: '400px',
+            width: '90%'
+          }}>
+            <div style={{
+              fontSize: '48px',
+              marginBottom: '20px',
+              animation: 'spin 2s linear infinite'
+            }}>⏳</div>
+            <div style={{
+              fontSize: '20px',
+              marginBottom: '15px',
+              color: '#2c3e50'
+            }}>Đang tính thưởng...</div>
+            <div style={{
+              fontSize: '14px',
+              color: '#7f8c8d',
+              lineHeight: '1.5'
+            }}>
+              ⚠️ Vui lòng không đóng trang hoặc chuyển tab khác<br/>
+              Quá trình này có thể mất vài phút
+            </div>
+            <div style={{
+              marginTop: '20px',
+              padding: '10px',
+              backgroundColor: '#fff3cd',
+              border: '1px solid #ffeaa7',
+              borderRadius: '8px',
+              fontSize: '12px',
+              color: '#856404'
+            }}>
+              💡 Hệ thống đang xử lý tất cả hóa đơn và tính toán thưởng
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="prize-header">
         <h2>🏆 Quản lý thưởng</h2>
         <p>Tính toán và hiển thị các hóa đơn trúng thưởng</p>
