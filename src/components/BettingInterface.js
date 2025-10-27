@@ -106,6 +106,8 @@ const BettingInterface = ({ user }) => {
       // Xử lý lỗi thời gian đặc biệt
       if (errorData?.code === 'BETTING_TIME_EXPIRED') {
         alert(`⏰ THỜI GIAN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+      } else if (errorData?.code === 'SPECIAL_BETS_TIME_EXPIRED') {
+        alert(`⏰ THỜI GIAN NHẬP LÔ, XIÊN, XIÊN QUAY ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
       } else {
         alert('Lỗi khi gửi cược: ' + (errorData?.message || error.message));
       }

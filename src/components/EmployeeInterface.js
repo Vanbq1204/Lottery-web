@@ -2059,6 +2059,8 @@ const EmployeeInterface = ({ user }) => {
       // Xử lý lỗi thời gian đặc biệt
       if (errorData?.code === 'BETTING_TIME_EXPIRED') {
         alert(`⏰ THỜI GIAN NHẬP CƯỢC ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+      } else if (errorData?.code === 'SPECIAL_BETS_TIME_EXPIRED') {
+        alert(`⏰ THỜI GIAN NHẬP LÔ, XIÊN, XIÊN QUAY ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
       } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
         alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
       } else {
@@ -2686,6 +2688,12 @@ const EmployeeInterface = ({ user }) => {
         return { 
           success: false, 
           error: `⏰ THỜI GIAN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`,
+          isTimeExpired: true
+        };
+      } else if (errorData?.code === 'SPECIAL_BETS_TIME_EXPIRED') {
+        return { 
+          success: false, 
+          error: `⏰ THỜI GIAN NHẬP LÔ, XIÊN, XIÊN QUAY ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`,
           isTimeExpired: true
         };
       }

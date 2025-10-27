@@ -9,7 +9,9 @@ const TimeSettings = () => {
     bettingCutoffTime: '18:30',
     isActive: true,
     editDeleteCutoffTime: '18:15',
-    editDeleteLimitActive: false
+    editDeleteLimitActive: false,
+    specialBetsCutoffTime: '18:15',
+    specialBetsLimitActive: false
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -105,6 +107,20 @@ const TimeSettings = () => {
     setSettings(prev => ({
       ...prev,
       editDeleteLimitActive: e.target.checked
+    }));
+  };
+
+  const handleSpecialBetsTimeChange = (e) => {
+    setSettings(prev => ({
+      ...prev,
+      specialBetsCutoffTime: e.target.value
+    }));
+  };
+
+  const handleSpecialBetsLimitActiveChange = (e) => {
+    setSettings(prev => ({
+      ...prev,
+      specialBetsLimitActive: e.target.checked
     }));
   };
 
@@ -223,6 +239,37 @@ const TimeSettings = () => {
             </label>
           </div>
 
+          <hr className="settings-divider" />
+          
+          <div className="time-settings-form-group">
+            <label htmlFor="special-bets-cutoff-time">
+              <span className="label-text">🎯 Thời gian giới hạn nhập lô, xiên, xiên quay</span>
+              <span className="label-desc">Nhân viên không thể nhập lô, xiên, xiên quay sau thời gian này</span>
+            </label>
+            <input
+              type="time"
+              id="special-bets-cutoff-time"
+              value={settings.specialBetsCutoffTime}
+              onChange={handleSpecialBetsTimeChange}
+              className="time-input"
+            />
+          </div>
+
+          <div className="time-settings-form-group">
+            <label className="time-limit-checkbox-wrapper">
+              <input
+                type="checkbox"
+                checked={settings.specialBetsLimitActive}
+                onChange={handleSpecialBetsLimitActiveChange}
+                className="time-limit-checkbox-input"
+              />
+              <div className="time-limit-checkbox-content">
+                <strong>Kích hoạt giới hạn thời gian nhập lô, xiên, xiên quay</strong>
+                <small>Bỏ tick để cho phép nhân viên nhập lô, xiên, xiên quay bất kỳ lúc nào</small>
+              </div>
+            </label>
+          </div>
+
           <div className="form-actions">
             <button
               onClick={handleSave}
@@ -240,9 +287,10 @@ const TimeSettings = () => {
             <ul>
               <li>Sau thời gian giới hạn nhập cược, nhân viên sẽ không thể lưu hóa đơn mới</li>
               <li>Sau thời gian giới hạn sửa/xóa, nhân viên sẽ không thể sửa hoặc xóa hóa đơn</li>
+              <li>Sau thời gian giới hạn lô, xiên, xiên quay, nhân viên sẽ không thể nhập các loại cược này</li>
               <li>Hệ thống sẽ hiển thị thông báo từ chối khi nhân viên cố gắng thực hiện các thao tác này</li>
               <li>Thời gian được tính theo múi giờ Việt Nam (UTC+7)</li>
-              <li>Khuyến nghị đặt thời gian giới hạn sửa/xóa sớm hơn thời gian giới hạn nhập cược</li>
+              <li>Khuyến nghị đặt thời gian giới hạn sửa/xóa và lô, xiên, xiên quay sớm hơn thời gian giới hạn nhập cược</li>
             </ul>
           </div>
         </div>
