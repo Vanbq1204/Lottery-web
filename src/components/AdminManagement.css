@@ -80,6 +80,20 @@
   margin-bottom: 16px;
 }
 
+.password-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-eye-btn {
+  padding: 8px 12px;
+  border: 2px solid black;
+  border-radius: 4px;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+
 .admin-mgmt-form-group label {
   display: block;
   margin-bottom: 6px;
@@ -358,4 +372,4 @@
     margin: 20px;
     width: calc(100% - 40px);
   }
-} 
+}

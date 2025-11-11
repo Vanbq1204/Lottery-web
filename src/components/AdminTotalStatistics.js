@@ -428,6 +428,7 @@ const AdminTotalStatistics = ({ user }) => {
       return;
     }
     const entries = Object.entries(statisticsData.xien)
+      .filter(([key]) => !key.includes('(xiên nháy)')) // Loại bỏ xiên nháy khỏi lựa chọn top N
       .map(([key, amount]) => ({ key, amount: amount || 0 }))
       .sort((a, b) => b.amount - a.amount)
       .filter(item => item.amount > 0)

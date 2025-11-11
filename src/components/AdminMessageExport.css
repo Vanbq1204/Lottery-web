@@ -1,0 +1,154 @@
+.msg-export-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.msg-export-header h2 {
+  margin: 0 0 4px 0;
+}
+
+.msg-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.msg-inbox-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 2px solid black;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+
+.msg-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #d32f2f;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.msg-alert-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 2px solid #ff9800;
+  background: #fff3e0;
+  border-radius: 8px;
+}
+
+.msg-alert-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #ff9800;
+  color: #fff;
+}
+.msg-export-meta {
+  color: #333;
+  font-weight: 600;
+}
+
+.msg-export-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.msg-control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.msg-control-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.msg-refresh-btn, .msg-copy-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.msg-refresh-btn {
+  background: #f0f0f0;
+}
+
+.msg-copy-btn {
+  background: #4e8ef7;
+  color: #fff;
+}
+
+.snapshot-copy-btn.copied {
+  background: #28a745; /* xanh lá khi đã sao chép */
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(40,167,69,0.2);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.msg-copy-status {
+  color: #0a8f3d;
+}
+
+.msg-note {
+  width: 100%;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.msg-export-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msg-block {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.msg-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.msg-line {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.msg-snapshot {
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.msg-snapshot-actions {
+  margin: 6px 0 10px 0;
+}
+
+/* Tạo khoảng cách giữa các dòng loại cược trong lịch sử */
+.msg-snapshot .msg-line {
+  margin: 20px 0;
+}

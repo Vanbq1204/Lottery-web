@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import AdminManagement from './AdminManagement';
 import StoreManagement from './StoreManagement';
+import SuperAdminSystemStats from './SuperAdminSystemStats';
+import SuperAdminCleanup from './SuperAdminCleanup';
 import './SuperAdminInterface.css';
 
 const SuperAdminInterface = ({ user, onLogout }) => {
@@ -9,7 +11,8 @@ const SuperAdminInterface = ({ user, onLogout }) => {
   const menuItems = [
     { id: 'admin-management', label: 'Quản lý tài khoản Admin', icon: '👤' },
     { id: 'store-management', label: 'Quản lý cửa hàng con', icon: '🏪' },
-    { id: 'system-statistics', label: 'Thống kê toàn bộ hệ thống', icon: '📊' }
+    { id: 'system-statistics', label: 'Thống kê toàn bộ hệ thống', icon: '📊' },
+    { id: 'system-cleanup', label: 'Làm sạch dữ liệu theo ngày', icon: '🗑️' }
   ];
 
   const renderContent = () => {
@@ -31,16 +34,14 @@ const SuperAdminInterface = ({ user, onLogout }) => {
       case 'system-statistics':
         return (
           <div className="super-admin-content">
-            <div className="super-admin-header">
-              <h2>Thống kê toàn bộ hệ thống</h2>
-              <p>Báo cáo tổng hợp của toàn bộ hệ thống</p>
-            </div>
-            <div className="super-admin-placeholder">
-              <div className="placeholder-box">
-                <h3>Thống kê hệ thống</h3>
-                <p>Chức năng sẽ được triển khai sau</p>
-              </div>
-            </div>
+            <SuperAdminSystemStats />
+          </div>
+        );
+
+      case 'system-cleanup':
+        return (
+          <div className="super-admin-content">
+            <SuperAdminCleanup />
           </div>
         );
 
@@ -90,4 +91,4 @@ const SuperAdminInterface = ({ user, onLogout }) => {
   );
 };
 
-export default SuperAdminInterface; 
+export default SuperAdminInterface;

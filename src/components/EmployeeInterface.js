@@ -8,6 +8,7 @@ import PrizeInterface from './PrizeInterface';
 import PrizeSettings from './PrizeSettings';
 import PrizeStatistics from './PrizeStatistics';
 import LotoMultiplierSettings from './LotoMultiplierSettings';
+import EmployeeChangePassword from './EmployeeChangePassword';
 import QuantityControls from './QuantityControls';
 import QuickLotteryResults from './QuickLotteryResults';
 
@@ -2063,6 +2064,26 @@ const EmployeeInterface = ({ user }) => {
         alert(`⏰ THỜI GIAN NHẬP LÔ, XIÊN, XIÊN QUAY ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
       } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
         alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+      } else if (errorData?.code === 'INVOICE_LOCKED_BY_MESSAGE_EXPORT') {
+        // Hóa đơn đã nằm trong lần xuất tin nhắn; đề nghị gửi yêu cầu tới admin
+        const reasonReq = prompt('Hóa đơn đã được xuất tin nhắn, không thể sửa. Nhập lý do gửi yêu cầu tới admin để xin sửa:');
+        if (reasonReq !== null) {
+          try {
+            const token = localStorage.getItem('token');
+            const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
+              invoiceId: editInvoiceId,
+              requestType: 'edit',
+              reason: reasonReq || ''
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            if (resp.data?.success) {
+              alert('Đã gửi yêu cầu tới admin. Vui lòng chờ phê duyệt.');
+            } else {
+              alert(resp.data?.message || 'Không thể gửi yêu cầu');
+            }
+          } catch (err) {
+            alert(err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
+          }
+        }
       } else {
         alert('Lỗi khi cập nhật hóa đơn: ' + (errorData?.message || error.message));
       }
@@ -2133,6 +2154,25 @@ const EmployeeInterface = ({ user }) => {
       } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
         // Lỗi thời gian sửa/xóa đã hết
         alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+      } else if (errorData?.code === 'INVOICE_LOCKED_BY_MESSAGE_EXPORT') {
+        const reasonReq = prompt('Hóa đơn đã được xuất tin nhắn, không thể xóa. Nhập lý do gửi yêu cầu tới admin để xin xóa:');
+        if (reasonReq !== null) {
+          try {
+            const token = localStorage.getItem('token');
+            const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
+              invoiceId: finalInvoiceId,
+              requestType: 'delete',
+              reason: reasonReq || ''
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            if (resp.data?.success) {
+              alert('Đã gửi yêu cầu tới admin. Vui lòng chờ phê duyệt.');
+            } else {
+              alert(resp.data?.message || 'Không thể gửi yêu cầu');
+            }
+          } catch (err) {
+            alert(err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
+          }
+        }
       } else {
         alert('Lỗi khi xóa hóa đơn: ' + (errorData?.message || error.message));
       }
@@ -3063,7 +3103,8 @@ const EmployeeInterface = ({ user }) => {
       subItems: [
         { id: 'prize-settings', label: 'Hệ số thưởng', icon: '🏆' },
         { id: 'loto-multiplier', label: 'Hệ số lô', icon: '🎯' },
-        { id: 'loto-unit', label: 'Đơn vị lô', icon: '🔤' }
+        { id: 'loto-unit', label: 'Đơn vị lô', icon: '🔤' },
+        ...(user?.allowChangePassword ? [{ id: 'emp-change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : [])
       ]
     }
   ];
@@ -4296,6 +4337,8 @@ const EmployeeInterface = ({ user }) => {
         return <LotoMultiplierSettings />;
       case 'loto-unit':
         return renderLotoUnitSettings();
+      case 'emp-change-password':
+        return <EmployeeChangePassword />;
       case 'invoices':
         return renderInvoiceListInterface();
       case 'history':

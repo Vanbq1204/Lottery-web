@@ -14,15 +14,21 @@ const AdminManagement = () => {
     password: '',
     name: '',
     email: '',
-    storeId: ''
+    storeId: '',
+    allowChangePassword: true,
+    allowMessageExport: true
   });
   const [showEditForm, setShowEditForm] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    allowChangePassword: true,
+    allowMessageExport: true
   });
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [showCreatePwd, setShowCreatePwd] = useState(false);
+  const [showEditPwd, setShowEditPwd] = useState(false);
 
   useEffect(() => {
     loadAdmins();
@@ -190,7 +196,9 @@ const AdminManagement = () => {
     setEditFormData({
       name: admin.name,
       email: admin.email,
-      password: ''
+      password: '',
+      allowChangePassword: admin.allowChangePassword ?? true,
+      allowMessageExport: admin.allowMessageExport ?? true
     });
     setShowEditForm(true);
     setOpenDropdown(null); // Close dropdown
@@ -206,7 +214,9 @@ const AdminManagement = () => {
 
     const updateData = {
       name: editFormData.name,
-      email: editFormData.email
+      email: editFormData.email,
+      allowChangePassword: !!editFormData.allowChangePassword,
+      allowMessageExport: !!editFormData.allowMessageExport
     };
 
     if (editFormData.password) {
@@ -267,14 +277,32 @@ const AdminManagement = () => {
               
               <div className="admin-mgmt-form-group">
                 <label>Mật khẩu mới (để trống nếu không đổi):</label>
-                <input
-                  type="password"
-                  value={editFormData.password}
-                  onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
-                  placeholder="Để trống nếu không thay đổi"
-                />
+                <div className="password-input-row">
+                  <input
+                    type={showEditPwd ? 'text' : 'password'}
+                    value={editFormData.password}
+                    onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
+                    placeholder="Để trống nếu không thay đổi"
+                  />
+                  <button type="button" className="toggle-eye-btn" onClick={() => setShowEditPwd(p => !p)}>
+                    {showEditPwd ? '🙈' : '👁️'}
+                  </button>
+                </div>
               </div>
               
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={editFormData.allowChangePassword} onChange={(e)=>setEditFormData({...editFormData, allowChangePassword: e.target.checked})} />
+                  Cho phép hiển thị Đổi mật khẩu
+                </label>
+              </div>
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={editFormData.allowMessageExport} onChange={(e)=>setEditFormData({...editFormData, allowMessageExport: e.target.checked})} />
+                  Cho phép sử dụng Xuất tin nhắn
+                </label>
+              </div>
+
               <div className="admin-mgmt-form-actions">
                 <button type="submit">Cập nhật</button>
                 <button type="button" onClick={() => setShowEditForm(false)}>Hủy</button>
@@ -302,12 +330,17 @@ const AdminManagement = () => {
               
               <div className="admin-mgmt-form-group">
                 <label>Mật khẩu:</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  required
-                />
+                <div className="password-input-row">
+                  <input
+                    type={showCreatePwd ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    required
+                  />
+                  <button type="button" className="toggle-eye-btn" onClick={() => setShowCreatePwd(p => !p)}>
+                    {showCreatePwd ? '🙈' : '👁️'}
+                  </button>
+                </div>
               </div>
               
               <div className="admin-mgmt-form-group">
@@ -344,6 +377,19 @@ const AdminManagement = () => {
                 </small>
               </div>
               
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={formData.allowChangePassword} onChange={(e)=>setFormData({...formData, allowChangePassword: e.target.checked})} />
+                  Cho phép hiển thị Đổi mật khẩu
+                </label>
+              </div>
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={formData.allowMessageExport} onChange={(e)=>setFormData({...formData, allowMessageExport: e.target.checked})} />
+                  Cho phép sử dụng Xuất tin nhắn
+                </label>
+              </div>
+
               <div className="admin-mgmt-form-actions">
                 <button type="submit">Tạo Admin</button>
                 <button type="button" onClick={() => setShowCreateForm(false)}>Hủy</button>
@@ -431,4 +477,4 @@ const AdminManagement = () => {
   );
 };
 
-export default AdminManagement; 
+export default AdminManagement;

@@ -18,8 +18,11 @@ const StoreManagement = () => {
     storeName: '',
     storeAddress: '',
     storePhone: '',
-    isActive: true
+    isActive: true,
+    allowChangePassword: true
   });
+  const [showCreatePwd, setShowCreatePwd] = useState(false);
+  const [showEditPwd, setShowEditPwd] = useState(false);
 
   useEffect(() => {
     loadAdmins();
@@ -194,7 +197,8 @@ const StoreManagement = () => {
       storeName: store.name || '',
       storeAddress: store.address || '',
       storePhone: store.phone || '',
-      isActive: store.isActive
+      isActive: store.isActive,
+      allowChangePassword: store.allowChangePassword ?? true
     });
     setShowEditForm(true);
   };
@@ -308,12 +312,17 @@ const StoreManagement = () => {
                 
                 <div className="store-mgmt-form-group">
                   <label>Mật khẩu:</label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    required
-                  />
+                  <div className="password-input-row">
+                    <input
+                      type={showCreatePwd ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      required
+                    />
+                    <button type="button" className="toggle-eye-btn" onClick={() => setShowCreatePwd(p => !p)}>
+                      {showCreatePwd ? '🙈' : '👁️'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -363,6 +372,17 @@ const StoreManagement = () => {
                     onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                   />
                   Hoạt động
+                </label>
+              </div>
+
+              <div className="store-mgmt-form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.allowChangePassword}
+                    onChange={(e) => setFormData({...formData, allowChangePassword: e.target.checked})}
+                  />
+                  Cho phép hiển thị Đổi mật khẩu cho nhân viên
                 </label>
               </div>
               
@@ -421,12 +441,17 @@ const StoreManagement = () => {
               
               <div className="store-mgmt-form-group">
                 <label>Mật khẩu mới (để trống nếu không đổi):</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  placeholder="Để trống nếu không thay đổi"
-                />
+                <div className="password-input-row">
+                  <input
+                    type={showEditPwd ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    placeholder="Để trống nếu không thay đổi"
+                  />
+                  <button type="button" className="toggle-eye-btn" onClick={() => setShowEditPwd(p => !p)}>
+                    {showEditPwd ? '🙈' : '👁️'}
+                  </button>
+                </div>
               </div>
               
               <div className="store-mgmt-form-group">
@@ -437,6 +462,17 @@ const StoreManagement = () => {
                     onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                   />
                   Hoạt động
+                </label>
+              </div>
+
+              <div className="store-mgmt-form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.allowChangePassword}
+                    onChange={(e) => setFormData({...formData, allowChangePassword: e.target.checked})}
+                  />
+                  Cho phép hiển thị Đổi mật khẩu cho nhân viên
                 </label>
               </div>
               
@@ -452,4 +488,4 @@ const StoreManagement = () => {
   );
 };
 
-export default StoreManagement; 
+export default StoreManagement;

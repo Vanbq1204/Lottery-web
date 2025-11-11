@@ -312,6 +312,20 @@
   margin-bottom: 16px;
 }
 
+.password-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-eye-btn {
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+
 .store-mgmt-form-group label {
   display: block;
   margin-bottom: 6px;
@@ -407,4 +421,4 @@
     justify-content: space-between;
     width: 100%;
   }
-} 
+}

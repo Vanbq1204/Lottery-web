@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Login from './components/Login';
 import EmployeeInterface from './components/EmployeeInterface';
 import AdminInterface from './components/AdminInterface';
@@ -24,6 +25,49 @@ function App() {
       }
     }
     setLoading(false);
+  }, []);
+
+  // Interceptors: auto-logout when token hết hạn/401
+  useEffect(() => {
+    const logoutAndRedirect = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+    };
+
+    // Axios response interceptor
+    const axiosInterceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        const status = error?.response?.status;
+        const msg = error?.response?.data?.message || '';
+        if (
+          status === 401 ||
+          msg.includes('Token không hợp lệ') ||
+          msg.includes('Không có token xác thực') ||
+          msg.includes('Chưa xác thực') ||
+          msg.includes('Tài khoản đã bị khóa')
+        ) {
+          logoutAndRedirect();
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Fetch wrapper for 401
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const res = await originalFetch(...args);
+      if (res.status === 401) {
+        logoutAndRedirect();
+      }
+      return res;
+    };
+
+    return () => {
+      axios.interceptors.response.eject(axiosInterceptorId);
+      window.fetch = originalFetch;
+    };
   }, []);
 
   const handleLogin = (userData) => {

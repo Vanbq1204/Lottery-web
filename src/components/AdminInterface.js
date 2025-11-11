@@ -8,6 +8,8 @@ import AdminTotalStatistics from './AdminTotalStatistics';
 import AdminPrizeStatistics from './AdminPrizeStatistics';
 import TimeSettings from './TimeSettings';
 import DataCleanup from './DataCleanup';
+import AdminMessageExport from './AdminMessageExport';
+import AdminChangePassword from './AdminChangePassword';
 
 const AdminInterface = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('my-store');
@@ -19,8 +21,10 @@ const AdminInterface = ({ user, onLogout }) => {
   const menuItems = [
     { id: 'my-store', label: 'Cửa hàng của tôi', icon: '🏪' },
     { id: 'reports', label: 'Báo cáo tổng hợp', icon: '📊' },
+    ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }] : []),
     { id: 'prize-stats', label: 'Thống kê thưởng tổng hợp', icon: '🏆' },
     { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' },
+    ...(user?.allowChangePassword ? [{ id: 'change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : []),
     { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' }
   ];
 
@@ -153,6 +157,19 @@ const AdminInterface = ({ user, onLogout }) => {
         return (
           <div className="admin-content-section">
             <AdminPrizeStatistics user={user} />
+          </div>
+        );
+      case 'message-export':
+        return (
+          <div className="admin-content-section">
+            {/* Xuất tin nhắn tổng hợp theo ngày */}
+            <AdminMessageExport user={user} />
+          </div>
+        );
+      case 'change-password':
+        return (
+          <div className="admin-content-section">
+            <AdminChangePassword />
           </div>
         );
       case 'time-settings':
