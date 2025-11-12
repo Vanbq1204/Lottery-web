@@ -201,6 +201,39 @@
   color: #1a73e8;
 }
 
+.expand-btn {
+  border: 1px solid black;
+  background: white;
+  color: black;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-right: 6px;
+  cursor: pointer;
+}
+
+.expanded-row td {
+  background: #fafafa;
+}
+
+.store-breakdown-wrapper {
+  padding: 8px 4px;
+}
+
+.store-breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.store-breakdown-table th {
+  background: #222;
+  color: white;
+}
+
+.loading-inline {
+  padding: 8px;
+  color: #666;
+}
+
 @media (max-width: 768px) {
   .system-stats-table th,
   .system-stats-table td {
@@ -286,7 +319,92 @@
     padding: 32px 24px;
   }
   
-  .placeholder-box h3 {
-    font-size: 20px;
+.placeholder-box h3 {
+  font-size: 20px;
+}
+}
+
+/* Mobile top bar & sidebar slide-in (áp dụng riêng mobile, không ảnh hưởng desktop) */
+.super-admin-mobile-topbar { display: none; }
+.super-admin-overlay { display: none; }
+
+@media (max-width: 992px) {
+  .super-admin-mobile-topbar {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 50px;
+    background: #ffffff;
+    border-bottom: 2px solid #000;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    z-index: 1001;
+  }
+  .super-admin-mobile-menu-button {
+    border: 1px solid #000;
+    background: #fff;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .super-admin-mobile-topbar-title {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    color: #000;
+    font-size: 16px;
+  }
+  .super-admin-mobile-logout-button {
+    border: 1px solid #dc3545;
+    background: #dc3545;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .super-admin-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+
+  .super-admin-sidebar {
+    position: fixed;
+    left: 0; top: 0; height: 100vh;
+    width: 240px;
+    transform: translateX(-110%);
+    transition: transform 0.25s ease;
+    z-index: 1002;
+  }
+  .super-admin-sidebar.super-admin-sidebar--open { transform: translateX(0); }
+  .super-admin-sidebar.super-admin-sidebar--closed { transform: translateX(-110%); }
+
+  .super-admin-main {
+    margin-left: 0;
+    padding-top: 60px; /* chừa chỗ cho topbar */
+    overflow: hidden;
+  }
+  .super-admin-content { padding-top: 0; }
+
+  /* Menu trong sidebar hiển thị dọc (không ngang và scroll) */
+  .super-admin-nav {
+    display: block;
+    overflow-x: visible;
+    padding: 16px 0;
+  }
+  .super-admin-nav-item {
+    min-width: auto;
+    white-space: normal;
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    width: 100%;
   }
 }

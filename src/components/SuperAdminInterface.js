@@ -3,17 +3,28 @@ import AdminManagement from './AdminManagement';
 import StoreManagement from './StoreManagement';
 import SuperAdminSystemStats from './SuperAdminSystemStats';
 import SuperAdminCleanup from './SuperAdminCleanup';
+import SuperAdminForceRelogin from './SuperAdminForceRelogin';
 import './SuperAdminInterface.css';
 
 const SuperAdminInterface = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('admin-management');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
     { id: 'admin-management', label: 'Quản lý tài khoản Admin', icon: '👤' },
     { id: 'store-management', label: 'Quản lý cửa hàng con', icon: '🏪' },
     { id: 'system-statistics', label: 'Thống kê toàn bộ hệ thống', icon: '📊' },
-    { id: 'system-cleanup', label: 'Làm sạch dữ liệu theo ngày', icon: '🗑️' }
+    { id: 'system-cleanup', label: 'Làm sạch dữ liệu theo ngày', icon: '🗑️' },
+    { id: 'force-relogin', label: 'Yêu cầu đăng nhập lại', icon: '🔁' }
   ];
+
+  const handleMenuClick = (id) => {
+    setActiveTab(id);
+    if (window.innerWidth <= 992) setIsMobileMenuOpen(false);
+  };
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -45,6 +56,13 @@ const SuperAdminInterface = ({ user, onLogout }) => {
           </div>
         );
 
+      case 'force-relogin':
+        return (
+          <div className="super-admin-content">
+            <SuperAdminForceRelogin />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -53,7 +71,7 @@ const SuperAdminInterface = ({ user, onLogout }) => {
   return (
     <div className="super-admin-interface">
       {/* Sidebar Menu */}
-      <div className="super-admin-sidebar">
+      <div className={`super-admin-sidebar ${isMobileMenuOpen ? 'super-admin-sidebar--open' : 'super-admin-sidebar--closed'}`}>
         <div className="super-admin-user-info">
           <div className="super-admin-avatar">SA</div>
           <div className="super-admin-user-details">
@@ -67,7 +85,7 @@ const SuperAdminInterface = ({ user, onLogout }) => {
             <button
               key={item.id}
               className={`super-admin-nav-item ${activeTab === item.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleMenuClick(item.id)}
             >
               <span className="super-admin-nav-icon">{item.icon}</span>
               <span className="super-admin-nav-label">{item.label}</span>
@@ -82,6 +100,16 @@ const SuperAdminInterface = ({ user, onLogout }) => {
           </button>
         </div>
       </div>
+
+      {/* Mobile top bar */}
+      <div className="super-admin-mobile-topbar">
+        <button className="super-admin-mobile-menu-button" onClick={toggleMobileMenu}>☰ Menu</button>
+        <div className="super-admin-mobile-topbar-title">Trang quản trị</div>
+        <button className="super-admin-mobile-logout-button" onClick={onLogout}>Đăng xuất</button>
+      </div>
+
+      {/* Overlay for mobile menu */}
+      {isMobileMenuOpen && <div className="super-admin-overlay" onClick={closeMobileMenu} />}
 
       {/* Main Content */}
       <div className="super-admin-main">

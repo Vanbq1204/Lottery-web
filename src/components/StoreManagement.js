@@ -11,6 +11,7 @@ const StoreManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingStore, setEditingStore] = useState(null);
+  const [creating, setCreating] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -91,6 +92,7 @@ const StoreManagement = () => {
     }
 
     try {
+      setCreating(true);
       const token = localStorage.getItem('token');
       const response = await fetch(getApiUrl('/superadmin/stores'), {
         method: 'POST',
@@ -124,6 +126,8 @@ const StoreManagement = () => {
     } catch (error) {
       console.error('Error creating store:', error);
       alert('Lỗi khi tạo cửa hàng');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -297,6 +301,12 @@ const StoreManagement = () => {
       {showCreateForm && (
         <div className="store-mgmt-modal">
           <div className="store-mgmt-modal-content">
+            {creating && (
+              <div className="store-mgmt-creating-overlay">
+                <div className="creating-spinner"></div>
+                <div className="creating-text">Đang tạo cửa hàng...</div>
+              </div>
+            )}
             <h3>Thêm cửa hàng mới</h3>
             <form onSubmit={handleCreateStore}>
               <div className="store-mgmt-form-row">
@@ -387,8 +397,8 @@ const StoreManagement = () => {
               </div>
               
               <div className="store-mgmt-form-actions">
-                <button type="submit">Tạo cửa hàng</button>
-                <button type="button" onClick={() => setShowCreateForm(false)}>Hủy</button>
+                <button type="submit" disabled={creating}>{creating ? 'Đang tạo...' : 'Tạo cửa hàng'}</button>
+                <button type="button" onClick={() => setShowCreateForm(false)} disabled={creating}>Hủy</button>
               </div>
             </form>
           </div>

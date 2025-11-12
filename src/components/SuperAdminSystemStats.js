@@ -18,6 +18,9 @@ const SuperAdminSystemStats = () => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [expanded, setExpanded] = useState({}); // adminId -> boolean
+  const [storeRows, setStoreRows] = useState({}); // adminId -> stores[]
+  const [loadingStores, setLoadingStores] = useState({}); // adminId -> boolean
 
   const loadStats = async (d) => {
     try {
@@ -36,6 +39,31 @@ const SuperAdminSystemStats = () => {
   };
 
   useEffect(() => { loadStats(date); }, []);
+
+  const loadStoresForAdmin = async (adminId) => {
+    try {
+      setLoadingStores(prev => ({ ...prev, [adminId]: true }));
+      const token = localStorage.getItem('token');
+      const resp = await axios.get(getApiUrl(`/superadmin/system-statistics/stores?adminId=${adminId}&date=${date}`), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (resp.data?.success) {
+        setStoreRows(prev => ({ ...prev, [adminId]: resp.data.stores || [] }));
+      }
+    } catch (err) {
+      // ignore errors for store loading
+    } finally {
+      setLoadingStores(prev => ({ ...prev, [adminId]: false }));
+    }
+  };
+
+  const toggleExpand = async (adminId) => {
+    const open = !!expanded[adminId];
+    if (!open && !storeRows[adminId]) {
+      await loadStoresForAdmin(adminId);
+    }
+    setExpanded(prev => ({ ...prev, [adminId]: !open }));
+  };
 
   const formatN = (n) => (parseInt(n)||0).toLocaleString('vi-VN').replace(/,/g,'.');
 
@@ -72,8 +100,12 @@ const SuperAdminSystemStats = () => {
           </thead>
           <tbody>
             {rows.map(r=> (
-              <tr key={r.adminId}>
-                <td>{r.adminName}</td>
+              <React.Fragment key={r.adminId}>
+              <tr>
+                <td>
+                  <button className="expand-btn" onClick={() => toggleExpand(r.adminId)}>{expanded[r.adminId] ? '▾' : '▸'}</button>
+                  {r.adminName}
+                </td>
                 <td>{formatN(r.totalRevenue)}</td>
                 <td>{formatN(r.lotoTotal)}</td>
                 <td>{formatN(r['2sTotal'])}</td>
@@ -87,6 +119,60 @@ const SuperAdminSystemStats = () => {
                 <td>{formatN(r.xienTotal)}</td>
                 <td>{formatN(r.xienquayTotal)}</td>
               </tr>
+              {expanded[r.adminId] && (
+                <tr className="expanded-row">
+                  <td colSpan="13">
+                    <div className="store-breakdown-wrapper">
+                      {loadingStores[r.adminId] ? (
+                        <div className="loading-inline">Đang tải dữ liệu cửa hàng...</div>
+                      ) : (
+                        <table className="system-stats-table store-breakdown-table">
+                          <thead>
+                            <tr>
+                              <th>Cửa hàng</th>
+                              <th>Tổng doanh thu</th>
+                              <th>Lô</th>
+                              <th>2 số</th>
+                              <th>3 số</th>
+                              <th>4 số</th>
+                              <th>Tổng</th>
+                              <th>Đầu</th>
+                              <th>Đít</th>
+                              <th>Kép</th>
+                              <th>Bộ</th>
+                              <th>Xiên</th>
+                              <th>Xiên quay</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(storeRows[r.adminId] || []).map(s => (
+                              <tr key={s.storeId}>
+                                <td>{s.storeName}</td>
+                                <td>{formatN(s.totalRevenue)}</td>
+                                <td>{formatN(s.lotoTotal)}</td>
+                                <td>{formatN(s['2sTotal'])}</td>
+                                <td>{formatN(s['3sTotal'])}</td>
+                                <td>{formatN(s['4sTotal'])}</td>
+                                <td>{formatN(s.tongTotal)}</td>
+                                <td>{formatN(s.dauTotal)}</td>
+                                <td>{formatN(s.ditTotal)}</td>
+                                <td>{formatN(s.kepTotal)}</td>
+                                <td>{formatN(s.boTotal)}</td>
+                                <td>{formatN(s.xienTotal)}</td>
+                                <td>{formatN(s.xienquayTotal)}</td>
+                              </tr>
+                            ))}
+                            {(!storeRows[r.adminId] || storeRows[r.adminId].length === 0) && (
+                              <tr><td colSpan="13" style={{textAlign:'center',color:'#666'}}>Không có dữ liệu cửa hàng</td></tr>
+                            )}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+              </React.Fragment>
             ))}
             {rows.length===0 && !loading && (
               <tr><td colSpan="13" style={{textAlign:'center',color:'#666'}}>Không có dữ liệu</td></tr>

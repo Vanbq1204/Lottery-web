@@ -22,21 +22,20 @@ const SuperAdminCleanup = () => {
     return `${y}-${m}-${d}`;
   };
   const retentionMaxSelectable = () => {
-    const base = new Date(getCurrentVNDateStr()+ 'T00:00:00+07:00');
-    base.setDate(base.getDate() - 3); // chỉ cho chọn từ 3 ngày trước trở về trước (giữ lại hôm nay & hôm qua)
-    const y = base.getFullYear();
-    const m = String(base.getMonth()+1).padStart(2,'0');
-    const d = String(base.getDate()).padStart(2,'0');
-    return `${y}-${m}-${d}`;
+    // Cho phép chọn bất kỳ ngày nào; chặn ở backend đối với hôm nay & ngày mai
+    return '';
   };
 
   const isDateAllowed = (dStr) => {
     if (!dStr) return false;
-    const today = new Date(getCurrentVNDateStr()+ 'T00:00:00+07:00');
-    const retention = new Date(today);
-    retention.setDate(today.getDate()-2); // giữ lại 2 ngày gần nhất
-    const target = new Date(dStr+ 'T00:00:00+07:00');
-    return target < retention;
+    const today = new Date(new Date().toLocaleString('en-US',{ timeZone:'Asia/Ho_Chi_Minh'}));
+    const todayStr = getCurrentVNDateStr();
+    const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
+    const yy = yesterday.getFullYear();
+    const ym = String(yesterday.getMonth()+1).padStart(2,'0');
+    const yd = String(yesterday.getDate()).padStart(2,'0');
+    const yesterdayStr = `${yy}-${ym}-${yd}`;
+    return (dStr !== todayStr && dStr !== yesterdayStr);
   };
 
   const loadAdmins = async () => {
@@ -109,6 +108,7 @@ const SuperAdminCleanup = () => {
                   <div className="stat-card"><div className="stat-number">{stats.totalInvoices}</div><div className="stat-label">Hóa đơn cược</div></div>
                   <div className="stat-card"><div className="stat-number">{stats.totalWinningInvoices}</div><div className="stat-label">Hóa đơn thưởng</div></div>
                   <div className="stat-card"><div className="stat-number">{stats.affectedStores}</div><div className="stat-label">Cửa hàng bị ảnh hưởng</div></div>
+                  <div className="stat-card"><div className="stat-number">{stats.totalSnapshots}</div><div className="stat-label">Lịch sử xuất tin nhắn</div></div>
                 </div>
               ) : <p>Không có dữ liệu.</p>}
             </div>
