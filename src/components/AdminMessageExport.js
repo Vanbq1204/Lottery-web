@@ -32,6 +32,71 @@ const AdminMessageExport = ({ user }) => {
   const [reqLoading, setReqLoading] = useState(false);
   const [copiedMap, setCopiedMap] = useState({});
   const [showRequestsPanel, setShowRequestsPanel] = useState(false);
+  // Helpers lấy/lưu hệ số theo admin
+  const resolveFactorKey = (u) => {
+    const id = u?._id || u?.id;
+    return id ? `msgSendFactor:${id}` : 'msgSendFactor';
+  };
+  const getInitialFactor = (u) => {
+    try {
+      const key = resolveFactorKey(u);
+      const rawUser = localStorage.getItem(key);
+      const rawGlobal = localStorage.getItem('msgSendFactor');
+      const raw = rawUser != null ? rawUser : rawGlobal;
+      const v = parseFloat(raw);
+      return !isNaN(v) ? Math.max(1, v) : 1.0;
+    } catch (_) {
+      return 1.0;
+    }
+  };
+
+  const [sendFactor, setSendFactor] = useState(() => getInitialFactor(user)); // Hệ số gửi đi, mặc định 1.0 (tối thiểu 1)
+  const [baseStats, setBaseStats] = useState(null); // Lưu thống kê thô để tính lại nhanh
+
+  // Khi đổi admin, tải lại hệ số theo admin đó
+  useEffect(() => {
+    setSendFactor(getInitialFactor(user));
+  }, [user]);
+
+  // Lưu lại hệ số mỗi khi thay đổi (ghi cả key theo admin và key chung để dự phòng)
+  useEffect(() => {
+    try {
+      const key = resolveFactorKey(user);
+      localStorage.setItem(key, String(sendFactor));
+      localStorage.setItem('msgSendFactor', String(sendFactor));
+    } catch (_) { /* ignore */ }
+  }, [sendFactor, user]);
+
+  // Tính lại tất cả chuỗi tin nhắn từ stats hiện có
+  const recomputeMessagesFromStats = (stats) => {
+    if (!stats) return;
+    const lotoStats = stats?.loto || {};
+    const twoSStats = stats?.['2s'] || {};
+    const threeSStats = stats?.['3s'] || {};
+    const fourSStats = stats?.['4s'] || {};
+    const grouped = stats?.grouped || {};
+    const xStats = stats?.xien || {};
+    const xqStats = stats?.xienquay || {};
+
+    setLotoMessage(buildLotoMessage(lotoStats)); // Lô không nhân hệ số
+    setTwoSMessage(buildTwoSMessage(twoSStats));
+    setThreeSMessage(buildThreeSMessage(threeSStats));
+    setFourSMessage(buildFourSMessage(fourSStats));
+    setTongMessage(buildGroupedLine('Tổng', grouped?.tong));
+    setDauMessage(buildGroupedLine('Đầu', grouped?.dau));
+    setDitMessage(buildGroupedLine('Đít', grouped?.dit));
+    setKepMessage(buildGroupedLine('Kép', grouped?.kep));
+    setBoMessage(buildGroupedLine('Bộ', grouped?.bo));
+    setXMessage(buildXMessage(xStats));
+    setXquayMessage(buildXquayMessage(xqStats));
+  };
+
+  // Khi hệ số thay đổi, tính lại ngay từ baseStats (không gọi API)
+  useEffect(() => {
+    if (baseStats) {
+      recomputeMessagesFromStats(baseStats);
+    }
+  }, [sendFactor, baseStats]);
 
   // Gom nhóm theo cùng số điểm và tạo chuỗi tin cho Lô
   const buildLotoMessage = (lotoStats) => {
@@ -67,8 +132,9 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [number, amountN] of Object.entries(twoSStats)) {
       const a = parseInt(amountN) || 0;
-      if (!groups.has(a)) groups.set(a, []);
-      groups.get(a).push(number.padStart(2, '0'));
+      const scaled = Math.max(1, Math.round(a * sendFactor));
+      if (!groups.has(scaled)) groups.set(scaled, []);
+      groups.get(scaled).push(number.padStart(2, '0'));
     }
     const sortedAmounts = Array.from(groups.keys()).sort((a, b) => b - a);
     const segments = sortedAmounts.map(a => {
@@ -107,8 +173,9 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [num, n] of Object.entries(agg)) {
       const amount = parseInt(n) || 0;
-      if (!groups.has(amount)) groups.set(amount, []);
-      groups.get(amount).push(num.padStart(3, '0'));
+      const scaled = Math.max(1, Math.round(amount * sendFactor));
+      if (!groups.has(scaled)) groups.set(scaled, []);
+      groups.get(scaled).push(num.padStart(3, '0'));
     }
     const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
     const segments = sorted.map(a => {
@@ -124,8 +191,9 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [num, n] of Object.entries(agg)) {
       const amount = parseInt(n) || 0;
-      if (!groups.has(amount)) groups.set(amount, []);
-      groups.get(amount).push(num.padStart(4, '0'));
+      const scaled = Math.max(1, Math.round(amount * sendFactor));
+      if (!groups.has(scaled)) groups.set(scaled, []);
+      groups.get(scaled).push(num.padStart(4, '0'));
     }
     const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
     const segments = sorted.map(a => {
@@ -145,8 +213,9 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [key, n] of Object.entries(simple)) {
       const a = parseInt(n) || 0;
-      if (!groups.has(a)) groups.set(a, []);
-      groups.get(a).push(key);
+      const scaled = Math.max(1, Math.round(a * sendFactor));
+      if (!groups.has(scaled)) groups.set(scaled, []);
+      groups.get(scaled).push(key);
     }
     const sortedAmounts = Array.from(groups.keys()).sort((a, b) => b - a);
     const segments = sortedAmounts.map(a => {
@@ -185,8 +254,9 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [combo, n] of Object.entries(agg)) {
       const a = parseInt(n) || 0;
-      if (!groups.has(a)) groups.set(a, []);
-      groups.get(a).push(combo);
+      const scaled = Math.max(1, Math.round(a * sendFactor));
+      if (!groups.has(scaled)) groups.set(scaled, []);
+      groups.get(scaled).push(combo);
     }
     const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
     const segments = sorted.map(a => {
@@ -202,8 +272,9 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [combo, n] of Object.entries(agg)) {
       const a = parseInt(n) || 0;
-      if (!groups.has(a)) groups.set(a, []);
-      groups.get(a).push(combo);
+      const scaled = Math.max(1, Math.round(a * sendFactor));
+      if (!groups.has(scaled)) groups.set(scaled, []);
+      groups.get(scaled).push(combo);
     }
     const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
     const segments = sorted.map(a => {
@@ -223,25 +294,8 @@ const AdminMessageExport = ({ user }) => {
       });
 
       const stats = resp.data?.stats || resp.data?.statistics || null;
-      const lotoStats = stats?.loto || {};
-      const twoSStats = stats?.['2s'] || {};
-      const threeSStats = stats?.['3s'] || {};
-      const fourSStats = stats?.['4s'] || {};
-      const grouped = stats?.grouped || {};
-      const xStats = stats?.xien || {};
-      const xqStats = stats?.xienquay || {};
-
-      setLotoMessage(buildLotoMessage(lotoStats));
-      setTwoSMessage(buildTwoSMessage(twoSStats));
-      setThreeSMessage(buildThreeSMessage(threeSStats));
-      setFourSMessage(buildFourSMessage(fourSStats));
-      setTongMessage(buildGroupedLine('Tổng', grouped?.tong));
-      setDauMessage(buildGroupedLine('Đầu', grouped?.dau));
-      setDitMessage(buildGroupedLine('Đít', grouped?.dit));
-      setKepMessage(buildGroupedLine('Kép', grouped?.kep));
-      setBoMessage(buildGroupedLine('Bộ', grouped?.bo));
-      setXMessage(buildXMessage(xStats));
-      setXquayMessage(buildXquayMessage(xqStats));
+      setBaseStats(stats);
+      recomputeMessagesFromStats(stats);
     } catch (error) {
       console.error('Lỗi tải thống kê:', error);
       setLotoMessage('L: (Không thể tải dữ liệu)');
@@ -292,7 +346,7 @@ const AdminMessageExport = ({ user }) => {
       setExporting(true);
       const token = localStorage.getItem('token');
       const resp = await axios.post(getApiUrl('/admin/message-exports/export'),
-        { date: selectedDate },
+        { date: selectedDate, multiplier: sendFactor },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (resp.data?.success) {
@@ -422,6 +476,21 @@ const AdminMessageExport = ({ user }) => {
             onChange={onDateChange}
           />
         </div>
+        <div className="msg-control-group">
+          <label>Hệ số gửi đi:</label>
+          <input
+            type="number"
+            min={1}
+            step={0.1}
+            value={sendFactor}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              const clamped = isNaN(val) ? 1.0 : Math.max(1, val);
+              setSendFactor(clamped);
+              // Không gọi API; chuỗi sẽ tự tính lại từ baseStats
+            }}
+          />
+        </div>
         <div className="msg-control-actions">
           <button className="msg-refresh-btn" onClick={() => loadStatistics(selectedDate)} disabled={isLoading}>
             {isLoading ? 'Đang tải...' : 'Tải lại toàn bộ'}
@@ -493,7 +562,11 @@ const AdminMessageExport = ({ user }) => {
                       onClick={async () => {
                         try {
                           const token = localStorage.getItem('token');
-                          const resp = await axios.put(getApiUrl(`/admin/message-exports/reexport/${h._id}`), {}, { headers: { Authorization: `Bearer ${token}` } });
+                          const resp = await axios.put(
+                            getApiUrl(`/admin/message-exports/reexport/${h._id}`),
+                            { multiplier: sendFactor },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                          );
                           if (resp.data?.success) {
                             // reload history to reflect updated messages
                             await loadHistory(selectedDate);
