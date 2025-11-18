@@ -1,0 +1,115 @@
+.sa-history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sa-history-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sa-history-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.sa-history-subtitle {
+  color: #6c757d;
+}
+
+.sa-history-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sa-control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sa-reload-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #4e8ef7;
+  color: #fff;
+  cursor: pointer;
+}
+
+.sa-delete-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #dc3545;
+  color: #fff;
+  cursor: pointer;
+}
+
+.sa-empty {
+  color: #6c757d;
+}
+
+.sa-history-card {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.sa-history-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sa-meta-left .sa-meta-date {
+  font-weight: 700;
+}
+
+.sa-meta-left .sa-meta-time {
+  color: #6c757d;
+}
+
+.sa-meta-right {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.sa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sa-badge--create { background: #e8f5e9; color: #1b5e20; }
+.sa-badge--update { background: #fff3e0; color: #e65100; }
+.sa-badge--user { background: #e3f2fd; color: #0d47a1; }
+.sa-badge--store { background: #f3e5f5; color: #4a148c; }
+
+.sa-table-wrapper { overflow-x: auto; }
+
+.sa-history-table { width: 100%; border-collapse: collapse; }
+.sa-history-table th, .sa-history-table td { text-align: left; padding: 6px 8px; }
+.sa-history-table thead th { border-bottom: 2px solid #eee; font-weight: 700; }
+.sa-history-row.changed { background: #fffdf2; }
+.sa-history-label { font-weight: 700; width: 90px; }
+.sa-history-before { color: #6c757d; }
+.sa-history-after { color: #2c3e50; font-weight: 600; }
+.sa-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+@media (max-width: 768px) {
+  .sa-history-controls { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .sa-meta-right { justify-content: flex-start; }
+}

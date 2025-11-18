@@ -6,6 +6,8 @@ import './PrizeInterface.css';
 
 const PrizeInterface = ({ onCalculatingChange }) => {
   const [winningInvoices, setWinningInvoices] = useState([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [lotteryPreview, setLotteryPreview] = useState(null);
   // Get current date in Vietnam timezone (UTC+7)
   const getCurrentVietnamDate = () => {
     const now = new Date();
@@ -175,6 +177,29 @@ const PrizeInterface = ({ onCalculatingChange }) => {
     }
   };
 
+  // Kiểm tra kết quả xổ số trước khi tính thưởng và hiển thị xác nhận
+  const handleCalculateClick = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await axios.get(getApiUrl(`/lottery/results?date=${selectedDate}`), {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const list = resp.data?.lotteryResults || [];
+      if (!Array.isArray(list) || list.length === 0) {
+        const [y, m, d] = selectedDate.split('-');
+        const displayDate = `${d}/${m}/${y}`;
+        alert(`Chưa có kết quả xổ cho ngày ${displayDate}, vui lòng đợi trong giây lát.`);
+        return;
+      }
+      // Có kết quả: mở modal xác nhận và hiển thị
+      setLotteryPreview(list[0]);
+      setConfirmOpen(true);
+    } catch (error) {
+      console.error('Lỗi kiểm tra kết quả xổ số:', error);
+      alert('Không kiểm tra được kết quả xổ số. Vui lòng thử lại sau.');
+    }
+  };
+
   // Format tiền tệ
   const formatMoney = (amount) => {
     if (!amount || amount === 0) return '0 đ';
@@ -283,6 +308,90 @@ const PrizeInterface = ({ onCalculatingChange }) => {
           </div>
         </div>
       )}
+
+      {/* Modal xác nhận tính thưởng với kết quả xổ số */}
+      {confirmOpen && lotteryPreview && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(0,0,0,0.6)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 12, padding: 20, maxWidth: 800, width: '95%', boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+          }}>
+            <h3 style={{ marginTop: 0 }}>Kết quả xổ số ngày {lotteryPreview.turnNum}</h3>
+            <div style={{ color: '#6c757d', marginBottom: 12 }}>Thời gian: {formatDateTime(lotteryPreview.openTime)}</div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ width: 120, fontWeight: 700, padding: '6px 8px', borderBottom: '1px solid #eee' }}>G.ĐB</td>
+                    <td style={{ padding: '6px 8px', borderBottom: '1px solid #eee' }}>{lotteryPreview.results?.gdb || ''}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ width: 120, fontWeight: 700, padding: '6px 8px', borderBottom: '1px solid #eee' }}>G.1</td>
+                    <td style={{ padding: '6px 8px', borderBottom: '1px solid #eee' }}>{lotteryPreview.results?.g1 || ''}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ width: 120, fontWeight: 700, padding: '6px 8px', borderBottom: '1px solid #eee' }}>G.2</td>
+                    <td style={{ padding: '6px 8px', borderBottom: '1px solid #eee' }}>{(lotteryPreview.results?.g2 || []).join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ width: 120, fontWeight: 700, padding: '6px 8px', borderBottom: '1px solid #eee' }}>G.3</td>
+                    <td style={{ padding: '6px 8px', borderBottom: '1px solid #eee' }}>{(lotteryPreview.results?.g3 || []).join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ width: 120, fontWeight: 700, padding: '6px 8px', borderBottom: '1px solid #eee' }}>G.4</td>
+                    <td style={{ padding: '6px 8px', borderBottom: '1px solid #eee' }}>{(lotteryPreview.results?.g4 || []).join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ width: 120, fontWeight: 700, padding: '6px 8px', borderBottom: '1px solid #eee' }}>G.5</td>
+                    <td style={{ padding: '6px 8px', borderBottom: '1px solid #eee' }}>{(lotteryPreview.results?.g5 || []).join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ width: 120, fontWeight: 700, padding: '6px 8px', borderBottom: '1px solid #eee' }}>G.6</td>
+                    <td style={{ padding: '6px 8px', borderBottom: '1px solid #eee' }}>{(lotteryPreview.results?.g6 || []).join(', ')}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ width: 120, fontWeight: 700, padding: '6px 8px' }}>G.7</td>
+                    <td style={{ padding: '6px 8px' }}>{(lotteryPreview.results?.g7 || []).join(', ')}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ marginTop: 16, color: '#495057' }}>
+              Vui lòng kiểm tra kỹ trước khi bấm tính thưởng. Nếu sai vui lòng ấn <strong>Từ chối tính thưởng</strong> và liên hệ lại với quản trị viên; nếu đúng hãy ấn <strong>Đồng ý tính thưởng</strong>.
+            </div>
+
+            <div style={{
+              marginTop: 12,
+              padding: '10px 12px',
+              backgroundColor: '#ffe8e8',
+              border: '1px solid #ffb3b3',
+              borderRadius: 8,
+              color: '#b00020',
+              fontWeight: 700
+            }}>
+              ⚠️ Nếu kết quả sai mà bạn bấm tính thưởng có thể ảnh hưởng đến sai lệch số liệu, hệ thống không chịu trách nhiệm.
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+              <button
+                style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: '#28a745', color: '#fff', fontWeight: 700 }}
+                onClick={async () => { setConfirmOpen(false); await calculatePrizes(); }}
+              >
+                ✅ Đồng ý tính thưởng
+              </button>
+              <button
+                style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: '#dc3545', color: '#fff', fontWeight: 700 }}
+                onClick={() => setConfirmOpen(false)}
+              >
+                ❌ Từ chối tính thưởng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="prize-header">
         <h2>🏆 Quản lý thưởng</h2>
@@ -337,7 +446,7 @@ const PrizeInterface = ({ onCalculatingChange }) => {
         <div className="calculate-btn-container" style={{ position: 'relative', display: 'inline-block' }}>
           <button 
             className="calculate-btn"
-            onClick={calculatePrizes}
+            onClick={handleCalculateClick}
             disabled={isCalculating}
           >
             {isCalculating ? '⏳ Đang tính...' : '🔄 Tính thưởng'}

@@ -20,7 +20,9 @@ const StoreManagement = () => {
     storeAddress: '',
     storePhone: '',
     isActive: true,
-    allowChangePassword: true
+    allowChangePassword: true,
+    showLotteryResults: false,
+    showQuickLotteryResults: false
   });
   const [showCreatePwd, setShowCreatePwd] = useState(false);
   const [showEditPwd, setShowEditPwd] = useState(false);
@@ -117,7 +119,10 @@ const StoreManagement = () => {
           storeName: '',
           storeAddress: '',
           storePhone: '',
-          isActive: true
+          isActive: true,
+          allowChangePassword: true,
+          showLotteryResults: false,
+          showQuickLotteryResults: false
         });
         loadStoresForAdmin(selectedAdmin.id);
       } else {
@@ -202,7 +207,9 @@ const StoreManagement = () => {
       storeAddress: store.address || '',
       storePhone: store.phone || '',
       isActive: store.isActive,
-      allowChangePassword: store.allowChangePassword ?? true
+      allowChangePassword: store.allowChangePassword ?? true,
+      showLotteryResults: store.showLotteryResults ?? false,
+      showQuickLotteryResults: store.showQuickLotteryResults ?? false
     });
     setShowEditForm(true);
   };
@@ -395,6 +402,29 @@ const StoreManagement = () => {
                   Cho phép hiển thị Đổi mật khẩu cho nhân viên
                 </label>
               </div>
+
+              <div className="store-mgmt-form-row">
+                <div className="store-mgmt-form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={formData.showLotteryResults}
+                      onChange={(e) => setFormData({...formData, showLotteryResults: e.target.checked})}
+                    />
+                    Hiển thị tab Kết quả xổ số
+                  </label>
+                </div>
+                <div className="store-mgmt-form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={formData.showQuickLotteryResults}
+                      onChange={(e) => setFormData({...formData, showQuickLotteryResults: e.target.checked})}
+                    />
+                    Hiển thị tab Kết quả xổ số nhanh
+                  </label>
+                </div>
+              </div>
               
               <div className="store-mgmt-form-actions">
                 <button type="submit" disabled={creating}>{creating ? 'Đang tạo...' : 'Tạo cửa hàng'}</button>
@@ -484,6 +514,29 @@ const StoreManagement = () => {
                   />
                   Cho phép hiển thị Đổi mật khẩu cho nhân viên
                 </label>
+              </div>
+
+              <div className="store-mgmt-form-row">
+                <div className="store-mgmt-form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={formData.showLotteryResults}
+                      onChange={(e) => setFormData({...formData, showLotteryResults: e.target.checked})}
+                    />
+                    Hiển thị tab Kết quả xổ số
+                  </label>
+                </div>
+                <div className="store-mgmt-form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={formData.showQuickLotteryResults}
+                      onChange={(e) => setFormData({...formData, showQuickLotteryResults: e.target.checked})}
+                    />
+                    Hiển thị tab Kết quả xổ số nhanh
+                  </label>
+                </div>
               </div>
               
               <div className="store-mgmt-form-actions">

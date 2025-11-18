@@ -3085,7 +3085,7 @@ const EmployeeInterface = ({ user }) => {
     window.location.reload();
   };
 
-  const menuItems = [
+  const baseMenuItems = [
     { id: 'betting', label: 'Nhập cược', icon: '📝' },
     { id: 'statistics', label: 'Thống kê cược', icon: '📊' },
     { id: 'lottery', label: 'Kết quả xổ số', icon: '🎯' },
@@ -3107,6 +3107,26 @@ const EmployeeInterface = ({ user }) => {
       ]
     }
   ];
+
+  // Lọc menu theo quyền hiển thị tab của cửa hàng
+  const menuItems = baseMenuItems.filter(item => {
+    if (item.id === 'lottery') {
+      return !!storeInfo?.showLotteryResults;
+    }
+    if (item.id === 'quick-lottery') {
+      return !!storeInfo?.showQuickLotteryResults;
+    }
+    return true;
+  });
+
+  // Nếu menu hiện tại là tab bị ẩn, chuyển về 'betting'
+  useEffect(() => {
+    if (activeMenu === 'lottery' && !storeInfo?.showLotteryResults) {
+      setActiveMenu('betting');
+    } else if (activeMenu === 'quick-lottery' && !storeInfo?.showQuickLotteryResults) {
+      setActiveMenu('betting');
+    }
+  }, [storeInfo, activeMenu]);
 
   const getPlaceholderText = (betType) => {
     switch(betType) {
