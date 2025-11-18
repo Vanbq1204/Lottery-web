@@ -2,12 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import './QuickLotteryResults.css';
 import Tesseract from 'tesseract.js';
 
-const QuickLotteryResults = () => {
+const QuickLotteryResults = ({ onRecognized }) => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [recognizedText, setRecognizedText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [errorMsg, setErrorMsg] = useState('');
   const fileInputRef = useRef(null);
   const pasteAreaRef = useRef(null);
 
@@ -76,15 +77,49 @@ const QuickLotteryResults = () => {
       // Xử lý văn bản để hiển thị thành một hàng ngang
       // Tách văn bản thành các dòng và loại bỏ khoảng trắng thừa
       const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-      // Nối các dòng lại thành một chuỗi duy nhất, cách nhau bởi dấu cách
+      // Nối các dòng lại và làm sạch ký tự không phải số/space
       const singleLineText = lines.join(' ');
-      // Hiển thị kết quả
-      setRecognizedText(singleLineText);
+      const sanitized = singleLineText.replace(/[^\d\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+      // Xác thực chuỗi theo định dạng: tổng 27 số với độ dài từng nhóm
+      const tokens = sanitized.split(' ').filter(Boolean);
+      const expectedLengths = [
+        5, // G.ĐB
+        5, // G.1
+        5,5, // G.2 (2 số)
+        5,5,5,5,5,5, // G.3 (6 số)
+        4,4,4,4, // G.4 (4 số)
+        4,4,4,4,4,4, // G.5 (6 số)
+        3,3,3, // G.6 (3 số)
+        2,2,2,2 // G.7 (4 số)
+      ];
+
+      const isValidCount = tokens.length === expectedLengths.length;
+      const isValidShapes = isValidCount && tokens.every((tok, idx) => /^\d+$/.test(tok) && tok.length === expectedLengths[idx]);
+
+      if (!isValidShapes) {
+        setErrorMsg('Ảnh định dạng sai: Chuỗi phải gồm 27 số theo định dạng (5,5, 5x2, 5x6, 4x4, 4x6, 3x3, 2x4) và chỉ chứa chữ số.');
+        setRecognizedText('');
+        setIsProcessing(false);
+        setProgress(0);
+        alert('Ảnh định dạng sai');
+        return;
+      }
+
+      // Hiển thị kết quả hợp lệ
+      setErrorMsg('');
+      setRecognizedText(sanitized);
+      try {
+        if (typeof onRecognized === 'function') {
+          onRecognized(sanitized);
+        }
+      } catch (_) { /* ignore */ }
       setIsProcessing(false);
       setProgress(0);
     }).catch(error => {
       console.error('Lỗi khi nhận dạng văn bản:', error);
-      setRecognizedText('Đã xảy ra lỗi khi xử lý ảnh. Vui lòng thử lại.');
+      setErrorMsg('Đã xảy ra lỗi khi xử lý ảnh. Vui lòng thử lại.');
+      setRecognizedText('');
       setIsProcessing(false);
     });
   };
@@ -104,7 +139,7 @@ const QuickLotteryResults = () => {
 
   return (
     <div className="quick-lottery-container">
-      <h1>Nhận dạng văn bản từ ảnh</h1>
+      <h1>Nhập liệu từ ảnh</h1>
       <div className="upload-section">
         <p>Chọn ảnh chứa văn bản để nhận dạng</p>
         <input 
@@ -126,7 +161,7 @@ const QuickLotteryResults = () => {
           onClick={processImage}
           disabled={isProcessing || !imageFile}
         >
-          Xử lý ảnh
+          Nhập liệu ảnh vào kết quả xổ số
         </button>
         {isProcessing && (
           <div className="loading">
@@ -160,7 +195,7 @@ const QuickLotteryResults = () => {
               </button>
             </>
           ) : (
-            <p>Chưa có văn bản nào được nhận dạng</p>
+            <p style={{ color: errorMsg ? '#b00020' : '#6c757d' }}>{errorMsg || 'Chưa có văn bản nào được nhận dạng'}</p>
           )}
         </div>
       </div>

@@ -2412,15 +2412,16 @@ const EmployeeInterface = ({ user }) => {
   };
 
   // Hàm phân tích chuỗi kết quả xổ số
-  const parseBatchLotteryInput = () => {
-    if (!batchLotteryInput.trim()) {
+  const parseBatchLotteryInput = (inputText) => {
+    const sourceText = (inputText !== undefined && inputText !== null) ? String(inputText) : batchLotteryInput;
+    if (!sourceText.trim()) {
       alert('Vui lòng nhập chuỗi kết quả xổ số!');
       return;
     }
     
     // Tách chuỗi thành mảng các số
     
-    const numbers = batchLotteryInput.trim().split(/\s+/);
+    const numbers = sourceText.trim().split(/\s+/);
     
     // Kiểm tra số lượng số đã nhập
     if (numbers.length < 27) {
@@ -2501,6 +2502,15 @@ const EmployeeInterface = ({ user }) => {
     }));
     
     alert('Đã phân tích và điền kết quả xổ số thành công!');
+  };
+
+  // Nhận chuỗi từ tab "Kết quả xổ số nhanh" và tự động phân tích điền vào form
+  const handleQuickLotteryRecognized = (text) => {
+    const cleaned = (text || '').trim().replace(/\s+/g, ' ');
+    if (!cleaned) return;
+    setBatchLotteryInput(cleaned);
+    // Phân tích ngay để điền vào các ô kết quả với chuỗi mới
+    parseBatchLotteryInput(cleaned);
   };
   
   // Hàm tải kết quả xổ số theo ngày
@@ -3089,7 +3099,6 @@ const EmployeeInterface = ({ user }) => {
     { id: 'betting', label: 'Nhập cược', icon: '📝' },
     { id: 'statistics', label: 'Thống kê cược', icon: '📊' },
     { id: 'lottery', label: 'Kết quả xổ số', icon: '🎯' },
-    { id: 'quick-lottery', label: 'Kết quả xổ số nhanh', icon: '🔢' },
     { id: 'prizes', label: 'Tính thưởng', icon: '🏆' },
     { id: 'prize-statistics', label: 'Thống kê thưởng', icon: '💰' },
     { id: 'invoices', label: 'Danh sách hóa đơn', icon: '📋' },
@@ -3113,17 +3122,12 @@ const EmployeeInterface = ({ user }) => {
     if (item.id === 'lottery') {
       return !!storeInfo?.showLotteryResults;
     }
-    if (item.id === 'quick-lottery') {
-      return !!storeInfo?.showQuickLotteryResults;
-    }
     return true;
   });
 
   // Nếu menu hiện tại là tab bị ẩn, chuyển về 'betting'
   useEffect(() => {
     if (activeMenu === 'lottery' && !storeInfo?.showLotteryResults) {
-      setActiveMenu('betting');
-    } else if (activeMenu === 'quick-lottery' && !storeInfo?.showQuickLotteryResults) {
       setActiveMenu('betting');
     }
   }, [storeInfo, activeMenu]);
@@ -4268,7 +4272,6 @@ const EmployeeInterface = ({ user }) => {
             </>
           ) : dataSource === 'manual' ? (
             <>
-              {/* Thêm ô nhập chuỗi kết quả xổ số */}
               <button onClick={saveManualLotteryResults} className="btn btn-save">
                 💾 Lưu kết quả thủ công
               </button>
@@ -4276,27 +4279,16 @@ const EmployeeInterface = ({ user }) => {
                 <p><strong>Ngày:</strong> {manualLotteryData.turnNum}</p>
                 <p><strong>Chế độ:</strong> Nhập thủ công</p>
               </div>
-                   <div className="batch-input-container">
-                <label>Nhập chuỗi kết quả xổ số:</label>
-                <div className="batch-input-wrapper">
-                  <textarea 
-                    className="batch-input"
-                    onChange={(e) => setBatchLotteryInput(e.target.value)}
-                  />
-                  <button 
-                    className="btn btn-parse"
-                    onClick={parseBatchLotteryInput}
-                  >
-                    Phân tích
-                  </button>
-                </div>
-              </div>
             </>
           ) : (
             <div className="lottery-info">
               <p>Vui lòng chọn nguồn dữ liệu</p>
             </div>
           )}
+        </div>
+    
+        <div style={{ marginTop: 16 }}>
+          <QuickLotteryResults onRecognized={handleQuickLotteryRecognized} />
         </div>
       </div>
     );
@@ -4344,8 +4336,6 @@ const EmployeeInterface = ({ user }) => {
         return <Statistics />;
       case 'lottery':
         return renderLotteryInterface();
-      case 'quick-lottery':
-        return <QuickLotteryResults />;
       case 'prizes':
         return <PrizeInterface onCalculatingChange={setIsCalculatingPrize} />;
       case 'prize-statistics':

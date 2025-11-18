@@ -21,8 +21,7 @@ const StoreManagement = () => {
     storePhone: '',
     isActive: true,
     allowChangePassword: true,
-    showLotteryResults: false,
-    showQuickLotteryResults: false
+    showLotteryResults: false
   });
   const [showCreatePwd, setShowCreatePwd] = useState(false);
   const [showEditPwd, setShowEditPwd] = useState(false);
@@ -121,8 +120,7 @@ const StoreManagement = () => {
           storePhone: '',
           isActive: true,
           allowChangePassword: true,
-          showLotteryResults: false,
-          showQuickLotteryResults: false
+          showLotteryResults: false
         });
         loadStoresForAdmin(selectedAdmin.id);
       } else {
@@ -208,8 +206,7 @@ const StoreManagement = () => {
       storePhone: store.phone || '',
       isActive: store.isActive,
       allowChangePassword: store.allowChangePassword ?? true,
-      showLotteryResults: store.showLotteryResults ?? false,
-      showQuickLotteryResults: store.showQuickLotteryResults ?? false
+      showLotteryResults: store.showLotteryResults ?? false
     });
     setShowEditForm(true);
   };
@@ -414,16 +411,6 @@ const StoreManagement = () => {
                     Hiển thị tab Kết quả xổ số
                   </label>
                 </div>
-                <div className="store-mgmt-form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={formData.showQuickLotteryResults}
-                      onChange={(e) => setFormData({...formData, showQuickLotteryResults: e.target.checked})}
-                    />
-                    Hiển thị tab Kết quả xổ số nhanh
-                  </label>
-                </div>
               </div>
               
               <div className="store-mgmt-form-actions">
@@ -525,16 +512,6 @@ const StoreManagement = () => {
                       onChange={(e) => setFormData({...formData, showLotteryResults: e.target.checked})}
                     />
                     Hiển thị tab Kết quả xổ số
-                  </label>
-                </div>
-                <div className="store-mgmt-form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={formData.showQuickLotteryResults}
-                      onChange={(e) => setFormData({...formData, showQuickLotteryResults: e.target.checked})}
-                    />
-                    Hiển thị tab Kết quả xổ số nhanh
                   </label>
                 </div>
               </div>
