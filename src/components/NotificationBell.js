@@ -4,13 +4,14 @@ import { getApiUrl } from '../config/api';
 import './NotificationBell.css';
 
 const NotificationBell = () => {
-  const [unread, setUnread] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
 
   const load = async () => {
     try {
-      const res = await axios.get(getApiUrl('/notifications/unread'), { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-      setUnread(res.data);
+      const res = await axios.get(getApiUrl('/notifications'), { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      setNotifications(res.data);
     } catch (_) { }
   };
 
@@ -23,19 +24,18 @@ const NotificationBell = () => {
 
   const markRead = async (id) => {
     try {
+      const item = notifications.find(n => n.id === id);
+      if (item && item.isRead) return;
       await axios.post(getApiUrl(`/notifications/${id}/read`), {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-      setUnread(unread.filter(n => n.id !== id));
+      setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
     } catch (_) { }
   };
 
   const markAllRead = async () => {
-    // Assuming backend supports this or we loop. For now, let's loop or just clear UI if backend isn't ready.
-    // Ideally: await axios.post(getApiUrl('/notifications/read-all'), ...)
-    // For safety with current backend, we'll just mark visible ones individually in parallel (or just one by one).
-    // If there are many, this might be slow, but it's a start.
     try {
-      await Promise.all(unread.map(n => axios.post(getApiUrl(`/notifications/${n.id}/read`), {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })));
-      setUnread([]);
+      const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
+      await Promise.all(unreadIds.map(id => axios.post(getApiUrl(`/notifications/${id}/read`), {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })));
+      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
     } catch (_) { }
   };
 
@@ -43,8 +43,8 @@ const NotificationBell = () => {
     <div className="notification-wrapper">
       <button className="notification-btn" onClick={() => setOpen(!open)}>
         <span className="bell-icon">🔔</span>
-        {unread.length > 0 && (
-          <span className="badge-count">{unread.length > 9 ? '9+' : unread.length}</span>
+        {notifications.filter(n=>!n.isRead).length > 0 && (
+          <span className="badge-count">{notifications.filter(n=>!n.isRead).length > 9 ? '9+' : notifications.filter(n=>!n.isRead).length}</span>
         )}
       </button>
 
@@ -53,7 +53,7 @@ const NotificationBell = () => {
           <div className="dropdown-header">
             <h3>Thông báo</h3>
             <div className="header-actions">
-              {unread.length > 0 && (
+              {notifications.filter(n=>!n.isRead).length > 0 && (
                 <button className="btn-mark-all" onClick={markAllRead}>Đánh dấu đã đọc tất cả</button>
               )}
               <button className="btn-close-x" onClick={() => setOpen(false)}>✕</button>
@@ -61,21 +61,26 @@ const NotificationBell = () => {
           </div>
 
           <div className="notification-list">
-            {unread.length === 0 ? (
+            {notifications.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-icon">📭</span>
-                <p>Không có thông báo mới</p>
+                <p>Không có thông báo</p>
               </div>
             ) : (
-              unread.map(n => (
-                <div key={n.id} className="notification-item unread">
+              notifications.map(n => (
+                <div key={n.id} className={`notification-item ${n.isRead ? '' : 'unread'}`}>
                   <div className="notif-icon">📢</div>
                   <div className="notif-content-wrapper">
                     <div className="notif-title">{n.title}</div>
                     <span className="notif-time">{new Date(n.createdAt).toLocaleString()}</span>
-                    <div className="notif-body" dangerouslySetInnerHTML={{ __html: n.contentHtml }} />
-                    <div className="notif-actions">
-                      <button className="btn-read" onClick={() => markRead(n.id)}>Đã đọc</button>
+                    {expandedId === n.id && (
+                      <div className="notif-body" dangerouslySetInnerHTML={{ __html: n.contentHtml }} />
+                    )}
+                    <div className="notif-actions" style={{ justifyContent: 'space-between' }}>
+                      <button onClick={() => setExpandedId(expandedId === n.id ? null : n.id)} className="btn-read" style={{ background: 'rgba(0,0,0,0.06)', color: '#2d3436' }}>{expandedId === n.id ? 'Thu gọn' : 'Xem nội dung'}</button>
+                      {!n.isRead && (
+                        <button className="btn-read" onClick={() => markRead(n.id)}>Đã đọc</button>
+                      )}
                     </div>
                   </div>
                 </div>
