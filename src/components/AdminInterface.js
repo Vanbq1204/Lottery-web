@@ -10,6 +10,8 @@ import TimeSettings from './TimeSettings';
 import DataCleanup from './DataCleanup';
 import AdminMessageExport from './AdminMessageExport';
 import AdminChangePassword from './AdminChangePassword';
+import NotificationBell from './NotificationBell';
+import NotificationModal from './NotificationModal';
 
 const AdminInterface = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('my-store');
@@ -91,16 +93,16 @@ const AdminInterface = ({ user, onLogout }) => {
                   ← Quay lại danh sách
                 </button>
               </div>
-              <AdminStoreStatistics store={selectedStore} />
+              <AdminStoreStatistics store={selectedStore} user={user} />
             </div>
           );
         }
-        
+
         return (
           <div className="admin-content-section">
             <h2>Cửa hàng của tôi</h2>
-            <p className ="title-mobile">Danh sách các cửa hàng bạn quản lý:</p>
-            
+            <p className="title-mobile">Danh sách các cửa hàng bạn quản lý:</p>
+
             {isLoading ? (
               <div className="admin-loading">
                 <p>Đang tải danh sách cửa hàng...</p>
@@ -109,8 +111,8 @@ const AdminInterface = ({ user, onLogout }) => {
               <div className="admin-stores-grid">
                 {stores.length > 0 ? (
                   stores.map((store) => (
-                    <div 
-                      key={store._id} 
+                    <div
+                      key={store._id}
                       className="admin-store-card"
                       onClick={() => viewStoreDetail(store)}
                     >
@@ -196,6 +198,8 @@ const AdminInterface = ({ user, onLogout }) => {
 
   return (
     <div className="admin-interface-container">
+      <NotificationBell />
+      <NotificationModal />
       {/* Left Sidebar Menu */}
       <div className={`admin-sidebar ${isMobileMenuOpen ? 'admin-sidebar--open' : 'admin-sidebar--closed'}`}>
         <div className="admin-sidebar-header">

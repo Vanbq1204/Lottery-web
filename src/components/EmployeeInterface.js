@@ -9,8 +9,11 @@ import PrizeSettings from './PrizeSettings';
 import PrizeStatistics from './PrizeStatistics';
 import LotoMultiplierSettings from './LotoMultiplierSettings';
 import EmployeeChangePassword from './EmployeeChangePassword';
+import SpecialNumberGroupsSettings from './SpecialNumberGroupsSettings';
 import QuantityControls from './QuantityControls';
 import QuickLotteryResults from './QuickLotteryResults';
+import NotificationBell from './NotificationBell';
+import NotificationModal from './NotificationModal';
 
 const EmployeeInterface = ({ user }) => {
   const [activeMenu, setActiveMenu] = useState('betting');
@@ -18,34 +21,92 @@ const EmployeeInterface = ({ user }) => {
   const [customerName, setCustomerName] = useState('');
   const [customerGive, setCustomerGive] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Prize calculation state
   const [isCalculatingPrize, setIsCalculatingPrize] = useState(false);
-  
+
   // Invoice ID state - tạo một lần và giữ nguyên
   const [currentInvoiceId, setCurrentInvoiceId] = useState('');
-  
+
   // Edit invoice states
   const [isEditMode, setIsEditMode] = useState(false);
   const [editInvoiceId, setEditInvoiceId] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
+
   // History state
   const [invoiceHistory, setInvoiceHistory] = useState([]);
-  
+
   // Invoice list states
   const [invoiceList, setInvoiceList] = useState([]);
+  // Special number groups (2s) for quick selection
+  const [twoSGroups, setTwoSGroups] = useState([]);
+  // Dynamic bộ groups for 'bo' bet type
+  const [boGroups, setBoGroups] = useState([]);
+  const [boMap, setBoMap] = useState({});
   // Get current date in Vietnam timezone (UTC+7)
   const getCurrentVietnamDate = () => {
     const now = new Date();
     const vietnamTime = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // Add 7 hours
     return vietnamTime.toISOString().split('T')[0];
   };
-  
+
+  // Load special number groups for 2s
+  const loadTwoSGroups = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await axios.get(getApiUrl('/employee/special-number-groups'), {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { betType: '2s' }
+      });
+      if (resp.data?.success) {
+        setTwoSGroups(resp.data.data || []);
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải bộ số đặc biệt:', err);
+    }
+  };
+
+  // Initial load
+  useEffect(() => { loadTwoSGroups(); }, []);
+  // Reload when returning to betting menu (after creating/updating groups)
+  useEffect(() => {
+    if (activeMenu === 'betting') {
+      loadTwoSGroups();
+      // Also reload dynamic bộ groups
+      loadBoGroups();
+    }
+  }, [activeMenu]);
+
+  // Load dynamic 'bo' groups for current store
+  const loadBoGroups = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await axios.get(getApiUrl('/employee/special-number-groups'), {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { betType: 'bo' }
+      });
+      if (resp.data?.success) {
+        const groups = resp.data.data || [];
+        setBoGroups(groups);
+        const map = {};
+        groups.forEach(g => {
+          map[g.name] = Array.isArray(g.numbers)
+            ? g.numbers.map(n => String(n).padStart(2, '0'))
+            : [];
+        });
+        setBoMap(map);
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải bộ (bo) động:', err);
+    }
+  };
+  // Initial load for bo groups
+  useEffect(() => { loadBoGroups(); }, []);
+
   const [selectedDate, setSelectedDate] = useState(getCurrentVietnamDate()); // Today's date in Vietnam
   const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
   const [searchInvoiceList, setSearchInvoiceList] = useState(''); // Tìm kiếm hóa đơn trong danh sách
-  
+
   // Lottery results states
   const [lotteryResults, setLotteryResults] = useState([]);
   const [selectedLotteryDate, setSelectedLotteryDate] = useState('');
@@ -55,7 +116,7 @@ const EmployeeInterface = ({ user }) => {
   const getCurrentVietnamDateFormatted = () => {
     const now = new Date();
     // Sử dụng toLocaleDateString với timezone Việt Nam để lấy đúng ngày hiện tại
-    const vietnamDate = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
+    const vietnamDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
     const day = String(vietnamDate.getDate()).padStart(2, '0');
     const month = String(vietnamDate.getMonth() + 1).padStart(2, '0');
     const year = vietnamDate.getFullYear();
@@ -78,10 +139,10 @@ const EmployeeInterface = ({ user }) => {
   });
   const [isLoadingLottery, setIsLoadingLottery] = useState(false);
   const [editableCells, setEditableCells] = useState({});
-  
+
   // Hệ số lô động - load từ API
   const [lotoMultiplier, setLotoMultiplier] = useState(22);
-  
+
   // Cho phép gộp số trùng
   const [allowMergeDuplicates, setAllowMergeDuplicates] = useState(() => {
     const saved = sessionStorage.getItem('allowMergeDuplicates');
@@ -89,26 +150,26 @@ const EmployeeInterface = ({ user }) => {
   });
   const [isMerging, setIsMerging] = useState(false);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
-  
+
   // Settings dropdown state
   const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
-  
+
   // Đơn vị lô tùy chỉnh - lưu trong localStorage
   const [lotoUnit, setLotoUnit] = useState(() => {
     const saved = localStorage.getItem('lotoUnit');
     return saved || 'đ'; // Mặc định là 'đ'
   });
-  
+
   // Thêm state để track thời gian thay đổi cho logic gộp số trùng
   const [mergeTimeouts, setMergeTimeouts] = useState({});
   const [lastChanges, setLastChanges] = useState({});
-  
+
   // State cho số điện thoại cửa hàng
   const [storePhone, setStorePhone] = useState(() => {
     const saved = localStorage.getItem('storePhone');
     return saved || '';
   });
-  
+
   // State cho chức năng nhập chuỗi kết quả xổ số
   const [batchLotteryInput, setBatchLotteryInput] = useState('');
 
@@ -234,55 +295,55 @@ const EmployeeInterface = ({ user }) => {
 
   // Bet data for each type with dynamic rows
   const [betData, setBetData] = useState({
-    loto: { 
-      quantity: 1, 
+    loto: {
+      quantity: 1,
       rows: [{ numbers: '', points: '' }]
     },
-    '2s': { 
-      quantity: 1, 
+    '2s': {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
-    '3s': { 
-      quantity: 1, 
+    '3s': {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
-    '4s': { 
-      quantity: 1, 
+    '4s': {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
-    tong: { 
-      quantity: 1, 
+    tong: {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
-    kep: { 
-      quantity: 1, 
+    kep: {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
-    dau: { 
-      quantity: 1, 
+    dau: {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
-    dit: { 
-      quantity: 1, 
+    dit: {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
-    xien: { 
-      quantity: 1, 
+    xien: {
+      quantity: 1,
       rows: [{ numbers: '', amount: '', isXienNhay: false }]
     },
-    xienquay: { 
-      quantity: 1, 
+    xienquay: {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
-    bo: { 
-      quantity: 1, 
+    bo: {
+      quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     }
   });
 
   // Validation errors state
   const [validationErrors, setValidationErrors] = useState({});
-  
+
   // Refs for input focus management
   const inputRefs = useRef({});
 
@@ -313,7 +374,7 @@ const EmployeeInterface = ({ user }) => {
     if (isEditMode) {
       window.addEventListener('beforeunload', handleBeforeUnload);
       document.addEventListener('visibilitychange', handleVisibilityChange);
-      
+
       return () => {
         window.removeEventListener('beforeunload', handleBeforeUnload);
         document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -327,15 +388,15 @@ const EmployeeInterface = ({ user }) => {
     if (unsavedEditMode === 'true') {
       // Xóa flag TRƯỚC KHI reload để tránh infinite loop
       localStorage.removeItem('unsavedEditMode');
-      
+
       // Thực sự reload trang để đảm bảo trạng thái hoàn toàn mới
       console.log('🔄 Force reloading page due to unsaved changes');
-      
+
       // Thêm timeout nhỏ để đảm bảo localStorage đã được clear
       setTimeout(() => {
         window.location.reload();
       }, 100);
-      
+
       return; // Không cần thực hiện gì thêm vì trang sẽ reload
     }
   }, []); // Chạy ngay khi component mount, không phụ thuộc storeInfo
@@ -343,12 +404,12 @@ const EmployeeInterface = ({ user }) => {
   // Generate unique invoice ID when component mounts or when new invoice needed
   useEffect(() => {
     const generateInvoiceId = async () => {
-    if (storeInfo && !currentInvoiceId) {
+      if (storeInfo && !currentInvoiceId) {
         const newInvoiceId = await generateUniqueInvoiceId();
-      setCurrentInvoiceId(newInvoiceId);
-    }
+        setCurrentInvoiceId(newInvoiceId);
+      }
     };
-    
+
     generateInvoiceId();
   }, [storeInfo, currentInvoiceId]);
 
@@ -400,7 +461,7 @@ const EmployeeInterface = ({ user }) => {
         }
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setLotoMultiplier(data.data.multiplier);
       }
@@ -413,29 +474,29 @@ const EmployeeInterface = ({ user }) => {
   // Generate unique invoice ID: HD + admin initials + store initials + 5 digits
   const generateUniqueInvoiceId = async (retryCount = 0) => {
     if (!storeInfo) return '';
-    
+
     // Giới hạn số lần thử để tránh infinite loop
     if (retryCount > 10) {
       console.error('Đã thử tạo mã hóa đơn quá nhiều lần, trả về mã mặc định');
       return `HD${Date.now()}`; // Fallback với timestamp
     }
-    
+
     // Get admin initials (first letter of each word)
-    const adminInitials = storeInfo.adminId?.name 
+    const adminInitials = storeInfo.adminId?.name
       ? storeInfo.adminId.name.split(' ').map(word => word[0]).join('').toUpperCase()
       : 'AD';
-    
+
     // Get store initials (first letter of each word)
     const storeInitials = storeInfo.name
       ? storeInfo.name.split(' ').map(word => word[0]).join('').toUpperCase()
       : 'ST';
-    
+
     // Generate 5 random digits (10000-99999)
     const randomDigits = Math.floor(10000 + Math.random() * 90000);
-    
+
     // Combine: HD + admin + store + digits
     const invoiceId = `HD${adminInitials}${storeInitials}${randomDigits}`;
-    
+
     // Kiểm tra xem mã hóa đơn đã tồn tại chưa
     try {
       const response = await axios.get(getApiUrl(`/invoice/check/${invoiceId}`), {
@@ -443,12 +504,12 @@ const EmployeeInterface = ({ user }) => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (response.data.exists) {
         // Nếu mã đã tồn tại, tạo lại mã mới với retry count tăng lên
         return await generateUniqueInvoiceId(retryCount + 1);
       }
-      
+
       return invoiceId;
     } catch (error) {
       console.error('Lỗi khi kiểm tra mã hóa đơn:', error);
@@ -467,12 +528,12 @@ const EmployeeInterface = ({ user }) => {
   // Calculate lô amount: số con x điểm x hệ số 22 (hỗ trợ thập phân)
   const calculateLoAmount = (numbersStr, points) => {
     if (!numbersStr || !points) return 0;
-    
+
     // Split numbers by spaces and commas, filter out empty strings
     const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const pointsValue = parseFloat(points);
-    
+
     // Lô calculation: số con x điểm x 22 (hỗ trợ thập phân)
     // Use precise calculation to avoid floating point errors
     const result = numCount * pointsValue * lotoMultiplier;
@@ -482,44 +543,44 @@ const EmployeeInterface = ({ user }) => {
   // Calculate 2S amount: số con x tiền
   const calculate2SAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
-    
+
     const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
-    
+
     return numCount * amountValue;
   };
 
   // Calculate 3S amount: số con x tiền
   const calculate3SAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
-    
+
     const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
-    
+
     return numCount * amountValue;
   };
 
   // Calculate 4S amount: số con x tiền
   const calculate4SAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
-    
+
     const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
-    
+
     return numCount * amountValue;
   };
 
   // Calculate Tổng amount: tiền x 10 (mỗi tổng có 10 con đề)
   const calculateTongAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
-    
+
     const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
-    
+
     return numCount * amountValue * 10;
   };
 
@@ -532,44 +593,44 @@ const EmployeeInterface = ({ user }) => {
   // Calculate Đầu/Đít amount: tiền x 10 (mỗi đầu/đít có 10 con đề)
   const calculateDauDitAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
-    
+
     const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const numCount = numbers.length;
     const amountValue = parseFloat(amount);
-    
+
     return numCount * amountValue * 10;
   };
 
   // Calculate Xiên amount
   const calculateXienAmount = (numbersStr, amount, isXienNhay = false) => {
     if (!numbersStr || !amount) return 0;
-    
+
     // Split by spaces/commas to get individual xiên combinations
     const xienCombinations = numbersStr.trim().split(/[\s,.]+/).filter(x => x.length > 0);
     const numXien = xienCombinations.length;
     const amountValue = parseFloat(amount);
-    
+
     // Each xiên combination costs the specified amount
     let totalAmount = numXien * amountValue;
-    
+
     // Apply 1.2x multiplier for xiên nháy
     if (isXienNhay) {
       totalAmount *= 1.2;
     }
-    
+
     return totalAmount;
   };
 
   // Calculate Xiên Quay amount
   const calculateXienQuayAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
-    
+
     // Split by spaces/commas to get individual xiên quay combinations
     const xienQuayCombinations = numbersStr.trim().split(/[\s,.]+/).filter(x => x.length > 0);
     const amountValue = parseFloat(amount);
-    
+
     let totalAmount = 0;
-    
+
     xienQuayCombinations.forEach(combination => {
       const numbers = combination.split('-');
       if (numbers.length === 3) {
@@ -580,46 +641,47 @@ const EmployeeInterface = ({ user }) => {
         totalAmount += amountValue * 11;
       }
     });
-    
+
     return totalAmount;
   };
 
   // Calculate Bo amount
   const calculateBoAmount = (numbersStr, amount) => {
     if (!numbersStr || !amount) return 0;
-    
+
     const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
     const amountValue = parseFloat(amount);
-    
+
     let totalAmount = 0;
-    
+
     numbers.forEach(num => {
-      if (BO_DATA[num]) {
-        totalAmount += BO_DATA[num].length * amountValue;
+      const list = (boMap[num] || BO_DATA[num]);
+      if (Array.isArray(list)) {
+        totalAmount += list.length * amountValue;
       }
     });
-    
+
     return totalAmount;
   };
 
   // Validation functions
   const validateNumbers = (betType, numbersStr, isBlurValidation = false, isXienNhay = false) => {
     if (!numbersStr.trim()) return { isValid: true, message: '' };
-    
+
     const numbers = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
-    
-          // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s, 4s, tong, dau, dit, bo
-      if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
-        const uniqueNumbers = [...new Set(numbers)];
-        if (uniqueNumbers.length !== numbers.length) {
-          // Find duplicated numbers
-          const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
-          const uniqueDuplicates = [...new Set(duplicates)];
-          return { isValid: false, message: `Số ${uniqueDuplicates.join(', ')} bị trùng lặp` };
-        }
+
+    // Check for duplicates within the input (only on blur) - vô hiệu hóa khi cho phép gộp số trùng cho loto, 2s, 3s, 4s, tong, dau, dit, bo
+    if (isBlurValidation && !(allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
+      const uniqueNumbers = [...new Set(numbers)];
+      if (uniqueNumbers.length !== numbers.length) {
+        // Find duplicated numbers
+        const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+        const uniqueDuplicates = [...new Set(duplicates)];
+        return { isValid: false, message: `Số ${uniqueDuplicates.join(', ')} bị trùng lặp` };
       }
-    
-    switch(betType) {
+    }
+
+    switch (betType) {
       case 'loto':
       case '2s':
         // Validate 2-digit numbers (00-99) - luôn kiểm tra format
@@ -632,7 +694,7 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case '3s':
         // Validate 3-digit numbers (000-999) - luôn kiểm tra format
         for (let num of numbers) {
@@ -643,7 +705,7 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case '4s':
         // Validate 4-digit numbers (0000-9999) - luôn kiểm tra format
         for (let num of numbers) {
@@ -654,7 +716,7 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case 'tong':
         // Validate tổng (0-9) - only on blur
         if (isBlurValidation) {
@@ -664,7 +726,7 @@ const EmployeeInterface = ({ user }) => {
               return { isValid: false, message: 'Chỉ được nhập tổng từ 0 đến 9' };
             }
           }
-          
+
           // Kiểm tra trùng lặp cho tổng (chỉ khi không cho phép gộp số trùng)
           if (!allowMergeDuplicates) {
             const uniqueNumbers = [...new Set(numbers)];
@@ -676,7 +738,7 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case 'kep':
         // Validate kép (bằng/lệch) - only on blur
         if (isBlurValidation) {
@@ -685,7 +747,7 @@ const EmployeeInterface = ({ user }) => {
               return { isValid: false, message: 'Chỉ được nhập "bằng" hoặc "lệch"' };
             }
           }
-          
+
           // Kiểm tra trùng lặp cho kép (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
           const uniqueNumbers = [...new Set(numbers)];
           if (uniqueNumbers.length !== numbers.length) {
@@ -695,7 +757,7 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case 'dau':
         // Validate đầu (0-9) - only on blur
         if (isBlurValidation) {
@@ -705,7 +767,7 @@ const EmployeeInterface = ({ user }) => {
               return { isValid: false, message: 'Chỉ được nhập đầu từ 0 đến 9' };
             }
           }
-          
+
           // Kiểm tra trùng lặp cho đầu (chỉ khi không cho phép gộp số trùng)
           if (!allowMergeDuplicates) {
             const uniqueNumbers = [...new Set(numbers)];
@@ -717,7 +779,7 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case 'dit':
         // Validate đít (0-9) - only on blur
         if (isBlurValidation) {
@@ -727,7 +789,7 @@ const EmployeeInterface = ({ user }) => {
               return { isValid: false, message: 'Chỉ được nhập đít từ 0 đến 9' };
             }
           }
-          
+
           // Kiểm tra trùng lặp cho đít (chỉ khi không cho phép gộp số trùng)
           if (!allowMergeDuplicates) {
             const uniqueNumbers = [...new Set(numbers)];
@@ -739,13 +801,13 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case 'xien':
         // Validate xiên - only on blur
         if (isBlurValidation) {
           for (let xienStr of numbers) {
             const xienNumbers = xienStr.split('-');
-            
+
             // Check if it's xiên nháy - only allow xiên 2
             if (isXienNhay) {
               if (xienNumbers.length !== 2) {
@@ -757,14 +819,14 @@ const EmployeeInterface = ({ user }) => {
                 return { isValid: false, message: 'Xiên chỉ được phép nhập xiên 2, xiên 3, hoặc xiên 4' };
               }
             }
-            
+
             // Validate each number in the xiên (00-99)
             for (let num of xienNumbers) {
               if (!/^\d{2}$/.test(num) || parseInt(num) > 99) {
                 return { isValid: false, message: 'Số trong xiên chỉ được nhập từ 00 đến 99' };
               }
             }
-            
+
             // Check for duplicates within the xiên
             const uniqueXienNumbers = [...new Set(xienNumbers)];
             if (uniqueXienNumbers.length !== xienNumbers.length) {
@@ -773,7 +835,7 @@ const EmployeeInterface = ({ user }) => {
               return { isValid: false, message: `Số ${uniqueDuplicates.join(', ')} bị trùng trong xiên` };
             }
           }
-          
+
           // Check if all xiên in the same row have the same type (2, 3, or 4)
           const xienTypes = numbers.map(xienStr => xienStr.split('-').length);
           const uniqueTypes = [...new Set(xienTypes)];
@@ -782,25 +844,26 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case 'bo':
         // Validate bộ (00-99, chammot/chamhai/chamba/etc, hoặc chanle, lechan, lele, chanchan) - only on blur
         if (isBlurValidation) {
           for (let num of numbers) {
             // Validate bo name format (00-99, chammot/chamhai/chamba/etc, hoặc chanle, lechan, lele, chanchan)
-            const isValidBoName = /^\d{2}$/.test(num) || 
-                                 ['chammot', 'chamhai', 'chamba', 'chambon', 'chamnam', 'chamsau', 'chambay', 'chamtam', 'chamchin', 'chamkhong'].includes(num) || 
-                                 ['chanle', 'lechan', 'lele', 'chanchan'].includes(num);
+            const isValidBoName = /^\d{2}$/.test(num) ||
+              ['chammot', 'chamhai', 'chamba', 'chambon', 'chamnam', 'chamsau', 'chambay', 'chamtam', 'chamchin', 'chamkhong'].includes(num) ||
+              ['chanle', 'lechan', 'lele', 'chanchan'].includes(num) ||
+              !!boMap[num];
             if (!isValidBoName) {
-              return { isValid: false, message: 'Tên bộ phải là số từ 00 đến 99, chamkhong/chammot/chamhai/chamba/chambon/chamnam/chamsau/chambay/chamtam/chamchin, hoặc chanle/lechan/lele/chanchan' };
+              return { isValid: false, message: 'Tên bộ không hợp lệ. Cho phép: 00-99, nhóm chạm/chẵn lẻ, hoặc tên bộ tùy chỉnh (viết liền không dấu) đã tạo trong cài đặt.' };
             }
-            
+
             // Check if bo exists
-            if (!BO_DATA[num]) {
+            if (!(boMap[num] || BO_DATA[num])) {
               return { isValid: false, message: `Bộ ${num} không tồn tại` };
             }
           }
-          
+
           // Kiểm tra trùng lặp cho bộ (chỉ khi không cho phép gộp số trùng)
           if (!allowMergeDuplicates) {
             const uniqueNumbers = [...new Set(numbers)];
@@ -812,18 +875,18 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       case 'xienquay':
         // Validate xiên quay - only on blur
         if (isBlurValidation) {
           for (let xienQuayStr of numbers) {
             const xienQuayNumbers = xienQuayStr.split('-');
-            
+
             // Check if it's xiên quay 3 or 4
             if (xienQuayNumbers.length !== 3 && xienQuayNumbers.length !== 4) {
               return { isValid: false, message: 'Xiên quay chỉ được phép nhập xiên quay 3 hoặc xiên quay 4' };
             }
-            
+
             // Validate each number in the xiên quay (00-99)
             for (let num of xienQuayNumbers) {
               if (!/^\d{2}$/.test(num) || parseInt(num) > 99) {
@@ -831,7 +894,7 @@ const EmployeeInterface = ({ user }) => {
               }
             }
           }
-          
+
           // Check if all xiên quay in the same row have the same type (3 or 4)
           const xienQuayTypes = numbers.map(xienQuayStr => xienQuayStr.split('-').length);
           const uniqueTypes = [...new Set(xienQuayTypes)];
@@ -840,11 +903,11 @@ const EmployeeInterface = ({ user }) => {
           }
         }
         break;
-        
+
       default:
         break;
     }
-    
+
     return { isValid: true, message: '' };
   };
 
@@ -854,13 +917,13 @@ const EmployeeInterface = ({ user }) => {
     if (allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) {
       return true;
     }
-    
+
     const bet = betData[betType];
-    
+
     // Xử lý đặc biệt cho bộ
     if (betType === 'bo') {
       const allBoNumbers = [];
-      
+
       bet.rows.forEach((row, index) => {
         if (index === currentRowIndex) {
           // Use the new value for current row
@@ -876,14 +939,14 @@ const EmployeeInterface = ({ user }) => {
           }
         }
       });
-      
+
       const uniqueBoNumbers = [...new Set(allBoNumbers)];
       return uniqueBoNumbers.length === allBoNumbers.length;
     }
-    
+
     // Xử lý cho các loại cược khác
     const allNumbers = [];
-    
+
     bet.rows.forEach((row, index) => {
       if (index === currentRowIndex) {
         // Use the new value for current row
@@ -899,7 +962,7 @@ const EmployeeInterface = ({ user }) => {
         }
       }
     });
-    
+
     const uniqueNumbers = [...new Set(allNumbers)];
     return uniqueNumbers.length === allNumbers.length;
   };
@@ -909,38 +972,38 @@ const EmployeeInterface = ({ user }) => {
     const quantity = parseInt(newQuantity) || 1;
     const currentBet = betData[betType];
     const currentRows = currentBet.rows;
-    
+
     // If reducing quantity, check if any rows beyond the new quantity have data
     if (quantity < currentRows.length) {
       // Check rows that would be removed
       const rowsToRemove = currentRows.slice(quantity);
-      const hasDataInRemovedRows = rowsToRemove.some(row => 
+      const hasDataInRemovedRows = rowsToRemove.some(row =>
         row.numbers.trim() !== '' || (row.points && row.points.toString().trim() !== '') || (row.amount && row.amount.toString().trim() !== '')
       );
-      
+
       if (hasDataInRemovedRows) {
         alert('Không thể giảm số lượng hàng vì có hàng chứa dữ liệu. Vui lòng xóa dữ liệu trước.');
         return; // Don't update quantity
       }
     }
-    
+
     setBetData(prev => {
       let newRows = [...currentRows];
-      
+
       if (quantity > currentRows.length) {
         // Add new empty rows
         const rowsToAdd = quantity - currentRows.length;
-        const emptyRow = betType === 'loto' 
+        const emptyRow = betType === 'loto'
           ? { numbers: '', points: '' }
           : { numbers: '', amount: '' };
-        
+
         for (let i = 0; i < rowsToAdd; i++) {
           newRows.push({ ...emptyRow });
         }
       } else if (quantity < currentRows.length) {
         // Remove excess rows (we already checked they're empty)
         newRows = newRows.slice(0, quantity);
-        
+
         // Clear validation errors for removed rows
         setValidationErrors(prevErrors => {
           const newErrors = { ...prevErrors };
@@ -950,7 +1013,7 @@ const EmployeeInterface = ({ user }) => {
           return newErrors;
         });
       }
-      
+
       return {
         ...prev,
         [betType]: {
@@ -996,16 +1059,16 @@ const EmployeeInterface = ({ user }) => {
       console.log('📝 Row change detected in edit mode:', { betType, rowIndex, field, value });
       setHasUnsavedChanges(true);
     }
-    
+
     // Real-time validation for numbers field
     if (field === 'numbers') {
       const errorKey = `${betType}-${rowIndex}`;
-      
+
       // Check for duplicates within the input (real-time) - chỉ khi không cho phép gộp số trùng
       if (value.trim() && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
         const numbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         const uniqueNumbers = [...new Set(numbers)];
-        
+
         if (uniqueNumbers.length !== numbers.length) {
           // Find duplicated numbers
           const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
@@ -1014,14 +1077,14 @@ const EmployeeInterface = ({ user }) => {
             ...prev,
             [errorKey]: `Số ${uniqueDuplicates.join(', ')} bị trùng lặp`
           }));
-                  } else {
-            // Check for duplicates across rows (real-time) - chỉ khi không cho phép gộp số trùng
-            if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
+        } else {
+          // Check for duplicates across rows (real-time) - chỉ khi không cho phép gộp số trùng
+          if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
             // Find which numbers are duplicated
             const currentNumbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             const bet = betData[betType];
             const duplicates = [];
-            
+
             bet.rows.forEach((row, index) => {
               if (index !== rowIndex && row.numbers.trim()) {
                 const existingNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
@@ -1029,7 +1092,7 @@ const EmployeeInterface = ({ user }) => {
                 duplicates.push(...commonNumbers);
               }
             });
-            
+
             const uniqueDuplicates = [...new Set(duplicates)];
             if (uniqueDuplicates.length > 0) {
               setValidationErrors(prev => ({
@@ -1062,14 +1125,14 @@ const EmployeeInterface = ({ user }) => {
         });
       }
     }
-    
+
     setBetData(prev => {
       const newRows = [...prev[betType].rows];
       newRows[rowIndex] = {
         ...newRows[rowIndex],
         [field]: value
       };
-      
+
       return {
         ...prev,
         [betType]: {
@@ -1078,23 +1141,23 @@ const EmployeeInterface = ({ user }) => {
         }
       };
     });
-    
+
     // Track thay đổi cho logic gộp số trùng
     if (allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) {
       const changeKey = `${betType}-${rowIndex}-${field}`;
       const now = Date.now();
-      
+
       // Cập nhật thời gian thay đổi cuối cùng
       setLastChanges(prev => ({
         ...prev,
         [changeKey]: now
       }));
-      
+
       // Hủy timeout cũ nếu có
       if (mergeTimeouts[changeKey]) {
         clearTimeout(mergeTimeouts[changeKey]);
       }
-      
+
       // Snapshot giá trị mới nhất tại thời điểm nhập để tránh đọc state cũ trong timeout
       const rowNow = betData[betType].rows[rowIndex] || {};
       const snapshot = {
@@ -1107,14 +1170,14 @@ const EmployeeInterface = ({ user }) => {
       const timeoutId = setTimeout(() => {
         // Chỉ gộp nếu có số và tiền/điểm
         const hasNumbers = snapshot.numbers && snapshot.numbers.toString().trim() !== '';
-        const hasPoints = (snapshot.points && snapshot.points.toString().trim() !== '') || 
-                          (snapshot.amount && snapshot.amount.toString().trim() !== '');
-        
+        const hasPoints = (snapshot.points && snapshot.points.toString().trim() !== '') ||
+          (snapshot.amount && snapshot.amount.toString().trim() !== '');
+
         if (hasNumbers && hasPoints && !isMerging && !isLoadingInvoice) {
           console.log(`🔄 Trigger gộp số trùng cho ${betType} sau 1 giây delay`);
           mergeDuplicateNumbers(betType);
         }
-        
+
         // Xóa timeout khỏi state
         setMergeTimeouts(prev => {
           const newTimeouts = { ...prev };
@@ -1122,7 +1185,7 @@ const EmployeeInterface = ({ user }) => {
           return newTimeouts;
         });
       }, 2000); // Đợi 2 giây
-      
+
       // Lưu timeout mới
       setMergeTimeouts(prev => ({
         ...prev,
@@ -1138,32 +1201,32 @@ const EmployeeInterface = ({ user }) => {
       console.log('⚠️ Đang trong quá trình gộp hoặc đang load hóa đơn, bỏ qua');
       return;
     }
-    
+
     console.log('🔄 Bắt đầu gộp số trùng cho betType:', betType);
     setIsMerging(true);
-    
+
     setBetData(prev => {
       const bet = prev[betType];
       const rows = [...bet.rows];
-      
+
       // Lọc các hàng có số và điểm/tiền
-      const validRows = rows.filter(row => 
-        row.numbers && row.numbers.trim() && 
+      const validRows = rows.filter(row =>
+        row.numbers && row.numbers.trim() &&
         ((row.points && row.points.toString().trim()) || (row.amount && row.amount.toString().trim()))
       );
-      
+
       if (validRows.length === 0) return prev;
-      
+
       // Thu thập tất cả các số và mapping số -> hàng chứa số đó
       const numberToRowsMap = {}; // số -> array of {rowIndex, points, numbers}
-      
+
       validRows.forEach((row, validIndex) => {
         const actualRowIndex = rows.indexOf(row);
         const numbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         const points = parseFloat(row.points || row.amount || 0);
-        
+
         console.log(`📋 Hàng ${actualRowIndex}: "${row.numbers}" x${points}n`);
-        
+
         numbers.forEach(num => {
           if (!numberToRowsMap[num]) {
             numberToRowsMap[num] = [];
@@ -1176,98 +1239,98 @@ const EmployeeInterface = ({ user }) => {
           });
         });
       });
-      
+
       // Tìm số trùng lặp (xuất hiện ở nhiều hàng khác nhau HOẶC nhiều lần trong cùng 1 hàng)
       const duplicateNumbers = [];
       Object.keys(numberToRowsMap).forEach(num => {
         const rowsWithThisNumber = numberToRowsMap[num];
-        
+
         // Kiểm tra xem số này có xuất hiện ở nhiều hàng khác nhau không
         const uniqueRowIndexes = [...new Set(rowsWithThisNumber.map(item => item.rowIndex))];
-        
+
         // Kiểm tra xem số này có xuất hiện nhiều lần trong cùng 1 hàng không
         const hasMultipleInSameRow = rowsWithThisNumber.some(item => {
           const countInRow = item.originalNumbers.filter(n => n === num).length;
           return countInRow > 1;
         });
-        
+
         if (uniqueRowIndexes.length > 1 || hasMultipleInSameRow) {
           duplicateNumbers.push(num);
         }
       });
-      
+
       console.log('📊 Số trùng lặp tìm thấy:', duplicateNumbers);
       console.log('📊 Mapping số -> hàng:', numberToRowsMap);
-      
+
       if (duplicateNumbers.length === 0) return prev; // Không có số trùng
-      
+
       // Xử lý gộp số trùng
       const newRows = [...rows];
       const newRowsToAdd = [];
-      
+
       duplicateNumbers.forEach(duplicateNum => {
         const rowsWithThisNumber = numberToRowsMap[duplicateNum];
-        
+
         // Lấy danh sách hàng duy nhất có chứa số này
         const uniqueRowIndexes = [...new Set(rowsWithThisNumber.map(item => item.rowIndex))];
-        
+
         console.log(`🔍 Số ${duplicateNum} xuất hiện ở các hàng: ${uniqueRowIndexes.join(', ')}`);
-        
+
         // Tính tổng điểm và số lần xuất hiện
         let totalPoints = 0;
         let totalOccurrences = 0;
-        
+
         uniqueRowIndexes.forEach(rowIndex => {
           const row = newRows[rowIndex];
           if (row) {
             const points = parseFloat(row.points || row.amount || 0);
             const numbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             const occurrencesInRow = numbers.filter(n => n === duplicateNum).length;
-            
+
             totalPoints += points * occurrencesInRow;
             totalOccurrences += occurrencesInRow;
-            
+
             console.log(`📊 Hàng ${rowIndex} có ${occurrencesInRow} lần số ${duplicateNum}, đóng góp ${points * occurrencesInRow}n`);
           }
         });
-        
+
         console.log(`📊 Số ${duplicateNum} xuất hiện ${totalOccurrences} lần, tổng điểm: ${totalPoints}n`);
-        
+
         // Xóa số trùng khỏi tất cả các hàng có chứa nó
         uniqueRowIndexes.forEach(rowIndex => {
           const row = newRows[rowIndex];
           if (row && row.numbers) {
             const numbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             const remainingNumbers = numbers.filter(n => n !== duplicateNum);
-            
+
             newRows[rowIndex] = {
               ...row,
               numbers: remainingNumbers.join(' ').trim()
             };
-            
+
             console.log(`📊 Xóa số ${duplicateNum} khỏi hàng ${rowIndex}, còn lại: "${remainingNumbers.join(' ')}"`);
           }
         });
-        
+
         // Tạo hàng mới cho số trùng
-        const newRow = betType === 'loto' 
+        const newRow = betType === 'loto'
           ? { numbers: duplicateNum, points: totalPoints.toString() }
           : { numbers: duplicateNum, amount: totalPoints.toString() };
-        
+
         newRowsToAdd.push(newRow);
         console.log(`✅ Tạo hàng mới cho số ${duplicateNum}: ${totalPoints}n`);
       });
-      
+
       // Thêm các hàng mới vào cuối
       const allRows = [...newRows, ...newRowsToAdd];
-      
+
       // Lọc bỏ các hàng trống (không có số)
-      const filteredRows = allRows.filter(row => 
+      const filteredRows = allRows.filter(row =>
         row.numbers && row.numbers.trim()
       );
-      
+
       console.log('📊 Kết quả sau khi gộp:', filteredRows);
-      
+
       return {
         ...prev,
         [betType]: {
@@ -1276,7 +1339,7 @@ const EmployeeInterface = ({ user }) => {
         }
       };
     });
-    
+
     // Reset flag sau khi hoàn thành
     setTimeout(() => {
       setIsMerging(false);
@@ -1318,28 +1381,28 @@ const EmployeeInterface = ({ user }) => {
     }
     if (field === 'numbers') {
       // Khi blur numbers, nếu cho phép gộp cho các loại hỗ trợ gộp thì kích hoạt gộp ngay nếu đủ dữ liệu
-      if (allowMergeDuplicates && ['loto','2s','3s','4s','tong','dau','dit','bo'].includes(betType) && !isMerging && !isLoadingInvoice) {
+      if (allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType) && !isMerging && !isLoadingInvoice) {
         const currentRow = betData[betType].rows[rowIndex];
         const hasNumbers = (value && value.trim() !== '');
         const hasPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
-                          (currentRow?.amount && currentRow.amount.toString().trim() !== '');
+          (currentRow?.amount && currentRow.amount.toString().trim() !== '');
         if (hasNumbers && hasPoints) {
           mergeDuplicateNumbers(betType);
         }
       }
-      
+
       // Validate the input
       const currentRow = betData[betType].rows[rowIndex];
       const isXienNhay = betType === 'xien' && currentRow?.isXienNhay;
       const validation = validateNumbers(betType, value, true, isXienNhay);
       const errorKey = `${betType}-${rowIndex}`;
-      
+
       if (!validation.isValid) {
         setValidationErrors(prev => ({
           ...prev,
           [errorKey]: validation.message
         }));
-        
+
         // Focus back to the input with error
         setTimeout(() => {
           const inputRef = inputRefs.current[errorKey];
@@ -1350,14 +1413,14 @@ const EmployeeInterface = ({ user }) => {
         }, 100);
         return;
       }
-      
+
       // Check for duplicates across rows (chỉ khi không cho phép gộp số trùng hoặc không phải loto, 2s, 3s, 4s, tong, dau, dit, bo)
       if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
         // Find which numbers are duplicated
         const currentNumbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         const bet = betData[betType];
         const duplicates = [];
-        
+
         bet.rows.forEach((row, index) => {
           if (index !== rowIndex && row.numbers.trim()) {
             const existingNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
@@ -1365,24 +1428,24 @@ const EmployeeInterface = ({ user }) => {
             duplicates.push(...commonNumbers);
           }
         });
-        
+
         // Check for duplicates within the same input
         const uniqueCurrentNumbers = [...new Set(currentNumbers)];
         if (uniqueCurrentNumbers.length !== currentNumbers.length) {
           const duplicatesInSame = currentNumbers.filter((num, index) => currentNumbers.indexOf(num) !== index);
           duplicates.push(...duplicatesInSame);
         }
-        
+
         const uniqueDuplicates = [...new Set(duplicates)];
-        const errorMessage = uniqueDuplicates.length > 0 
+        const errorMessage = uniqueDuplicates.length > 0
           ? `Số ${uniqueDuplicates.join(', ')} bị nhập trùng lặp`
           : 'Số đã được nhập ở hàng khác';
-          
+
         setValidationErrors(prev => ({
           ...prev,
           [errorKey]: errorMessage
         }));
-        
+
         // Focus back to the input with error
         setTimeout(() => {
           const inputRef = inputRefs.current[errorKey];
@@ -1393,7 +1456,7 @@ const EmployeeInterface = ({ user }) => {
         }, 100);
         return;
       }
-      
+
       // Clear validation error if input is valid
       setValidationErrors(prev => {
         const newErrors = { ...prev };
@@ -1406,19 +1469,19 @@ const EmployeeInterface = ({ user }) => {
         const currentRow = betData[betType].rows[rowIndex];
         const hasNumbers = currentRow?.numbers && currentRow.numbers.trim();
         const hasAmountOrPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
-                                  (currentRow?.amount && currentRow.amount.toString().trim() !== '');
+          (currentRow?.amount && currentRow.amount.toString().trim() !== '');
         if (hasNumbers && hasAmountOrPoints && !isMerging && !isLoadingInvoice) {
           mergeDuplicateNumbers('bo');
         }
       }
     }
-    
+
     // Khi blur ô points/amount của các loại hỗ trợ gộp, kích hoạt gộp ngay nếu đủ dữ liệu
-    if (allowMergeDuplicates && ['loto','2s','3s','4s','tong','dau','dit','bo'].includes(betType) && field !== 'numbers') {
+    if (allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType) && field !== 'numbers') {
       const currentRow = betData[betType].rows[rowIndex];
       const hasNumbers = currentRow?.numbers && currentRow.numbers.toString().trim() !== '';
       const hasAmountOrPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
-                                (currentRow?.amount && currentRow.amount.toString().trim() !== '');
+        (currentRow?.amount && currentRow.amount.toString().trim() !== '');
       if (hasNumbers && hasAmountOrPoints && !isMerging && !isLoadingInvoice) {
         mergeDuplicateNumbers(betType);
       }
@@ -1428,7 +1491,7 @@ const EmployeeInterface = ({ user }) => {
   // Format numbers with commas for better readability in invoice
   const formatNumbersForInvoice = (numbersStr, betType) => {
     if (!numbersStr.trim()) return '';
-    
+
     if (betType === 'xien' || betType === 'xienquay') {
       // For xiên and xiên quay, keep the dash format but add commas between combinations
       const combinations = numbersStr.trim().split(/[\s,.]+/).filter(n => n.length > 0);
@@ -1460,10 +1523,10 @@ const EmployeeInterface = ({ user }) => {
     Object.entries(betData).forEach(([betType, bet]) => {
       bet.rows.forEach((row, index) => {
         // Special check for bo type
-        const hasValidData = betType === 'bo' 
+        const hasValidData = betType === 'bo'
           ? (row.numbers && row.amount)
           : (row.numbers && (row.points || row.amount));
-          
+
         if (hasValidData) {
           let totalAmount = 0;
           let displayNumbers = '';
@@ -1502,7 +1565,7 @@ const EmployeeInterface = ({ user }) => {
             const boNumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             if (boNumbers.length > 0) {
               const boDetails = boNumbers.map(num => {
-                const count = BO_DATA[num] ? BO_DATA[num].length : 0;
+                const count = Array.isArray(boMap[num]) ? boMap[num].length : (BO_DATA[num] ? BO_DATA[num].length : 0);
                 return `Bộ ${num}(${count} số)`;
               }).join('\n');
               displayNumbers = `${boDetails} (x${row.amount}n)`;
@@ -1550,14 +1613,14 @@ const EmployeeInterface = ({ user }) => {
 
   // Convert amount to exact format (no conversion)
   const convertToShortFormat = (amount) => {
-    const numAmount = typeof amount === 'string' ? 
+    const numAmount = typeof amount === 'string' ?
       parseFloat(amount.replace(/[^0-9.-]+/g, '')) : amount;
-    
+
     // Return 0 for negative amounts (change calculation)
     if (numAmount < 0) {
       return '0';
     }
-    
+
     // Return exact amount without conversion
     return Math.floor(numAmount).toString();
   };
@@ -1565,13 +1628,13 @@ const EmployeeInterface = ({ user }) => {
   // Create printable invoice
   const createPrintableInvoice = (customerName, invoiceId) => {
     const date = new Date().toLocaleDateString('vi-VN');
-    
+
     // Get current time
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const currentTime = `${hours}:${minutes}`;
-    
+
     // Convert amounts to exact format (no conversion)
     const roundAmount = (amount) => {
       const fractionalPart = amount % 1;
@@ -1587,7 +1650,7 @@ const EmployeeInterface = ({ user }) => {
     const customerPaid = roundAmount(customerGiveAmount).toString();
     const changeAmountValue = Math.max(0, customerGiveAmount - calculateTotal()); // Ensure non-negative
     const changeAmount = roundAmount(changeAmountValue).toString();
-    
+
     // Create iframe for printing
     const printFrame = document.createElement('iframe');
     printFrame.style.position = 'fixed';
@@ -1597,23 +1660,23 @@ const EmployeeInterface = ({ user }) => {
     printFrame.style.height = '0';
     printFrame.style.border = '0';
     document.body.appendChild(printFrame);
-    
+
     // Get iframe document
     const frameDoc = printFrame.contentWindow.document;
-    
+
     // Create invoice table rows
-          const invoiceTableRows = invoiceItems.map(item => {
-        const formattedAmount = roundAmount(item.totalAmount).toString() + 'n';
-        const displayHtml = String(item.displayNumbers).replace(/\n/g, '<br/>');
-        return `
+    const invoiceTableRows = invoiceItems.map(item => {
+      const formattedAmount = roundAmount(item.totalAmount).toString() + 'n';
+      const displayHtml = String(item.displayNumbers).replace(/\n/g, '<br/>');
+      return `
         <tr>
           <td style="padding: 1px; text-align: left; font-size: 15px; border-bottom: 1px solid #000; width: 22%;">${item.typeLabel}</td>
           <td style="padding: 1px; text-align: left; font-size: 15px; border-bottom: 1px solid #000; width: 45%;">${displayHtml}</td>
           <td style="padding: 1px; text-align: right; font-size: 15px; border-bottom: 1px solid #000; width: 33%;">${formattedAmount}</td>
         </tr>
       `;
-      }).join('');
-    
+    }).join('');
+
     // Create HTML for small invoice
     const invoiceHTML = `
       <!DOCTYPE html>
@@ -1805,14 +1868,14 @@ const EmployeeInterface = ({ user }) => {
       </body>
       </html>
     `;
-    
+
     // Write content to iframe
     frameDoc.open();
     frameDoc.write(invoiceHTML);
     frameDoc.close();
-    
+
     // Add cleanup function to window
-    window.closeInvoicePrint = function() {
+    window.closeInvoicePrint = function () {
       document.body.removeChild(printFrame);
       delete window.closeInvoicePrint;
     };
@@ -1830,16 +1893,16 @@ const EmployeeInterface = ({ user }) => {
 
       if (response.data.success) {
         const invoice = response.data.invoice;
-        
+
         // Set customer info
         setCustomerName(invoice.customerName);
         setCustomerGive(invoice.customerPaid.toString());
-        
+
         // Set edit mode
         setIsEditMode(true);
         setEditInvoiceId(invoiceId);
         setCurrentInvoiceId(invoiceId);
-        
+
         // Convert invoice items back to betData format
         const newBetData = {
           loto: { quantity: 1, rows: [{ numbers: '', points: '' }] },
@@ -1866,30 +1929,30 @@ const EmployeeInterface = ({ user }) => {
 
         // Convert back to betData format
         Object.entries(itemsByType).forEach(([betType, items]) => {
-                  if (betType === 'bo') {
-          // Special handling for "bộ" type
-          newBetData[betType] = {
-            quantity: items.length,
-            rows: items.map(item => {
-              // Với bộ, item.numbers chứa tên bộ (ví dụ: "05"), item.displayNumbers chứa format đầy đủ
-              let boNumbers = item.numbers || '';
-              
-              return {
-                numbers: boNumbers,
-                amount: item.amount ? item.amount.toString() : ''
-              };
-            })
-          };
+          if (betType === 'bo') {
+            // Special handling for "bộ" type
+            newBetData[betType] = {
+              quantity: items.length,
+              rows: items.map(item => {
+                // Với bộ, item.numbers chứa tên bộ (ví dụ: "05"), item.displayNumbers chứa format đầy đủ
+                let boNumbers = item.numbers || '';
+
+                return {
+                  numbers: boNumbers,
+                  amount: item.amount ? item.amount.toString() : ''
+                };
+              })
+            };
           } else if (betType === 'loto') {
             // Special handling for "loto" type
-          newBetData[betType] = {
-            quantity: items.length,
-            rows: items.map(item => ({
-              numbers: item.numbers,
-              points: item.points || '',
-              amount: item.amount || ''
-            }))
-          };
+            newBetData[betType] = {
+              quantity: items.length,
+              rows: items.map(item => ({
+                numbers: item.numbers,
+                points: item.points || '',
+                amount: item.amount || ''
+              }))
+            };
           } else {
             // Standard handling for other types
             newBetData[betType] = {
@@ -1906,13 +1969,13 @@ const EmployeeInterface = ({ user }) => {
 
         setBetData(newBetData);
         alert('Đã tải hóa đơn thành công. Bạn có thể chỉnh sửa.');
-        
+
       } else {
         alert('Lỗi: ' + response.data.message);
       }
     } catch (error) {
       console.error('Load invoice error:', error);
-      
+
       // Xử lý lỗi 404 - hóa đơn không tồn tại
       if (error.response?.status === 404) {
         alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
@@ -1938,7 +2001,7 @@ const EmployeeInterface = ({ user }) => {
 
       // Prepare items data
       const itemsForDB = [];
-      
+
       invoiceItems.forEach(item => {
         let numbers = '';
         let points = null;
@@ -1949,7 +2012,7 @@ const EmployeeInterface = ({ user }) => {
           const boMatches = item.displayNumbers.match(/Bộ (\d+|[a-z]+)\((\d+) số\)/g);
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
-          
+
           if (boMatches) {
             boMatches.forEach(match => {
               const boMatch = match.match(/Bộ (\d+|[a-z]+)\((\d+) số\)/);
@@ -1957,7 +2020,7 @@ const EmployeeInterface = ({ user }) => {
                 const boName = boMatch[1];
                 const boCount = parseInt(boMatch[2]);
                 const individualTotalAmount = boCount * amount;
-                
+
                 itemsForDB.push({
                   betType: item.type,
                   betTypeLabel: item.typeLabel,
@@ -1977,7 +2040,7 @@ const EmployeeInterface = ({ user }) => {
           const regexPattern = new RegExp(`\\(x(\\d+\\.?\\d*)${lotoUnit}\\)`);
           const pointsMatch = item.displayNumbers.match(regexPattern);
           points = pointsMatch ? parseFloat(pointsMatch[1]) : null;
-          
+
           itemsForDB.push({
             betType: item.type,
             betTypeLabel: item.typeLabel,
@@ -1992,7 +2055,7 @@ const EmployeeInterface = ({ user }) => {
           numbers = item.displayNumbers.split(' (x')[0];
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
-          
+
           // Get isXienNhay from betData for xien type
           let isXienNhay = false;
           if (item.type === 'xien') {
@@ -2006,7 +2069,7 @@ const EmployeeInterface = ({ user }) => {
               }
             }
           }
-          
+
           const itemForDB = {
             betType: item.type,
             betTypeLabel: item.typeLabel,
@@ -2016,12 +2079,12 @@ const EmployeeInterface = ({ user }) => {
             amount: amount,
             totalAmount: item.totalAmount
           };
-          
+
           // Add isXienNhay field only for xien type
           if (item.type === 'xien') {
             itemForDB.isXienNhay = isXienNhay;
           }
-          
+
           itemsForDB.push(itemForDB);
         }
       });
@@ -2044,7 +2107,7 @@ const EmployeeInterface = ({ user }) => {
 
       if (response.data.success) {
         alert('Cập nhật hóa đơn thành công!');
-        
+
         // Reset edit mode and create new invoice
         setIsEditMode(false);
         setEditInvoiceId('');
@@ -2054,9 +2117,9 @@ const EmployeeInterface = ({ user }) => {
       }
     } catch (error) {
       console.error('Save edited invoice error:', error);
-      
+
       const errorData = error.response?.data;
-      
+
       // Xử lý lỗi thời gian đặc biệt
       if (errorData?.code === 'BETTING_TIME_EXPIRED') {
         alert(`⏰ THỜI GIAN NHẬP CƯỢC ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
@@ -2095,20 +2158,20 @@ const EmployeeInterface = ({ user }) => {
     if (!invoiceIdToDelete) return;
 
     let finalInvoiceId = invoiceIdToDelete.trim();
-    
+
     // Kiểm tra nếu nhập số nhưng không đúng 5 số
     if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length !== 5) {
       alert('Vui lòng nhập đúng 5 số cuối của mã hóa đơn!');
       return;
     }
-    
+
     // Nếu chỉ là số và có đúng 5 số, tìm hóa đơn theo số cuối
     if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length === 5) {
       // Tìm hóa đơn trong danh sách hiện tại theo số cuối
-      const foundInvoice = invoiceList.find(invoice => 
+      const foundInvoice = invoiceList.find(invoice =>
         invoice.invoiceId.endsWith(finalInvoiceId)
       );
-      
+
       if (foundInvoice) {
         finalInvoiceId = foundInvoice.invoiceId;
       } else {
@@ -2143,10 +2206,10 @@ const EmployeeInterface = ({ user }) => {
       }
     } catch (error) {
       console.error('Delete invoice error:', error);
-      
+
       // Xử lý các loại lỗi
       const errorData = error.response?.data;
-      
+
       if (error.response?.status === 404) {
         // Lỗi 404 - hóa đơn không tồn tại
         alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
@@ -2209,7 +2272,7 @@ const EmployeeInterface = ({ user }) => {
           limit: 500 // Tăng giới hạn để hiển thị nhiều hóa đơn hơn
         }
       });
-      
+
       if (response.data.success) {
         setInvoiceList(response.data.invoices);
       }
@@ -2226,11 +2289,11 @@ const EmployeeInterface = ({ user }) => {
     setIsLoadingLottery(true);
     try {
       const response = await axios.get(EXTERNAL_LOTTERY_API);
-      
+
       if (response.data.success) {
         const results = response.data.t.issueList;
         setLotteryResults(results);
-        
+
         // Set the most recent result as default
         if (results.length > 0) {
           const latestResult = results[0];
@@ -2270,9 +2333,9 @@ const EmployeeInterface = ({ user }) => {
   // Handle cell edit
   const handleCellEdit = (prizeType, index, newValue) => {
     if (!currentLotteryResult) return;
-    
+
     const parsed = parseLotteryDetail(currentLotteryResult.detail);
-    
+
     if (prizeType === 'gdb' || prizeType === 'g1') {
       parsed[prizeType] = newValue;
     } else {
@@ -2280,7 +2343,7 @@ const EmployeeInterface = ({ user }) => {
         parsed[prizeType][index] = newValue;
       }
     }
-    
+
     // Update current lottery result
     const newDetail = JSON.stringify([
       parsed.gdb,
@@ -2292,12 +2355,12 @@ const EmployeeInterface = ({ user }) => {
       parsed.g6.join(','),
       parsed.g7.join(',')
     ]);
-    
+
     const updatedResult = {
       ...currentLotteryResult,
       detail: newDetail
     };
-    
+
     setCurrentLotteryResult(updatedResult);
   };
 
@@ -2358,13 +2421,13 @@ const EmployeeInterface = ({ user }) => {
     if (source === 'manual') {
       // Khởi tạo dữ liệu thủ công với ngày hiện tại (sử dụng timezone Việt Nam)
       const today = new Date();
-      const vietnamDate = new Date(today.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
-      const turnNum = vietnamDate.toLocaleDateString('vi-VN', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric' 
+      const vietnamDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+      const turnNum = vietnamDate.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
       }).replace(/\//g, '/');
-      
+
       setManualLotteryData({
         turnNum: turnNum,
         openTime: vietnamDate.toISOString(),
@@ -2379,7 +2442,7 @@ const EmployeeInterface = ({ user }) => {
           g7: ['', '', '', '']
         }
       });
-      
+
       // Tự động tải kết quả xổ số cho ngày hiện tại
       setTimeout(async () => {
         await loadLotteryByDate(turnNum);
@@ -2391,7 +2454,7 @@ const EmployeeInterface = ({ user }) => {
   const handleManualDataChange = (field, value, index = null) => {
     setManualLotteryData(prev => {
       const newData = { ...prev };
-      
+
       if (field === 'turnNum' || field === 'openTime') {
         newData[field] = value;
       } else if (field.startsWith('g')) {
@@ -2406,7 +2469,7 @@ const EmployeeInterface = ({ user }) => {
           newData.results[field] = value;
         }
       }
-      
+
       return newData;
     });
   };
@@ -2418,17 +2481,17 @@ const EmployeeInterface = ({ user }) => {
       alert('Vui lòng nhập chuỗi kết quả xổ số!');
       return;
     }
-    
+
     // Tách chuỗi thành mảng các số
-    
+
     const numbers = sourceText.trim().split(/\s+/);
-    
+
     // Kiểm tra số lượng số đã nhập
     if (numbers.length < 27) {
       alert('Chuỗi kết quả không đủ số! Cần ít nhất 27 số theo thứ tự các giải.');
       return;
     }
-    
+
     // Tạo đối tượng kết quả mới
     const newResults = {
       gdb: '', // 5 số
@@ -2440,67 +2503,67 @@ const EmployeeInterface = ({ user }) => {
       g6: ['', '', ''], // 3 giải, mỗi giải 3 số
       g7: ['', '', '', ''] // 4 giải, mỗi giải 2 số
     };
-    
+
     let index = 0;
-    
+
     // Giải ĐB - 1 số, 5 chữ số
     if (index < numbers.length && numbers[index].length === 5) {
       newResults.gdb = numbers[index++];
     }
-    
+
     // Giải 1 - 1 số, 5 chữ số
     if (index < numbers.length && numbers[index].length === 5) {
       newResults.g1 = numbers[index++];
     }
-    
+
     // Giải 2 - 2 số, mỗi số 5 chữ số
     for (let i = 0; i < 2 && index < numbers.length; i++) {
       if (numbers[index].length === 5) {
         newResults.g2[i] = numbers[index++];
       }
     }
-    
+
     // Giải 3 - 6 số, mỗi số 5 chữ số
     for (let i = 0; i < 6 && index < numbers.length; i++) {
       if (numbers[index].length === 5) {
         newResults.g3[i] = numbers[index++];
       }
     }
-    
+
     // Giải 4 - 4 số, mỗi số 4 chữ số
     for (let i = 0; i < 4 && index < numbers.length; i++) {
       if (numbers[index].length === 4) {
         newResults.g4[i] = numbers[index++];
       }
     }
-    
+
     // Giải 5 - 6 số, mỗi số 4 chữ số
     for (let i = 0; i < 6 && index < numbers.length; i++) {
       if (numbers[index].length === 4) {
         newResults.g5[i] = numbers[index++];
       }
     }
-    
+
     // Giải 6 - 3 số, mỗi số 3 chữ số
     for (let i = 0; i < 3 && index < numbers.length; i++) {
       if (numbers[index].length === 3) {
         newResults.g6[i] = numbers[index++];
       }
     }
-    
+
     // Giải 7 - 4 số, mỗi số 2 chữ số
     for (let i = 0; i < 4 && index < numbers.length; i++) {
       if (numbers[index].length === 2) {
         newResults.g7[i] = numbers[index++];
       }
     }
-    
+
     // Cập nhật state với kết quả mới
     setManualLotteryData(prev => ({
       ...prev,
       results: newResults
     }));
-    
+
     alert('Đã phân tích và điền kết quả xổ số thành công!');
   };
 
@@ -2512,11 +2575,11 @@ const EmployeeInterface = ({ user }) => {
     // Phân tích ngay để điền vào các ô kết quả với chuỗi mới
     parseBatchLotteryInput(cleaned);
   };
-  
+
   // Hàm tải kết quả xổ số theo ngày
   const loadLotteryByDate = async (selectedDate = null) => {
     const dateToUse = selectedDate || manualLotteryData.turnNum;
-    
+
     if (!dateToUse) {
       alert('Vui lòng nhập ngày xổ số');
       return;
@@ -2525,48 +2588,48 @@ const EmployeeInterface = ({ user }) => {
     try {
       setIsLoadingLottery(true);
       const token = localStorage.getItem('token');
-      
+
       // Chuyển đổi turnNum từ DD/MM/YYYY sang YYYY-MM-DD
       const [day, month, year] = dateToUse.split('/');
       const dateStr = `${year}-${month}-${day}`;
-      
+
       const response = await axios.get(`${getApiUrl('/lottery/results')}?date=${dateStr}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data.lotteryResults && response.data.lotteryResults.length > 0) {
         const result = response.data.lotteryResults[0];
         setManualLotteryData({
           turnNum: dateToUse, // Sử dụng ngày được chọn
           openTime: result.openTime,
-                      results: result.results
-          });
-          // Không hiển thị alert khi tải thành công để tránh làm phiền
-              } else {
-          // Nếu không có kết quả, reset về trạng thái trống (không hiển thị alert)
-          const today = new Date();
-          const vietnamDate = new Date(today.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
-          
-          setManualLotteryData({
-            turnNum: dateToUse,
-            openTime: vietnamDate.toISOString(),
-            results: {
-              gdb: '',
-              g1: '',
-              g2: ['', ''],
-              g3: ['', '', '', '', '', ''],
-              g4: ['', '', '', ''],
-              g5: ['', '', '', '', '', ''],
-              g6: ['', '', ''],
-              g7: ['', '', '', '']
-            }
-          });
-        }
-      
-          } catch (error) {
-        console.error('Lỗi tải kết quả xổ số:', error);
-        // Không hiển thị alert khi có lỗi để tránh làm phiền
-      } finally {
+          results: result.results
+        });
+        // Không hiển thị alert khi tải thành công để tránh làm phiền
+      } else {
+        // Nếu không có kết quả, reset về trạng thái trống (không hiển thị alert)
+        const today = new Date();
+        const vietnamDate = new Date(today.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+
+        setManualLotteryData({
+          turnNum: dateToUse,
+          openTime: vietnamDate.toISOString(),
+          results: {
+            gdb: '',
+            g1: '',
+            g2: ['', ''],
+            g3: ['', '', '', '', '', ''],
+            g4: ['', '', '', ''],
+            g5: ['', '', '', '', '', ''],
+            g6: ['', '', ''],
+            g7: ['', '', '', '']
+          }
+        });
+      }
+
+    } catch (error) {
+      console.error('Lỗi tải kết quả xổ số:', error);
+      // Không hiển thị alert khi có lỗi để tránh làm phiền
+    } finally {
       setIsLoadingLottery(false);
     }
   };
@@ -2576,27 +2639,27 @@ const EmployeeInterface = ({ user }) => {
     try {
       setIsLoadingLottery(true);
       const token = localStorage.getItem('token');
-      
+
       // Validate dữ liệu
       if (!manualLotteryData.turnNum) {
         alert('Vui lòng nhập ngày xổ số');
         return;
       }
-      
+
       if (!manualLotteryData.results.gdb) {
         alert('Vui lòng nhập giải đặc biệt');
         return;
       }
-      
-      const response = await axios.post(getApiUrl('/lottery/save'), 
+
+      const response = await axios.post(getApiUrl('/lottery/save'),
         manualLotteryData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert('Lưu kết quả xổ số thành công!');
       await loadLotteryResults();
       setDataSource('api'); // Chuyển về chế độ API
-      
+
     } catch (error) {
       console.error('Lỗi lưu kết quả xổ số:', error);
       alert('Lỗi khi lưu kết quả xổ số: ' + (error.response?.data?.message || error.message));
@@ -2607,13 +2670,13 @@ const EmployeeInterface = ({ user }) => {
 
   // Handle menu change with unsaved changes warning
   const handleMenuChange = (menuId) => {
-    console.log('🔄 Menu change attempt:', { 
-      menuId, 
-      isEditMode, 
+    console.log('🔄 Menu change attempt:', {
+      menuId,
+      isEditMode,
       hasUnsavedChanges,
-      currentMenu: activeMenu 
+      currentMenu: activeMenu
     });
-    
+
     if (isEditMode && hasUnsavedChanges) {
       const confirmLeave = window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn thoát?');
       if (!confirmLeave) {
@@ -2625,25 +2688,25 @@ const EmployeeInterface = ({ user }) => {
       window.location.reload();
       return;
     }
-    
+
     setActiveMenu(menuId);
-    
+
     // Nếu chọn tab kết quả xổ số, đảm bảo tab mặc định là nhập thủ công
     if (menuId === 'lottery') {
       setDataSource('manual');
-      
+
       // Tự động tải kết quả xổ số cho ngày hiện tại
       const today = getCurrentVietnamDateFormatted();
       setTimeout(async () => {
         await loadLotteryByDate(today);
       }, 100);
     }
-    
+
     // Close mobile menu when menu item is clicked
     if (window.innerWidth <= 768) {
       setIsMobileMenuOpen(false);
     }
-    
+
     // Close settings dropdown when switching to non-settings menu
     if (menuId !== 'prize-settings' && menuId !== 'loto-multiplier') {
       setIsSettingsDropdownOpen(false);
@@ -2665,13 +2728,13 @@ const EmployeeInterface = ({ user }) => {
     try {
       // First save the invoice
       await saveEditedInvoice();
-      
+
       // Then print it
       setTimeout(() => {
         createPrintableInvoice(customerName, currentInvoiceId);
         alert('Hóa đơn đã được cập nhật và in thành công!');
       }, 500);
-      
+
     } catch (error) {
       console.error('Lỗi khi lưu và in hóa đơn:', error);
       alert('Có lỗi xảy ra khi lưu và in hóa đơn');
@@ -2683,20 +2746,20 @@ const EmployeeInterface = ({ user }) => {
     const invoiceIdInput = prompt('Nhập mã hóa đơn cần sửa (có thể nhập 5 số cuối, vd: 12345):');
     if (invoiceIdInput) {
       let invoiceIdToEdit = invoiceIdInput.trim();
-      
+
       // Kiểm tra nếu nhập số nhưng không đúng 5 số
       if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length !== 5) {
         alert('Vui lòng nhập đúng 5 số cuối của mã hóa đơn!');
         return;
       }
-      
+
       // Nếu chỉ là số và có đúng 5 số, tìm hóa đơn theo số cuối
       if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length === 5) {
         // Tìm hóa đơn trong danh sách hiện tại theo số cuối
-        const foundInvoice = invoiceList.find(invoice => 
+        const foundInvoice = invoiceList.find(invoice =>
           invoice.invoiceId.endsWith(invoiceIdToEdit)
         );
-        
+
         if (foundInvoice) {
           invoiceIdToEdit = foundInvoice.invoiceId;
         } else {
@@ -2705,7 +2768,7 @@ const EmployeeInterface = ({ user }) => {
           return;
         }
       }
-      
+
       loadInvoiceForEdit(invoiceIdToEdit);
     }
   };
@@ -2729,24 +2792,24 @@ const EmployeeInterface = ({ user }) => {
       }
     } catch (error) {
       console.error('Lỗi khi lưu hóa đơn:', error);
-      
+
       const errorData = error.response?.data;
-      
+
       // Xử lý lỗi thời gian đặc biệt
       if (errorData?.code === 'BETTING_TIME_EXPIRED') {
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: `⏰ THỜI GIAN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`,
           isTimeExpired: true
         };
       } else if (errorData?.code === 'SPECIAL_BETS_TIME_EXPIRED') {
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: `⏰ THỜI GIAN NHẬP LÔ, XIÊN, XIÊN QUAY ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`,
           isTimeExpired: true
         };
       }
-      
+
       return { success: false, error: errorData?.message || error.message };
     }
   };
@@ -2757,7 +2820,7 @@ const EmployeeInterface = ({ user }) => {
       alert('Vui lòng sửa các lỗi nhập liệu trước khi in hóa đơn');
       return;
     }
-    
+
     if (invoiceItems.length === 0) {
       alert('Chưa có cược nào để in');
       return;
@@ -2772,7 +2835,7 @@ const EmployeeInterface = ({ user }) => {
 
       // Prepare items data for database
       const itemsForDB = [];
-      
+
       invoiceItems.forEach(item => {
         let numbers = '';
         let points = null;
@@ -2783,7 +2846,7 @@ const EmployeeInterface = ({ user }) => {
           const boMatches = item.displayNumbers.match(/Bộ (\d+|[a-z]+)\((\d+) số\)/g);
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
-          
+
           if (boMatches) {
             boMatches.forEach(match => {
               const boMatch = match.match(/Bộ (\d+|[a-z]+)\((\d+) số\)/);
@@ -2791,7 +2854,7 @@ const EmployeeInterface = ({ user }) => {
                 const boName = boMatch[1];
                 const boCount = parseInt(boMatch[2]);
                 const individualTotalAmount = boCount * amount;
-                
+
                 itemsForDB.push({
                   betType: item.type,
                   betTypeLabel: item.typeLabel,
@@ -2811,7 +2874,7 @@ const EmployeeInterface = ({ user }) => {
           const regexPattern = new RegExp(`\\(x(\\d+\\.?\\d*)${lotoUnit}\\)`);
           const pointsMatch = item.displayNumbers.match(regexPattern);
           points = pointsMatch ? parseFloat(pointsMatch[1]) : null;
-          
+
           itemsForDB.push({
             betType: item.type,
             betTypeLabel: item.typeLabel,
@@ -2826,12 +2889,12 @@ const EmployeeInterface = ({ user }) => {
           const numbersStr = item.displayNumbers.split(' (x')[0];
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
-          
+
           const individualNumbers = numbersStr.split(', ').map(n => n.trim());
-          
+
           individualNumbers.forEach(num => {
             const individualTotalAmount = amount * 10; // Mỗi tổng/đầu/đít có 10 con đề
-            
+
             itemsForDB.push({
               betType: item.type,
               betTypeLabel: item.typeLabel,
@@ -2848,7 +2911,7 @@ const EmployeeInterface = ({ user }) => {
           numbers = item.displayNumbers.split(' (x')[0];
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
           amount = amountMatch ? parseFloat(amountMatch[1]) : null;
-          
+
           // Get isXienNhay from betData for xien type
           let isXienNhay = false;
           if (item.type === 'xien') {
@@ -2862,7 +2925,7 @@ const EmployeeInterface = ({ user }) => {
               }
             }
           }
-          
+
           const itemForDB = {
             betType: item.type,
             betTypeLabel: item.typeLabel,
@@ -2872,12 +2935,12 @@ const EmployeeInterface = ({ user }) => {
             amount: amount,
             totalAmount: item.totalAmount
           };
-          
+
           // Add isXienNhay field only for xien type
           if (item.type === 'xien') {
             itemForDB.isXienNhay = isXienNhay;
           }
-          
+
           itemsForDB.push(itemForDB);
         }
       });
@@ -2893,7 +2956,7 @@ const EmployeeInterface = ({ user }) => {
 
       // Save to database first
       const saveResult = await saveInvoiceToDatabase(invoiceData);
-      
+
       if (!saveResult.success) {
         alert('Lỗi khi lưu hóa đơn: ' + saveResult.error);
         return;
@@ -2901,65 +2964,65 @@ const EmployeeInterface = ({ user }) => {
 
       // Create and print the invoice after successful save
       createPrintableInvoice(customerName, invoiceId);
-      
+
       // Show success message
-              // Hóa đơn đã được lưu và in thành công
-      
+      // Hóa đơn đã được lưu và in thành công
+
       // Reset unsaved changes flag
       setHasUnsavedChanges(false);
-      
+
       // Reset form and generate new invoice ID after successful print
       setTimeout(() => {
         setCustomerName('');
         setCustomerGive('');
         setValidationErrors({}); // Clear validation errors
         setBetData({
-          loto: { 
-            quantity: 1, 
+          loto: {
+            quantity: 1,
             rows: [{ numbers: '', points: '' }]
           },
-          '2s': { 
-            quantity: 1, 
+          '2s': {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-          '3s': { 
-            quantity: 1, 
+          '3s': {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-          '4s': { 
-            quantity: 1, 
+          '4s': {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-          tong: { 
-            quantity: 1, 
+          tong: {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-          kep: { 
-            quantity: 1, 
+          kep: {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-          dau: { 
-            quantity: 1, 
+          dau: {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-          dit: { 
-            quantity: 1, 
+          dit: {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-          xien: { 
-            quantity: 1, 
+          xien: {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-          xienquay: { 
-            quantity: 1, 
+          xienquay: {
+            quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
-                  bo: { 
-          quantity: 1, 
-          rows: [{ numbers: '', amount: '' }]
-        }
+          bo: {
+            quantity: 1,
+            rows: [{ numbers: '', amount: '' }]
+          }
         });
-        
+
         // Generate new invoice ID for next transaction
         generateNewInvoiceId().catch(error => {
           console.error('Lỗi khi tạo mã hóa đơn mới:', error);
@@ -2977,52 +3040,52 @@ const EmployeeInterface = ({ user }) => {
     setCustomerGive('');
     setValidationErrors({}); // Clear validation errors
     setBetData({
-      loto: { 
-        quantity: 1, 
+      loto: {
+        quantity: 1,
         rows: [{ numbers: '', points: '' }]
       },
-      '2s': { 
-        quantity: 1, 
+      '2s': {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      '3s': { 
-        quantity: 1, 
+      '3s': {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      '4s': { 
-        quantity: 1, 
+      '4s': {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      tong: { 
-        quantity: 1, 
+      tong: {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      kep: { 
-        quantity: 1, 
+      kep: {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      dau: { 
-        quantity: 1, 
+      dau: {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      dit: { 
-        quantity: 1, 
+      dit: {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      xien: { 
-        quantity: 1, 
+      xien: {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      xienquay: { 
-        quantity: 1, 
+      xienquay: {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
-      bo: { 
-        quantity: 1, 
+      bo: {
+        quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       }
     });
-    
+
     // Generate new invoice ID
     generateNewInvoiceId().catch(error => {
       console.error('Lỗi khi tạo mã hóa đơn mới:', error);
@@ -3039,7 +3102,7 @@ const EmployeeInterface = ({ user }) => {
 
   // Format history changes for better display
   const formatHistoryChange = (field, change) => {
-    switch(field) {
+    switch (field) {
       case 'customerName':
         return `Tên khách hàng: "${change.from}" → "${change.to}"`;
       case 'totalAmount':
@@ -3051,11 +3114,11 @@ const EmployeeInterface = ({ user }) => {
       case 'items':
         const fromCount = Array.isArray(change.from) ? change.from.length : 0;
         const toCount = Array.isArray(change.to) ? change.to.length : 0;
-        
+
         // Show summary of bet types changed
         const fromSummary = formatItemsSummary(change.from);
         const toSummary = formatItemsSummary(change.to);
-        
+
         return `Cược: ${fromSummary} → ${toSummary}`;
       default:
         // For other fields, try to show a simplified version
@@ -3103,14 +3166,15 @@ const EmployeeInterface = ({ user }) => {
     { id: 'prize-statistics', label: 'Thống kê thưởng', icon: '💰' },
     { id: 'invoices', label: 'Danh sách hóa đơn', icon: '📋' },
     { id: 'history', label: 'Lịch sử sửa đổi', icon: '📚' },
-    { 
-      id: 'settings', 
-      label: 'Cài đặt', 
+    {
+      id: 'settings',
+      label: 'Cài đặt',
       icon: '⚙️',
       hasDropdown: true,
       subItems: [
         { id: 'prize-settings', label: 'Hệ số thưởng', icon: '🏆' },
         { id: 'loto-multiplier', label: 'Hệ số lô', icon: '🎯' },
+        { id: 'special-groups', label: 'Bộ số đặc biệt (2 số)', icon: '🗂️' },
         { id: 'loto-unit', label: 'Đơn vị lô', icon: '🔤' },
         ...(user?.allowChangePassword ? [{ id: 'emp-change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : [])
       ]
@@ -3133,7 +3197,7 @@ const EmployeeInterface = ({ user }) => {
   }, [storeInfo, activeMenu]);
 
   const getPlaceholderText = (betType) => {
-    switch(betType) {
+    switch (betType) {
       case 'loto':
         return "VD: 12, 13, 23, 44, 22, 33";
       case '2s':
@@ -3175,7 +3239,7 @@ const EmployeeInterface = ({ user }) => {
     }
 
     let preview = '';
-    switch(betType) {
+    switch (betType) {
       case 'loto':
         const loCount = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${loCount} con x ${row.points} điểm x ${lotoMultiplier} = ${calculateLoAmount(row.numbers, row.points).toLocaleString()} VNĐ`;
@@ -3228,7 +3292,7 @@ const EmployeeInterface = ({ user }) => {
         const xienQuayItems = row.numbers.trim().split(/[\s,.]+/).filter(x => x.length > 0);
         let xienQuayDetail = '';
         let totalMultiplier = 0;
-        
+
         xienQuayItems.forEach(item => {
           const numbers = item.split('-');
           if (numbers.length === 3) {
@@ -3239,7 +3303,7 @@ const EmployeeInterface = ({ user }) => {
             xienQuayDetail += (xienQuayDetail ? ' + ' : '') + `${item}(x11)`;
           }
         });
-        
+
         preview = `${xienQuayDetail} = ${row.amount} x ${totalMultiplier} = ${calculateXienQuayAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
       case 'bo':
@@ -3248,17 +3312,18 @@ const EmployeeInterface = ({ user }) => {
           if (boNumbers.length > 0) {
             let previewDetail = '';
             let totalAmount = 0;
-            
+
             boNumbers.forEach(num => {
-              if (BO_DATA[num]) {
-                const count = BO_DATA[num].length;
+              const list = (boMap[num] || BO_DATA[num]);
+              if (Array.isArray(list)) {
+                const count = list.length;
                 const amount = parseFloat(row.amount);
                 const boAmount = count * amount;
                 totalAmount += boAmount;
                 previewDetail += (previewDetail ? ' + ' : '') + `bộ ${num} x${count} x${amount}`;
               }
             });
-            
+
             preview = `${previewDetail} = ${totalAmount.toLocaleString()} VNĐ`;
           }
         }
@@ -3273,13 +3338,13 @@ const EmployeeInterface = ({ user }) => {
     const bet = betData[betType];
     const isLoto = betType === 'loto';
     const isBo = betType === 'bo';
-    
+
     // Safety check - if bet data doesn't exist, return null
     if (!bet) {
       console.error(`Bet data not found for type: ${betType}`);
       return null;
     }
-    
+
     return (
       <>
         {/* Header row with bet type name and quantity */}
@@ -3293,10 +3358,11 @@ const EmployeeInterface = ({ user }) => {
               max={20}
               step={1}
             />
+            {/* Dropdown bộ 2 số đã được loại bỏ theo yêu cầu; phần bộ được xử lý trong mục "Bộ" bằng tên bộ động từ DB */}
           </td>
           <td></td>
         </tr>
-        
+
         {/* Dynamic rows based on quantity */}
         {bet.rows.map((row, index) => (
           <tr key={`${betType}-${index}`} className="bet-inputs-row">
@@ -3388,10 +3454,10 @@ const EmployeeInterface = ({ user }) => {
               onChange={(e) => {
                 const checked = e.target.checked;
                 setAllowMergeDuplicates(checked);
-                
+
                 // Lưu vào sessionStorage
                 sessionStorage.setItem('allowMergeDuplicates', checked.toString());
-                
+
                 // Nếu bật checkbox, gộp chỉ loto, 2s, 3s, 4s, bo với delay (không gộp khi đang load hóa đơn)
                 if (checked && !isLoadingInvoice) {
                   setTimeout(() => {
@@ -3405,7 +3471,7 @@ const EmployeeInterface = ({ user }) => {
             <span>Cho phép gộp số trùng</span>
           </label>
         </div>
-        
+
         <div className="form-header-info">
           <div className="bill-info">
             <div><strong>Mã hóa đơn:</strong> {currentInvoiceId}</div>
@@ -3450,9 +3516,9 @@ const EmployeeInterface = ({ user }) => {
             <tbody>
               {/* Loto section */}
               {renderBetTypeRows('loto')}
-              
+
               {/* Other bet types */}
-              {['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s'].map(betType => 
+              {['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s'].map(betType =>
                 renderBetTypeRows(betType)
               )}
             </tbody>
@@ -3468,7 +3534,7 @@ const EmployeeInterface = ({ user }) => {
             <div><strong>Mã hóa đơn:</strong> {currentInvoiceId}</div>
             <div><strong>Chi tiết cược</strong></div>
             {isEditMode && hasUnsavedChanges && (
-              <div style={{color: '#e74c3c', fontSize: '12px', marginTop: '4px'}}>
+              <div style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px' }}>
                 ⚠️ Có thay đổi chưa lưu
               </div>
             )}
@@ -3497,16 +3563,16 @@ const EmployeeInterface = ({ user }) => {
                           return (
                             <React.Fragment key={i}>
                               {parts[0]}
-                              <span style={{color: 'red'}}>(xiên nháy)</span>
+                              <span style={{ color: 'red' }}>(xiên nháy)</span>
                               {parts[1]}
-                              {i < String(item.displayNumbers).split('\n').length - 1 ? <br/> : null}
+                              {i < String(item.displayNumbers).split('\n').length - 1 ? <br /> : null}
                             </React.Fragment>
                           );
                         }
                         return (
                           <React.Fragment key={i}>
                             {line}
-                            {i < String(item.displayNumbers).split('\n').length - 1 ? <br/> : null}
+                            {i < String(item.displayNumbers).split('\n').length - 1 ? <br /> : null}
                           </React.Fragment>
                         );
                       })}
@@ -3571,36 +3637,36 @@ const EmployeeInterface = ({ user }) => {
             <div className="main-actions">
               {isEditMode ? (
                 <>
-            <button 
-                    onClick={saveEditedInvoice} 
-              className="btn btn-print"
-            >
+                  <button
+                    onClick={saveEditedInvoice}
+                    className="btn btn-print"
+                  >
                     Cập Nhật Hóa Đơn
-            </button>
-                  <button 
-                    onClick={saveAndPrintInvoice} 
+                  </button>
+                  <button
+                    onClick={saveAndPrintInvoice}
                     className="btn btn-save-print"
                   >
                     Lưu và In Hóa Đơn
                   </button>
                 </>
               ) : (
-                <button 
-                  onClick={printInvoice} 
+                <button
+                  onClick={printInvoice}
                   className="btn btn-print"
                 >
                   In Hóa Đơn
                 </button>
               )}
             </div>
-            
+
             <div className="secondary-actions">
-            <button onClick={editInvoice} className="btn btn-edit">
-              Sửa Hóa Đơn
-            </button>
-            <button onClick={deleteInvoice} className="btn btn-delete">
-              Xóa Hóa Đơn
-            </button>
+              <button onClick={editInvoice} className="btn btn-edit">
+                Sửa Hóa Đơn
+              </button>
+              <button onClick={deleteInvoice} className="btn btn-delete">
+                Xóa Hóa Đơn
+              </button>
             </div>
           </div>
         </div>
@@ -3616,7 +3682,7 @@ const EmployeeInterface = ({ user }) => {
           Tải lại
         </button>
       </div>
-      
+
       <div className="history-content">
         {invoiceHistory.length === 0 ? (
           <div className="no-history">
@@ -3639,7 +3705,7 @@ const EmployeeInterface = ({ user }) => {
                     {new Date(history.actionDate).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                   </div>
                 </div>
-                
+
                 <div className="history-details">
                   <div className="history-employee">
                     <strong>Nhân viên:</strong> {history.employeeId?.name || 'N/A'}
@@ -3647,7 +3713,7 @@ const EmployeeInterface = ({ user }) => {
                   <div className="history-reason">
                     <strong>Lý do:</strong> {history.reason || 'Không có'}
                   </div>
-                  
+
                   {history.action === 'edit' && Object.keys(history.changes).length > 0 && (
                     <div className="history-changes">
                       <strong>Thay đổi:</strong>
@@ -3671,7 +3737,7 @@ const EmployeeInterface = ({ user }) => {
 
   const formatBetDetails = (items) => {
     const betGroups = {};
-    
+
     items.forEach(item => {
       if (!betGroups[item.betType]) {
         betGroups[item.betType] = [];
@@ -3685,13 +3751,13 @@ const EmployeeInterface = ({ user }) => {
         const numbers = item.numbers || '';
         const amount = item.points || item.amount || 0;
         const total = item.totalAmount || 0;
-        
+
         if (betType === 'bo') {
           // Xử lý đặc biệt cho bộ - hiển thị với số lượng số
           const boNumbers = numbers.split(' ').filter(n => n.length > 0);
           if (boNumbers.length > 0) {
             const boDetails = boNumbers.map(num => {
-              const count = BO_DATA[num] ? BO_DATA[num].length : 0;
+              const count = Array.isArray(boMap[num]) ? boMap[num].length : (BO_DATA[num] ? BO_DATA[num].length : 0);
               return `Bộ ${num}(${count} số)`;
             }).join(', ');
             return `${boDetails} (${amount}n) = ${total.toLocaleString()}`;
@@ -3702,7 +3768,7 @@ const EmployeeInterface = ({ user }) => {
           return `${numbers} (${amount}${betType === 'loto' ? 'đ' : 'n'}) = ${total.toLocaleString()}`;
         }
       }).join(', ');
-      
+
       return `${label}: ${details}`;
     }).join('\n');
   };
@@ -3712,28 +3778,28 @@ const EmployeeInterface = ({ user }) => {
       <div className="invoice-list-header">
         <h3>Danh sách hóa đơn</h3>
         <div className="controls-row">
-        <div className="date-filter">
-          <label htmlFor="invoice-date">Chọn ngày:</label>
-          <input
-            id="invoice-date"
-            type="date"
-            value={selectedDate}
-            onChange={(e) => {
-              setSelectedDate(e.target.value);
-              loadInvoiceList(e.target.value);
-            }}
-            className="date-input"
-          />
-          <button onClick={() => loadInvoiceList(selectedDate)} className="btn btn-refresh">
-            Làm mới
-          </button>
+          <div className="date-filter">
+            <label htmlFor="invoice-date">Chọn ngày:</label>
+            <input
+              id="invoice-date"
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                loadInvoiceList(e.target.value);
+              }}
+              className="date-input"
+            />
+            <button onClick={() => loadInvoiceList(selectedDate)} className="btn btn-refresh">
+              Làm mới
+            </button>
           </div>
-          
+
           <div className="search-filter">
             <label htmlFor="search-invoice-list">Tìm hóa đơn:</label>
-            <input 
+            <input
               id="search-invoice-list"
-              type="text" 
+              type="text"
               value={searchInvoiceList}
               onChange={(e) => setSearchInvoiceList(e.target.value)}
               placeholder="Nhập số cuối hóa đơn (vd: 17710)"
@@ -3770,66 +3836,93 @@ const EmployeeInterface = ({ user }) => {
               }
               return true;
             });
-            
+
             return (
               <>
-          <div className="invoice-summary">
+                <div className="invoice-summary">
                   <p><strong>Tổng số hóa đơn:</strong> {filteredInvoices.length} {searchInvoiceList && `(lọc từ ${invoiceList.length})`}</p>
                   <p><strong>Tổng tiền:</strong> {filteredInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0).toLocaleString()} VNĐ</p>
-          </div>
-          
-          <div className="invoice-table-container">
-            <table className="invoice-table">
-              <thead>
-                <tr>
-                  <th>Mã HĐ</th>
-                  <th>Khách hàng</th>
-                  <th>Chi tiết cược</th>
-                  <th>Tổng tiền</th>
-                  <th>Thời gian</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInvoices.map((invoice) => (
-                  <tr key={invoice._id} className="invoice-row">
-                    <td className="invoice-id-cell">
-                      <strong>{invoice.invoiceId}</strong>
-                    </td>
-                    <td className="customer-cell">
-                      {invoice.customerName}
-                    </td>
-                    <td className="bet-details-cell">
-                      <div className="bet-details">
-                        {(() => {
-                          const lines = String(formatBetDetails(invoice.items)).split('\n');
-                          return lines.map((line, i) => {
-                            const parts = line.split(': ');
-                            const label = parts[0] || '';
-                            const content = parts.slice(1).join(': ') || '';
-                            return (
-                              <div key={i} style={{padding: '2px 0'}}>
-                                <span style={{color: '#e74c3c', fontWeight: 700}}>{label}:</span>{' '}
-                                <span style={{color: '#000'}}>{content}</span>
-                                {i < lines.length - 1 && (
-                                  <div style={{borderTop: '1px dashed #ccc', margin: '4px 0'}} />
-                                )}
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </td>
-                    <td className="amount-cell">
-                      <strong>{invoice.totalAmount.toLocaleString()} VNĐ</strong>
-                    </td>
-                    <td className="time-cell">
-                      {new Date(invoice.printedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </div>
+
+                <div className="invoice-table-container">
+                  <table className="invoice-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '10%' }}>Mã HĐ</th>
+                        <th style={{ width: '12%' }}>Khách hàng</th>
+                        <th style={{ width: '46%' }}>Chi tiết cược</th>
+                        <th style={{ width: '12%' }}>Tổng tiền</th>
+                        <th style={{ width: '14%' }}>Thời gian</th>
+                        <th style={{ width: '6%' }}>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredInvoices.map((invoice) => (
+                        <tr key={invoice._id} className="invoice-row">
+                          <td className="invoice-id-cell">
+                            <strong>{invoice.invoiceId}</strong>
+                          </td>
+                          <td className="customer-cell">
+                            {invoice.customerName}
+                          </td>
+                          <td className="bet-details-cell">
+                            <div className="bet-details">
+                              {(() => {
+                                const lines = String(formatBetDetails(invoice.items)).split('\n');
+                                return lines.map((line, i) => {
+                                  const parts = line.split(': ');
+                                  const label = parts[0] || '';
+                                  const content = parts.slice(1).join(': ') || '';
+                                  return (
+                                    <div key={i} style={{ padding: '2px 0' }}>
+                                      <span style={{ color: '#e74c3c', fontWeight: 700 }}>{label}:</span>{' '}
+                                      <span style={{ color: '#000' }}>{content}</span>
+                                      {i < lines.length - 1 && (
+                                        <div style={{ borderTop: '1px dashed #ccc', margin: '4px 0' }} />
+                                      )}
+                                    </div>
+                                  );
+                                });
+                              })()}
+                            </div>
+                          </td>
+                          <td className="amount-cell">
+                            <strong>{invoice.totalAmount.toLocaleString()} VNĐ</strong>
+                          </td>
+                          <td className="time-cell">
+                            {new Date(invoice.printedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+                          </td>
+                          <td className="action-cell">
+                            <div className="action-buttons">
+                              <button
+                                className="invoice-action-btn edit"
+                                title="Sửa hóa đơn"
+                                onClick={async () => {
+                                  await loadInvoiceForEdit(invoice.invoiceId);
+                                  setActiveMenu('betting');
+                                  // Cuộn lên đầu form nhập cược để người dùng thấy ngay
+                                  requestAnimationFrame(() => {
+                                    const container = document.querySelector('.content-body');
+                                    if (container) container.scrollTop = 0;
+                                  });
+                                }}
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                className="invoice-action-btn delete"
+                                title="Xóa hóa đơn"
+                                onClick={() => deleteInvoiceById(invoice.invoiceId)}
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </>
             );
           })()}
@@ -3838,12 +3931,70 @@ const EmployeeInterface = ({ user }) => {
     </div>
   );
 
+  // Delete invoice by id from list
+  const deleteInvoiceById = async (finalInvoiceId) => {
+    if (!finalInvoiceId) return;
+
+    // eslint-disable-next-line no-restricted-globals
+    if (!confirm(`Bạn có chắc chắn muốn xóa hóa đơn ${finalInvoiceId}?`)) {
+      return;
+    }
+
+    const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
+
+    try {
+      const response = await axios.delete(getApiUrl(`/invoice/delete/${finalInvoiceId}`), {
+        data: { reason },
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data.success) {
+        alert('Xóa hóa đơn thành công!');
+        loadInvoiceList();
+      } else {
+        alert('Lỗi: ' + response.data.message);
+      }
+    } catch (error) {
+      console.error('Delete invoice error:', error);
+      const errorData = error.response?.data;
+      if (error.response?.status === 404) {
+        alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
+      } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
+        alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+      } else if (errorData?.code === 'INVOICE_LOCKED_BY_MESSAGE_EXPORT' || (error.response?.status === 403 && (errorData?.message || '').includes('xuất tin nhắn'))) {
+        const reasonReq = prompt('Hóa đơn đã được xuất tin nhắn, không thể xóa. Nhập lý do gửi yêu cầu tới admin để xin xóa:');
+        if (reasonReq !== null) {
+          try {
+            const token = localStorage.getItem('token');
+            const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
+              invoiceId: finalInvoiceId,
+              requestType: 'delete',
+              reason: reasonReq || ''
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            if (resp.data?.success) {
+              alert('Đã gửi yêu cầu tới admin. Vui lòng chờ phê duyệt.');
+            } else {
+              alert(resp.data?.message || 'Không thể gửi yêu cầu');
+            }
+          } catch (err) {
+            alert(err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
+          }
+        }
+      } else {
+        alert('Lỗi khi xóa hóa đơn: ' + (errorData?.message || error.message));
+      }
+    }
+  };
+
   const renderEditableCell = (value, prizeType, index = null) => {
     const cellKey = `${prizeType}-${index || 0}`;
-    
+
     // Xác định maxLength dựa trên loại giải
     const getMaxLength = (type) => {
-      switch(type) {
+      switch (type) {
         case 'gdb':
         case 'g1':
         case 'g2':
@@ -3860,21 +4011,21 @@ const EmployeeInterface = ({ user }) => {
           return 5;
       }
     };
-    
+
     return (
-      <div 
+      <div
         className="editable-cell"
-        onClick={() => setEditableCells({...editableCells, [cellKey]: true})}
+        onClick={() => setEditableCells({ ...editableCells, [cellKey]: true })}
       >
         {editableCells[cellKey] ? (
           <input
             type="text"
             value={value}
             onChange={(e) => handleCellEdit(prizeType, index, e.target.value)}
-            onBlur={() => setEditableCells({...editableCells, [cellKey]: false})}
+            onBlur={() => setEditableCells({ ...editableCells, [cellKey]: false })}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                setEditableCells({...editableCells, [cellKey]: false});
+                setEditableCells({ ...editableCells, [cellKey]: false });
               }
             }}
             maxLength={getMaxLength(prizeType)}
@@ -3902,18 +4053,18 @@ const EmployeeInterface = ({ user }) => {
       <div className="lottery-container">
         <div className="lottery-header">
           <h3>Kết quả xổ số Miền Bắc</h3>
-          
+
           {/* Chỉ hiển thị tab nhập thủ công */}
           <div className="data-source-selector" style={{ display: 'none' }}>
             <label className="data-source-label">Nguồn dữ liệu:</label>
             <div className="data-source-buttons">
-              <button 
+              <button
                 className={`data-source-btn ${dataSource === 'api' ? 'active' : ''}`}
                 onClick={() => handleDataSourceChange('api')}
               >
                 📡 API
               </button>
-              <button 
+              <button
                 className={`data-source-btn ${dataSource === 'manual' ? 'active' : ''}`}
                 onClick={() => handleDataSourceChange('manual')}
               >
@@ -3973,7 +4124,7 @@ const EmployeeInterface = ({ user }) => {
                     const year = date.getFullYear();
                     const newDate = `${day}/${month}/${year}`;
                     handleManualDataChange('turnNum', newDate);
-                    
+
                     // Tự động tải kết quả khi chọn ngày
                     try {
                       await loadLotteryByDate(newDate);
@@ -4009,14 +4160,14 @@ const EmployeeInterface = ({ user }) => {
                           {renderEditableCell(parsed.gdb, 'gdb')}
                         </td>
                       </tr>
-                      
+
                       <tr>
                         <td className="prize-label">G.1</td>
                         <td className="prize-numbers" colSpan="4">
                           {renderEditableCell(parsed.g1, 'g1')}
                         </td>
                       </tr>
-                      
+
                       <tr>
                         <td className="prize-label">G.2</td>
                         {parsed.g2.slice(0, 2).map((num, idx) => (
@@ -4024,14 +4175,14 @@ const EmployeeInterface = ({ user }) => {
                             {renderEditableCell(num, 'g2', idx)}
                           </td>
                         ))}
-                        {Array.from({length: Math.max(0, 2 - parsed.g2.length)}).map((_, idx) => (
+                        {Array.from({ length: Math.max(0, 2 - parsed.g2.length) }).map((_, idx) => (
                           <td key={`empty-g2-${idx}`} className="prize-numbers">
                             {renderEditableCell('', 'g2', parsed.g2.length + idx)}
                           </td>
                         ))}
                         <td className="prize-numbers empty-cell" colSpan="2"></td>
                       </tr>
-                      
+
                       <tr>
                         <td className="prize-label">G.3</td>
                         <td className="prize-numbers" colSpan="4">
@@ -4041,7 +4192,7 @@ const EmployeeInterface = ({ user }) => {
                                 {renderEditableCell(num, 'g3', idx)}
                               </div>
                             ))}
-                            {Array.from({length: Math.max(0, 6 - parsed.g3.length)}).map((_, idx) => (
+                            {Array.from({ length: Math.max(0, 6 - parsed.g3.length) }).map((_, idx) => (
                               <div key={`empty-g3-${idx}`} className="number-item">
                                 {renderEditableCell('', 'g3', parsed.g3.length + idx)}
                               </div>
@@ -4049,7 +4200,7 @@ const EmployeeInterface = ({ user }) => {
                           </div>
                         </td>
                       </tr>
-                      
+
                       <tr>
                         <td className="prize-label">G.4</td>
                         {parsed.g4.slice(0, 4).map((num, idx) => (
@@ -4057,13 +4208,13 @@ const EmployeeInterface = ({ user }) => {
                             {renderEditableCell(num, 'g4', idx)}
                           </td>
                         ))}
-                        {Array.from({length: Math.max(0, 4 - parsed.g4.length)}).map((_, idx) => (
+                        {Array.from({ length: Math.max(0, 4 - parsed.g4.length) }).map((_, idx) => (
                           <td key={`empty-g4-${idx}`} className="prize-numbers">
                             {renderEditableCell('', 'g4', parsed.g4.length + idx)}
                           </td>
                         ))}
                       </tr>
-                      
+
                       <tr>
                         <td className="prize-label">G.5</td>
                         <td className="prize-numbers" colSpan="4">
@@ -4073,7 +4224,7 @@ const EmployeeInterface = ({ user }) => {
                                 {renderEditableCell(num, 'g5', idx)}
                               </div>
                             ))}
-                            {Array.from({length: Math.max(0, 6 - parsed.g5.length)}).map((_, idx) => (
+                            {Array.from({ length: Math.max(0, 6 - parsed.g5.length) }).map((_, idx) => (
                               <div key={`empty-g5-${idx}`} className="number-item">
                                 {renderEditableCell('', 'g5', parsed.g5.length + idx)}
                               </div>
@@ -4081,7 +4232,7 @@ const EmployeeInterface = ({ user }) => {
                           </div>
                         </td>
                       </tr>
-                      
+
                       <tr>
                         <td className="prize-label">G.6</td>
                         {parsed.g6.slice(0, 3).map((num, idx) => (
@@ -4089,13 +4240,13 @@ const EmployeeInterface = ({ user }) => {
                             {renderEditableCell(num, 'g6', idx)}
                           </td>
                         ))}
-                        {Array.from({length: Math.max(0, 3 - parsed.g6.length)}).map((_, idx) => (
+                        {Array.from({ length: Math.max(0, 3 - parsed.g6.length) }).map((_, idx) => (
                           <td key={`empty-g6-${idx}`} className="prize-numbers">
                             {renderEditableCell('', 'g6', parsed.g6.length + idx)}
                           </td>
                         ))}
                       </tr>
-                      
+
                       <tr>
                         <td className="prize-label">G.7</td>
                         {parsed.g7.slice(0, 4).map((num, idx) => (
@@ -4103,7 +4254,7 @@ const EmployeeInterface = ({ user }) => {
                             {renderEditableCell(num, 'g7', idx)}
                           </td>
                         ))}
-                        {Array.from({length: Math.max(0, 4 - parsed.g7.length)}).map((_, idx) => (
+                        {Array.from({ length: Math.max(0, 4 - parsed.g7.length) }).map((_, idx) => (
                           <td key={`empty-g7-${idx}`} className="prize-numbers">
                             {renderEditableCell('', 'g7', parsed.g7.length + idx)}
                           </td>
@@ -4131,7 +4282,7 @@ const EmployeeInterface = ({ user }) => {
                     />
                   </td>
                 </tr>
-                
+
                 <tr>
                   <td className="prize-label">G.1</td>
                   <td className="prize-numbers" colSpan="4">
@@ -4145,7 +4296,7 @@ const EmployeeInterface = ({ user }) => {
                     />
                   </td>
                 </tr>
-                
+
                 <tr>
                   <td className="prize-label">G.2</td>
                   {manualLotteryData.results.g2.map((num, idx) => (
@@ -4162,7 +4313,7 @@ const EmployeeInterface = ({ user }) => {
                   ))}
                   <td className="prize-numbers empty-cell" colSpan="2"></td>
                 </tr>
-                
+
                 <tr>
                   <td className="prize-label">G.3</td>
                   <td className="prize-numbers" colSpan="4">
@@ -4182,7 +4333,7 @@ const EmployeeInterface = ({ user }) => {
                     </div>
                   </td>
                 </tr>
-                
+
                 <tr>
                   <td className="prize-label">G.4</td>
                   {manualLotteryData.results.g4.map((num, idx) => (
@@ -4198,7 +4349,7 @@ const EmployeeInterface = ({ user }) => {
                     </td>
                   ))}
                 </tr>
-                
+
                 <tr>
                   <td className="prize-label">G.5</td>
                   <td className="prize-numbers" colSpan="4">
@@ -4218,7 +4369,7 @@ const EmployeeInterface = ({ user }) => {
                     </div>
                   </td>
                 </tr>
-                
+
                 <tr>
                   <td className="prize-label">G.6</td>
                   {manualLotteryData.results.g6.map((num, idx) => (
@@ -4234,7 +4385,7 @@ const EmployeeInterface = ({ user }) => {
                     </td>
                   ))}
                 </tr>
-                
+
                 <tr>
                   <td className="prize-label">G.7</td>
                   {manualLotteryData.results.g7.map((num, idx) => (
@@ -4286,7 +4437,7 @@ const EmployeeInterface = ({ user }) => {
             </div>
           )}
         </div>
-    
+
         <div style={{ marginTop: 16 }}>
           <QuickLotteryResults onRecognized={handleQuickLotteryRecognized} />
         </div>
@@ -4308,11 +4459,11 @@ const EmployeeInterface = ({ user }) => {
         <div className="settings-container">
           <div className="setting-item">
             <label htmlFor="lotoUnit">Đơn vị lô trên hóa đơn:</label>
-            <input 
-              type="text" 
-              id="lotoUnit" 
-              value={lotoUnit} 
-              onChange={handleLotoUnitChange} 
+            <input
+              type="text"
+              id="lotoUnit"
+              value={lotoUnit}
+              onChange={handleLotoUnitChange}
               maxLength={3}
               placeholder="Nhập đơn vị (vd: đ, k)"
             />
@@ -4329,7 +4480,7 @@ const EmployeeInterface = ({ user }) => {
   };
 
   const renderContent = () => {
-    switch(activeMenu) {
+    switch (activeMenu) {
       case 'betting':
         return renderBettingInterface();
       case 'statistics':
@@ -4346,6 +4497,8 @@ const EmployeeInterface = ({ user }) => {
         return <LotoMultiplierSettings />;
       case 'loto-unit':
         return renderLotoUnitSettings();
+      case 'special-groups':
+        return <SpecialNumberGroupsSettings />;
       case 'emp-change-password':
         return <EmployeeChangePassword />;
       case 'invoices':
@@ -4359,8 +4512,10 @@ const EmployeeInterface = ({ user }) => {
 
   return (
     <div className="employee-interface">
+      <NotificationBell />
+      <NotificationModal />
       {/* Mobile Menu Toggle Button */}
-      <button 
+      <button
         className={`mobile-menu-toggle ${isMobileMenuOpen ? 'menu-open' : ''}`}
         onClick={toggleMobileMenu}
         aria-label="Toggle menu"
@@ -4369,7 +4524,7 @@ const EmployeeInterface = ({ user }) => {
       </button>
 
       {/* Mobile Menu Overlay */}
-      <div 
+      <div
         className={`mobile-menu-overlay ${isMobileMenuOpen ? 'active' : ''}`}
         onClick={handleOverlayClick}
       />
@@ -4404,13 +4559,13 @@ const EmployeeInterface = ({ user }) => {
                     <div className="dropdown-menu">
                       {item.subItems.map(subItem => (
                         <button
-                           key={subItem.id}
-                           className={`dropdown-item ${activeMenu === subItem.id ? 'active' : ''}`}
-                           onClick={() => {
-                             handleMenuChange(subItem.id);
-                             setIsSettingsDropdownOpen(false);
-                           }}
-                         >
+                          key={subItem.id}
+                          className={`dropdown-item ${activeMenu === subItem.id ? 'active' : ''}`}
+                          onClick={() => {
+                            handleMenuChange(subItem.id);
+                            setIsSettingsDropdownOpen(false);
+                          }}
+                        >
                           <span className="menu-icon">{subItem.icon}</span>
                           <span className="menu-label">{subItem.label}</span>
                         </button>

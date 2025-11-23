@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import Login from './components/Login';
 import EmployeeInterface from './components/EmployeeInterface';
 import AdminInterface from './components/AdminInterface';
@@ -14,7 +15,7 @@ function App() {
     // Kiểm tra xem user đã đăng nhập chưa
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    
+
     if (token && userData) {
       try {
         const parsedUser = JSON.parse(userData);
@@ -26,6 +27,60 @@ function App() {
     }
     setLoading(false);
   }, []);
+
+  // Socket.io integration
+  useEffect(() => {
+    if (user) {
+      const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5001');
+
+      socket.on('connect', () => {
+        console.log('Connected to socket server');
+
+        if (user.role === 'employee' && user.storeId) {
+          socket.emit('join_store', user.storeId);
+        } else if (user.role === 'admin') {
+          socket.emit('join_admin', user.id);
+        }
+        socket.emit('join_user', user.id);
+      });
+
+      socket.on('new_invoice', (data) => {
+        console.log('New invoice received:', data);
+        // Browser Notification
+        if (!("Notification" in window)) {
+          console.log("This browser does not support desktop notification");
+        } else if (Notification.permission === "granted") {
+          new Notification("LotoWeb - Đơn mới", { body: data.message });
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then((permission) => {
+            if (permission === "granted") {
+              new Notification("LotoWeb - Đơn mới", { body: data.message });
+            }
+          });
+        }
+
+        // Có thể thêm logic update state global ở đây nếu cần
+      });
+
+      socket.on('new_notification', (data) => {
+        if (!('Notification' in window)) {
+        } else if (Notification.permission === 'granted') {
+          new Notification('Thông báo hệ thống', { body: data.title });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+              new Notification('Thông báo hệ thống', { body: data.title });
+            }
+          });
+        }
+        window.dispatchEvent(new Event('refresh_notifications'));
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [user]);
 
   // Interceptors: auto-logout when token hết hạn/401
   useEffect(() => {

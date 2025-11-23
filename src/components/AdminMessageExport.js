@@ -53,6 +53,9 @@ const AdminMessageExport = ({ user }) => {
   const [sendFactor, setSendFactor] = useState(() => getInitialFactor(user)); // Hệ số gửi đi, mặc định 1.0 (tối thiểu 1)
   const [baseStats, setBaseStats] = useState(null); // Lưu thống kê thô để tính lại nhanh
 
+  // Scroll position preservation
+  const scrollPositionRef = React.useRef(0);
+
   // Khi đổi admin, tải lại hệ số theo admin đó
   useEffect(() => {
     setSendFactor(getInitialFactor(user));
@@ -435,6 +438,70 @@ const AdminMessageExport = ({ user }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Socket.io listener for real-time updates
+  useEffect(() => {
+    const { io } = require('socket.io-client');
+    const baseUrl = getApiUrl('').replace('/api', '');
+    const socket = io(baseUrl);
+
+    if (user) {
+      socket.emit('join_admin', user.id);
+
+      socket.on('new_invoice', (data) => {
+        console.log('Real-time update (Message Export): New invoice received', data);
+        // Save container scroll position
+        const container = document.querySelector('.admin-content-section');
+        scrollPositionRef.current = container ? container.scrollTop : 0;
+
+        // Reload statistics and history
+        Promise.all([
+          loadStatistics(selectedDate),
+          loadHistory(selectedDate)
+        ]).then(() => {
+          requestAnimationFrame(() => {
+            if (container) {
+              container.scrollTop = scrollPositionRef.current;
+            }
+          });
+        }).catch(() => { });
+      });
+
+      socket.on('edit_invoice', (data) => {
+        console.log('Real-time update (Message Export): Invoice edited', data);
+        const container = document.querySelector('.admin-content-section');
+        scrollPositionRef.current = container ? container.scrollTop : 0;
+
+        Promise.all([
+          loadStatistics(selectedDate),
+          loadHistory(selectedDate)
+        ]).then(() => {
+          requestAnimationFrame(() => {
+            if (container) container.scrollTop = scrollPositionRef.current;
+          });
+        }).catch(() => { });
+      });
+
+      socket.on('delete_invoice', (data) => {
+        console.log('Real-time update (Message Export): Invoice deleted', data);
+        const container = document.querySelector('.admin-content-section');
+        scrollPositionRef.current = container ? container.scrollTop : 0;
+
+        Promise.all([
+          loadStatistics(selectedDate),
+          loadHistory(selectedDate)
+        ]).then(() => {
+          requestAnimationFrame(() => {
+            if (container) container.scrollTop = scrollPositionRef.current;
+          });
+        }).catch(() => { });
+      });
+    }
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user, selectedDate]);
+
   const onDateChange = (e) => {
     const d = e.target.value;
     setSelectedDate(d);
@@ -549,15 +616,15 @@ const AdminMessageExport = ({ user }) => {
             <div>
               {history.map(h => (
                 <div key={h._id || h.sequence} className="msg-snapshot">
-                  <div style={{fontWeight: 600}}>Lần {h.sequence} • {new Date(h.startTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })} → {new Date(h.endTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</div>
+                  <div style={{ fontWeight: 600 }}>Lần {h.sequence} • {new Date(h.startTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })} → {new Date(h.endTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</div>
                   <div className="msg-snapshot-actions">
-                    <button 
+                    <button
                       className={`msg-copy-btn snapshot-copy-btn ${copiedMap[h.sequence] ? 'copied' : ''}`}
                       onClick={() => copySnapshot(h)}
                     >
                       {copiedMap[h.sequence] ? 'Đã sao chép ✓' : `Sao chép lần ${h.sequence}`}
                     </button>
-                    <button 
+                    <button
                       className="msg-refresh-btn"
                       onClick={async () => {
                         try {
@@ -601,7 +668,7 @@ const AdminMessageExport = ({ user }) => {
           )}
         </div>
 
-        
+
       </div>
     </div>
   );

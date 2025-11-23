@@ -18,37 +18,38 @@
     align-items: flex-start;
     width: 100%;
   }
-  
+
   .admin-stats-date-controls label {
     margin-bottom: 4px;
   }
-  
+
   .admin-stats-date-input {
     width: 100%;
     padding: 8px;
     margin-bottom: 8px;
-    font-size: 16px; /* Tăng kích thước font cho dễ nhấn trên mobile */
+    font-size: 16px;
+    /* Tăng kích thước font cho dễ nhấn trên mobile */
   }
-  
+
   .admin-stats-main-tabs {
     overflow-x: auto;
     white-space: nowrap;
     display: flex;
     padding-bottom: 5px;
   }
-  
+
   .admin-stats-main-tab {
     padding: 10px 16px;
     font-size: 13px;
   }
-  
+
   /* Tối ưu bộ lọc xiên quay và các bộ lọc khác */
   .panel {
     padding: 10px;
     border-radius: 6px;
     background-color: #f9f9f9;
   }
-  
+
   /* Tối ưu các dòng trong bộ lọc */
   .panel input[type="text"],
   .panel input[type="number"] {
@@ -57,43 +58,43 @@
     border: 1px solid #ddd;
     border-radius: 4px;
   }
-  
+
   /* Tối ưu khoảng cách giữa các phần tử trong bộ lọc */
-  .panel > div {
+  .panel>div {
     margin-bottom: 8px;
   }
-  
+
   /* Tối ưu nút trong bộ lọc */
   .filter-toggle-btn,
   .panel button {
     padding: 6px 12px;
     font-size: 13px;
   }
-  
+
   /* Tối ưu kích thước input cho bộ lọc */
   .panel input[type="text"][placeholder="vd: 12-34-56,23-45-67"] {
     width: 150px !important;
   }
-  
+
   .panel input[type="number"][placeholder="vd: 50"] {
     width: 70px !important;
   }
-  
+
   /* Tối ưu bố cục cho các dòng lọc */
-  .panel > div {
+  .panel>div {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 5px;
   }
-  
+
   /* Tối ưu hiển thị danh sách các mục xiên quay */
   .admin-stats-bet-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 8px;
   }
-  
+
   .admin-stats-bet-item {
     padding: 8px;
     border-radius: 4px;
@@ -104,20 +105,20 @@
     justify-content: center;
     min-height: 60px;
   }
-  
+
   .admin-stats-bet-number {
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 4px;
     text-align: center;
   }
-  
+
   .admin-stats-bet-amount {
     font-size: 13px;
     color: #d32f2f;
     font-weight: 600;
   }
-  
+
   /* Tối ưu hiển thị tổng kết */
   .admin-stats-combined-total {
     padding: 10px;
@@ -125,13 +126,13 @@
     background-color: #f5f5f5;
     border-radius: 6px;
   }
-  
+
   .admin-stats-combined-total h4 {
     margin-top: 0;
     margin-bottom: 8px;
     font-size: 15px;
   }
-  
+
   /* Các class mới cho bộ lọc */
   .filter-controls {
     display: flex;
@@ -139,14 +140,14 @@
     gap: 8px;
     margin: 8px 0;
   }
-  
+
   .filter-panel {
     padding: 10px;
     background-color: #f9f9f9;
     border-radius: 6px;
     margin-bottom: 12px;
   }
-  
+
   .filter-row {
     display: flex;
     flex-wrap: wrap;
@@ -154,51 +155,51 @@
     gap: 6px;
     margin-bottom: 8px;
   }
-  
+
   .filter-input-small {
     width: 60px !important;
     padding: 6px;
     border: 1px solid #ddd;
     border-radius: 4px;
   }
-  
+
   .filter-input-medium {
     width: 150px !important;
     padding: 6px;
     border: 1px solid #ddd;
     border-radius: 4px;
   }
-  
+
   .filter-button {
     padding: 4px 8px;
     font-size: 12px;
   }
-  
+
   .filter-selection-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin: 8px 0;
   }
-  
+
   .filter-selection-item {
     background-color: #f0f0f0;
     border-radius: 4px;
     padding: 6px;
   }
-  
+
   .filter-selection-row {
     display: flex;
     align-items: center;
     gap: 6px;
     margin-bottom: 4px;
   }
-  
+
   .filter-item-row {
     border-bottom: 1px dashed #ddd;
     padding-bottom: 8px;
   }
-  
+
   .filter-item-group {
     display: flex;
     align-items: center;
@@ -307,7 +308,7 @@
   background-color: #f9f9f9;
   border-radius: 6px;
   margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .filter-row {
@@ -756,101 +757,101 @@
     border: none;
     border-radius: 0;
   }
-  
+
   .admin-stats-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
     border-bottom: none;
   }
-  
+
   .admin-stats-summary-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .admin-stats-card {
     border: none;
     background: #f8f9fa;
   }
-  
+
   .admin-stats-total-revenue {
     border: none;
     background: #f0f0f0;
   }
-  
+
   .admin-stats-detail-section {
     border: none;
   }
-  
+
   .admin-stats-tabs {
     flex-direction: column;
     border-bottom: none;
     background: transparent;
   }
-  
+
   .admin-stats-tab {
     border: none;
     background: #f5f5f5;
     margin-bottom: 2px;
   }
-  
+
   .admin-stats-tab-active {
     background: #333;
   }
-  
+
   .admin-stats-tab:last-child {
     border-bottom: none;
   }
-  
+
   .admin-stats-tab-content {
     padding: 4px;
   }
-  
+
   .admin-stats-loto-table {
     margin: 0;
     table-layout: fixed;
   }
-  
+
   .admin-stats-loto-table table {
     font-size: 11px;
     width: 100%;
     table-layout: fixed;
   }
-  
+
   .admin-stats-loto-table th,
   .admin-stats-loto-table td {
     height: 28px;
     padding: 2px;
     width: auto;
   }
-  
+
   .admin-stats-loto-table th {
     height: 24px;
     font-size: 12px;
   }
-  
+
   .admin-stats-2s-table {
     margin: 4px 0 0 0;
     table-layout: fixed;
   }
-  
+
   .admin-stats-2s-table table {
     width: 100%;
     table-layout: fixed;
   }
-  
+
   .admin-stats-2s-table th,
   .admin-stats-2s-table td {
     height: 28px;
     padding: 2px;
     width: auto;
   }
-  
+
   .admin-stats-2s-table th {
     height: 24px;
     font-size: 12px;
   }
-  
+
   .admin-stats-bet-list {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 8px;

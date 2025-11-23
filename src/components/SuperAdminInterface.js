@@ -5,6 +5,7 @@ import SuperAdminSystemStats from './SuperAdminSystemStats';
 import SuperAdminCleanup from './SuperAdminCleanup';
 import SuperAdminForceRelogin from './SuperAdminForceRelogin';
 import SuperAdminLotteryHistory from './SuperAdminLotteryHistory';
+import SuperAdminNotifications from './SuperAdminNotifications';
 import './SuperAdminInterface.css';
 
 const SuperAdminInterface = ({ user, onLogout }) => {
@@ -17,7 +18,8 @@ const SuperAdminInterface = ({ user, onLogout }) => {
     { id: 'system-statistics', label: 'Thống kê toàn bộ hệ thống', icon: '📊' },
     { id: 'system-cleanup', label: 'Làm sạch dữ liệu theo ngày', icon: '🗑️' },
     { id: 'force-relogin', label: 'Yêu cầu đăng nhập lại', icon: '🔁' },
-    { id: 'system-history', label: 'Lịch sử hệ thống', icon: '🕘' }
+    { id: 'system-history', label: 'Lịch sử hệ thống', icon: '🕘' },
+    { id: 'send-notifications', label: 'Gửi thông báo', icon: '🔔' }
   ];
 
   const handleMenuClick = (id) => {
@@ -69,6 +71,13 @@ const SuperAdminInterface = ({ user, onLogout }) => {
         return (
           <div className="super-admin-content">
             <SuperAdminLotteryHistory />
+          </div>
+        );
+
+      case 'send-notifications':
+        return (
+          <div className="super-admin-content">
+            <SuperAdminNotifications />
           </div>
         );
 

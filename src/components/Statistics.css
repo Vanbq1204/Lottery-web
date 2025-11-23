@@ -6,6 +6,7 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   height: calc(100vh - 120px);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -284,225 +285,227 @@
 
 
 
-  /* Bo Stats */
-  .bo-stats {
-    padding: 24px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  .bo-total {
-    text-align: center;
-    font-size: 18px;
-    color: #495057;
-    margin: 0 0 24px 0;
-  }
-  
-  .bo-total strong {
-    color: #28a745;
-    font-family: 'Courier New', monospace;
-  }
-  
-  .bo-list h4 {
-    margin: 0 0 16px 0;
-    color: #495057;
-    font-size: 16px;
-  }
-  
-  .bo-items {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-  }
-  
-  .bo-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    border-left: 3px solid #007bff;
-  }
-  
-  .bo-number {
-    font-weight: 600;
-    color: #495057;
-  }
-  
-  .bo-amount {
-    font-family: 'Courier New', monospace;
-    font-weight: 600;
-    color: #007bff;
-  }
+/* Bo Stats */
+.bo-stats {
+  padding: 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
-  /* 2s Stats */
-  .twos-stats {
-    padding: 24px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  .twos-total, .twos-amount-total {
-    text-align: center;
-    font-size: 16px;
-    color: #495057;
-    margin: 0 0 8px 0;
-  }
-  
-  .twos-total strong, .twos-amount-total strong {
-    color: #28a745;
-  }
-  
-  .twos-table-container {
+.bo-total {
+  text-align: center;
+  font-size: 18px;
+  color: #495057;
+  margin: 0 0 24px 0;
+}
+
+.bo-total strong {
+  color: #28a745;
+  font-family: 'Courier New', monospace;
+}
+
+.bo-list h4 {
+  margin: 0 0 16px 0;
+  color: #495057;
+  font-size: 16px;
+}
+
+.bo-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.bo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #007bff;
+}
+
+.bo-number {
+  font-weight: 600;
+  color: #495057;
+}
+
+.bo-amount {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #007bff;
+}
+
+/* 2s Stats */
+.twos-stats {
+  padding: 5px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.twos-total,
+.twos-amount-total {
+  text-align: center;
+  font-size: 16px;
+  color: #495057;
+  margin: 0 0 8px 0;
+}
+
+.twos-total strong,
+.twos-amount-total strong {
+  color: #28a745;
+}
+
+.twos-table-container {
   overflow-x: auto;
   margin: 20px auto 0 auto;
   max-width: 900px;
 }
-  
-  .twos-table {
+
+.twos-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
   margin: 0 auto;
 }
-  
-  .twos-table th,
+
+.twos-table th,
 .twos-table td {
   border: 1px solid #dee2e6;
   text-align: center;
   padding: 4px 4px;
   min-width: 35px;
 }
-  
-  .twos-table th {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #495057;
-  }
-  
-  .twos-number {
-    font-weight: 600;
-    color: #495057;
-  }
-  
-  .twos-amount {
-    color: #6c757d;
-  }
-  
-  .twos-amount.has-bet {
-    background: #d4edda;
-    color: #155724;
-    font-weight: 600;
-  }
 
-  /* General Bet Items */
-  .bet-items {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 8px;
-    margin-top: 12px;
-  }
-  
-  .bet-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: white;
-    border-radius: 6px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    border: 1px solid #e9ecef;
-    transition: all 0.2s ease;
-  }
-  
-  .bet-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  }
-  
-  .bet-number {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 14px;
-    margin-right: 8px;
-  }
-  
-  .bet-amount {
-    font-family: 'Courier New', monospace;
-    font-weight: 700;
-    color: #e74c3c;
-    font-size: 14px;
-    background: rgba(231, 76, 60, 0.1);
-    padding: 2px 8px;
-    border-radius: 12px;
-  }
+.twos-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
 
-  /* Stat Sections */
-  .stat-section {
-    margin-bottom: 16px;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border-left: 4px solid;
-  }
-  
-  /* Different colors for each section */
-  .stat-section:nth-child(1) {
-    background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
-    border-left-color: #2196f3;
-  }
-  
-  .stat-section:nth-child(2) {
-    background: linear-gradient(135deg, #f3e5f5 0%, #f8f9fa 100%);
-    border-left-color: #9c27b0;
-  }
-  
-  .stat-section:nth-child(3) {
-    background: linear-gradient(135deg, #e8f5e8 0%, #f8f9fa 100%);
-    border-left-color: #4caf50;
-  }
-  
-  .stat-section:nth-child(4) {
-    background: linear-gradient(135deg, #fff3e0 0%, #f8f9fa 100%);
-    border-left-color: #ff9800;
-  }
-  
-  .stat-section:nth-child(5) {
-    background: linear-gradient(135deg, #fce4ec 0%, #f8f9fa 100%);
-    border-left-color: #e91e63;
-  }
-  
-  .stat-section h4 {
-    margin: 0 0 12px 0;
-    color: #2c3e50;
-    font-size: 18px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  
-  .section-total {
-    color: #27ae60;
-    font-family: 'Courier New', monospace;
-    font-weight: 700;
-    font-size: 16px;
-    background: rgba(39, 174, 96, 0.1);
-    padding: 8px 16px;
-    border-radius: 20px;
-    margin-bottom: 16px;
-    display: inline-block;
-  }
+.twos-number {
+  font-weight: 600;
+  color: #495057;
+}
 
-  /* Other Stats */
+.twos-amount {
+  color: #6c757d;
+}
+
+.twos-amount.has-bet {
+  background: #d4edda;
+  color: #155724;
+  font-weight: 600;
+}
+
+/* General Bet Items */
+.bet-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bet-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.bet-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bet-number {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.bet-amount {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: #e74c3c;
+  font-size: 14px;
+  background: rgba(231, 76, 60, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* Stat Sections */
+.stat-section {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid;
+}
+
+/* Different colors for each section */
+.stat-section:nth-child(1) {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+  border-left-color: #2196f3;
+}
+
+.stat-section:nth-child(2) {
+  background: linear-gradient(135deg, #f3e5f5 0%, #f8f9fa 100%);
+  border-left-color: #9c27b0;
+}
+
+.stat-section:nth-child(3) {
+  background: linear-gradient(135deg, #e8f5e8 0%, #f8f9fa 100%);
+  border-left-color: #4caf50;
+}
+
+.stat-section:nth-child(4) {
+  background: linear-gradient(135deg, #fff3e0 0%, #f8f9fa 100%);
+  border-left-color: #ff9800;
+}
+
+.stat-section:nth-child(5) {
+  background: linear-gradient(135deg, #fce4ec 0%, #f8f9fa 100%);
+  border-left-color: #e91e63;
+}
+
+.stat-section h4 {
+  margin: 0 0 12px 0;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.section-total {
+  color: #27ae60;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 16px;
+  background: rgba(39, 174, 96, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+
+/* Other Stats */
 /* Xiên Nháy Stats */
 .xiennhay-stats {
   padding: 20px;
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
 }
 
@@ -526,7 +529,7 @@
   padding: 20px;
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
 }
 
@@ -555,11 +558,11 @@
   .summary-grid {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   }
-  
+
   .loto-table {
     font-size: 12px;
   }
-  
+
   .loto-table th,
   .loto-table td {
     padding: 4px 6px;
@@ -567,75 +570,211 @@
 }
 
 @media (max-width: 768px) {
+  .statistics-container {
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
   .statistics-header {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
   }
-  
+
+  .statistics-header h2 {
+    font-size: 22px;
+    text-align: center;
+  }
+
   .date-controls {
     justify-content: center;
     flex-wrap: wrap;
   }
-  
+
   .summary-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .bet-tabs {
     justify-content: center;
+    padding: 12px;
   }
-  
+
   .tab-btn {
     flex: 1;
-    min-width: 80px;
+    min-width: 70px;
+    padding: 10px 12px;
+    font-size: 13px;
   }
-  
+
+  /* Loto Table - Optimized for mobile */
+  .loto-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -8px;
+    padding: 0 8px;
+  }
+
   .loto-table {
-    font-size: 11px;
+    font-size: 10px;
+    min-width: 100%;
+    width: auto;
   }
-  
+
   .loto-table th,
   .loto-table td {
-    padding: 3px 4px;
+    padding: 3px 2px;
+    font-size: 10px;
   }
-  
+
   .loto-number {
-    min-width: 30px;
+    min-width: 25px;
+    font-size: 11px;
   }
-  
+
   .loto-points {
-    min-width: 45px;
+    min-width: 35px;
+  }
+
+  /* 2s Table - Optimized for mobile */
+  .twos-stats h3 {
+    font-size: 18px;
+  }
+
+  .twos-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -8px;
+    padding: 0 8px;
+  }
+
+  .twos-table {
+    font-size: 10px;
+    min-width: 100%;
+    width: auto;
+  }
+
+  .twos-table th,
+  .twos-table td {
+    padding: 3px 2px;
+    min-width: 28px;
+    font-size: 10px;
+  }
+
+  .twos-number {
+    font-size: 11px;
+  }
+
+  .twos-amount {
+    font-size: 10px;
+  }
+
+  /* Other sections */
+  .bet-items {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+  }
+
+  .bet-item {
+    padding: 6px 8px;
+  }
+
+  .bet-number {
+    font-size: 12px;
+  }
+
+  .bet-amount {
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .statistics-container {
-    padding: 16px;
+    padding: 12px;
   }
-  
+
+  .statistics-header h2 {
+    font-size: 20px;
+  }
+
   .summary-section {
-    padding: 16px;
+    padding: 16px 12px;
   }
-  
+
+  .summary-card {
+    padding: 12px;
+  }
+
   .detailed-stats {
-    padding: 16px;
+    padding: 16px 12px;
   }
-  
+
+  .bet-tabs {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .tab-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+    min-width: 60px;
+  }
+
+  /* Loto Table - Extra small screens */
   .loto-table {
-    font-size: 10px;
+    font-size: 9px;
   }
-  
+
   .loto-table th,
   .loto-table td {
-    padding: 2px 3px;
+    padding: 2px 1px;
+    font-size: 9px;
   }
-  
+
   .loto-number {
-    min-width: 25px;
+    min-width: 22px;
+    font-size: 10px;
   }
-  
+
   .loto-points {
-    min-width: 35px;
+    min-width: 30px;
+    font-size: 9px;
+  }
+
+  /* 2s Table - Extra small screens */
+  .twos-stats h3 {
+    font-size: 16px;
+  }
+
+  .twos-table {
+    font-size: 9px;
+  }
+
+  .twos-table th,
+  .twos-table td {
+    padding: 2px 1px;
+    min-width: 24px;
+    font-size: 9px;
+  }
+
+  .twos-number {
+    font-size: 10px;
+  }
+
+  .twos-amount {
+    font-size: 9px;
+  }
+
+  /* Other sections */
+  .bet-items {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-section {
+    padding: 12px;
+  }
+
+  .stat-section h4 {
+    font-size: 16px;
   }
 }

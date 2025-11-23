@@ -419,7 +419,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .prize-statistics {
-    padding: 15px;
+    padding: 0px;
   }
   
   .statistics-header {
@@ -451,7 +451,7 @@
   }
   
   .tab-content {
-    padding: 20px 15px;
+    padding: 20px 0px;
   }
   
   .stats-summary {

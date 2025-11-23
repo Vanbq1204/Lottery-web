@@ -5,7 +5,7 @@ import axios from 'axios';
 import './AdminStoreStatistics.css';
 import AdminStoreDetailPrizeStats from './AdminStoreDetailPrizeStats';
 
-const AdminStoreStatistics = ({ store }) => {
+const AdminStoreStatistics = ({ store, user }) => {
   // Get current date in Vietnam timezone (UTC+7)
   const getCurrentVietnamDate = () => {
     const now = new Date();
@@ -19,6 +19,9 @@ const AdminStoreStatistics = ({ store }) => {
   const [activeTab, setActiveTab] = useState('betting'); // 'betting' hoặc 'prizes'
   const [activeDetailTab, setActiveDetailTab] = useState('loto'); // Tab chi tiết trong thống kê cược
 
+  // Scroll position preservation
+  const scrollPositionRef = React.useRef(0);
+
   // UI và logic bộ lọc hiển thị cho bảng Lô tô (chỉ tác động giao diện)
   const [showLotoFilter, setShowLotoFilter] = useState(false);
   const [lotoFilterRows, setLotoFilterRows] = useState([{ number: '', subtract: '' }]); // Mảng các dòng lọc
@@ -30,7 +33,7 @@ const AdminStoreStatistics = ({ store }) => {
   const [topNSubtracts, setTopNSubtracts] = useState({}); // { '10': '100', ... }
   // Ghim bộ lọc (persist) - Lô tô
   const [pinLotoFilter, setPinLotoFilter] = useState(false);
-  
+
   // UI và logic bộ lọc cho tổng kép đầu đít bộ
   const [showCombinedFilter, setShowCombinedFilter] = useState(false);
   const [combinedFilterPercent, setCombinedFilterPercent] = useState('');
@@ -51,11 +54,11 @@ const AdminStoreStatistics = ({ store }) => {
   const [twoSMinSubtracts, setTwoSMinSubtracts] = useState([]); // string[] mỗi phần tử là một lần trừ
   // Hệ số cho phần trừ theo số tiền thấp nhất
   const [twoSCoefficientFactor, setTwoSCoefficientFactor] = useState('');
-  
+
   // Hàm chuyển đổi chuỗi tiếng Việt có dấu thành không dấu
   const removeVietnameseAccents = (str) => {
     if (!str) return '';
-    
+
     str = str.toLowerCase();
     str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, 'a');
     str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, 'e');
@@ -64,7 +67,7 @@ const AdminStoreStatistics = ({ store }) => {
     str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, 'u');
     str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, 'y');
     str = str.replace(/đ/g, 'd');
-    
+
     return str;
   };
 
@@ -178,20 +181,20 @@ const AdminStoreStatistics = ({ store }) => {
     setTopNXienNhaySelection([]);
     setTopNXienNhaySubtracts({});
   };
-  
+
   const resetCombinedFilters = () => {
     setShowCombinedFilter(false);
     setCombinedFilterPercent('');
     setPinCombinedFilter(false);
   };
 
-  const clearPersistedLotoFilters = () => { try { localStorage.removeItem(getStoreLotoFilterStorageKey()); } catch (e) {} };
-  const clearPersistedTwoSFilters = () => { try { localStorage.removeItem(getStoreTwoSFilterStorageKey()); } catch (e) {} };
-  const clearPersistedThreeFilters = () => { try { localStorage.removeItem(getStoreThreeFilterStorageKey()); } catch (e) {} };
-  const clearPersistedXienFilters = () => { try { localStorage.removeItem(getStoreXienFilterStorageKey()); } catch (e) {} };
-  const clearPersistedXienQuayFilters = () => { try { localStorage.removeItem(getStoreXienQuayFilterStorageKey()); } catch (e) {} };
-  const clearPersistedXienNhayFilters = () => { try { localStorage.removeItem(getStoreXienNhayFilterStorageKey()); } catch (e) {} };
-  const clearPersistedCombinedFilters = () => { try { localStorage.removeItem(getStoreCombinedFilterStorageKey()); } catch (e) {} };
+  const clearPersistedLotoFilters = () => { try { localStorage.removeItem(getStoreLotoFilterStorageKey()); } catch (e) { } };
+  const clearPersistedTwoSFilters = () => { try { localStorage.removeItem(getStoreTwoSFilterStorageKey()); } catch (e) { } };
+  const clearPersistedThreeFilters = () => { try { localStorage.removeItem(getStoreThreeFilterStorageKey()); } catch (e) { } };
+  const clearPersistedXienFilters = () => { try { localStorage.removeItem(getStoreXienFilterStorageKey()); } catch (e) { } };
+  const clearPersistedXienQuayFilters = () => { try { localStorage.removeItem(getStoreXienQuayFilterStorageKey()); } catch (e) { } };
+  const clearPersistedXienNhayFilters = () => { try { localStorage.removeItem(getStoreXienNhayFilterStorageKey()); } catch (e) { } };
+  const clearPersistedCombinedFilters = () => { try { localStorage.removeItem(getStoreCombinedFilterStorageKey()); } catch (e) { } };
 
   const handleRefreshLoto = async () => { clearPersistedLotoFilters(); resetLotoFilters(); await loadStatistics(); };
   const handleRefreshTwoS = async () => { clearPersistedTwoSFilters(); resetTwoSFilters(); await loadStatistics(); };
@@ -207,7 +210,7 @@ const AdminStoreStatistics = ({ store }) => {
     try {
       const payload = { showLotoFilter, lotoFilterRows, lotoFilterRowCount, lotoFilterPercent, topNCount, topNSubtracts, pinLotoFilter: true };
       localStorage.setItem(getStoreLotoFilterStorageKey(), JSON.stringify(payload));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const saveTwoSFiltersToStorage = () => {
@@ -225,7 +228,7 @@ const AdminStoreStatistics = ({ store }) => {
         pinTwoSFilter: true
       };
       localStorage.setItem(getStoreTwoSFilterStorageKey(), JSON.stringify(payload));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const saveThreeFiltersToStorage = () => {
@@ -233,7 +236,7 @@ const AdminStoreStatistics = ({ store }) => {
     try {
       const payload = { showThreeFilter, threeFilterRows, threeFilterRowCount, threeFilterPercent, topNThreeCount, topNThreeSubtracts, pinThreeFilter: true };
       localStorage.setItem(getStoreThreeFilterStorageKey(), JSON.stringify(payload));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const saveXienFiltersToStorage = () => {
@@ -241,7 +244,7 @@ const AdminStoreStatistics = ({ store }) => {
     try {
       const payload = { showXienFilter, xienFilterRows, xienFilterRowCount, xienFilterPercent, topNXienCount, topNXienSubtracts, pinXienFilter: true };
       localStorage.setItem(getStoreXienFilterStorageKey(), JSON.stringify(payload));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const saveXienQuayFiltersToStorage = () => {
@@ -249,13 +252,13 @@ const AdminStoreStatistics = ({ store }) => {
       // Nếu không ghim, xóa dữ liệu lưu trữ
       try {
         localStorage.removeItem(getStoreXienQuayFilterStorageKey());
-      } catch (e) {}
+      } catch (e) { }
       return;
     }
     try {
       const payload = { showXienQuayFilter, xienQuayFilterRows, xienQuayFilterRowCount, xienQuayFilterPercent, topNXienQuayCount, topNXienQuaySubtracts, pinXienQuayFilter: true };
       localStorage.setItem(getStoreXienQuayFilterStorageKey(), JSON.stringify(payload));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const saveXienNhayFiltersToStorage = () => {
@@ -263,15 +266,15 @@ const AdminStoreStatistics = ({ store }) => {
     try {
       const payload = { showXienNhayFilter, xienNhayFilterRows, xienNhayFilterRowCount, xienNhayFilterPercent, topNXienNhayCount, topNXienNhaySubtracts, pinXienNhayFilter: true };
       localStorage.setItem(getStoreXienNhayFilterStorageKey(), JSON.stringify(payload));
-    } catch (e) {}
+    } catch (e) { }
   };
-  
+
   const saveCombinedFiltersToStorage = () => {
     if (!pinCombinedFilter) return;
     try {
       const payload = { showCombinedFilter, combinedFilterPercent, pinCombinedFilter: true };
       localStorage.setItem(getStoreCombinedFilterStorageKey(), JSON.stringify(payload));
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Load filters from localStorage
@@ -282,7 +285,7 @@ const AdminStoreStatistics = ({ store }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowLotoFilter(!!data.showLotoFilter);
-      
+
       if (data.lotoFilterRows) {
         setLotoFilterRows(data.lotoFilterRows);
       } else if (data.lotoFilterNumber !== undefined && data.lotoFilterSubtract !== undefined) {
@@ -290,13 +293,13 @@ const AdminStoreStatistics = ({ store }) => {
       } else {
         setLotoFilterRows([{ number: '', subtract: '' }]);
       }
-      
+
       setLotoFilterRowCount(data.lotoFilterRowCount ?? '1');
       setLotoFilterPercent(data.lotoFilterPercent ?? '');
       setTopNCount(data.topNCount ?? '');
       setTopNSubtracts(data.topNSubtracts ?? {});
       setPinLotoFilter(!!data.pinLotoFilter);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const loadTwoSFiltersFromStorage = () => {
@@ -306,7 +309,7 @@ const AdminStoreStatistics = ({ store }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowTwoSFilter(!!data.showTwoSFilter);
-      
+
       if (data.twoSFilterRows) {
         setTwoSFilterRows(data.twoSFilterRows);
       } else if (data.twoSFilterNumber !== undefined || data.twoSFilterSubtract !== undefined) {
@@ -314,7 +317,7 @@ const AdminStoreStatistics = ({ store }) => {
       } else {
         setTwoSFilterRows([{ number: '', subtract: '' }]);
       }
-      
+
       setTwoSFilterRowCount(data.twoSFilterRowCount ?? '1');
       setTwoSFilterPercent(data.twoSFilterPercent ?? '');
       setTopNTwoSCount(data.topNTwoSCount ?? '');
@@ -322,7 +325,7 @@ const AdminStoreStatistics = ({ store }) => {
       setTwoSMinSubtracts(Array.isArray(data.twoSMinSubtracts) ? data.twoSMinSubtracts : []);
       setTwoSCoefficientFactor(data.twoSCoefficientFactor ?? '');
       setPinTwoSFilter(!!data.pinTwoSFilter);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const loadThreeFiltersFromStorage = () => {
@@ -332,7 +335,7 @@ const AdminStoreStatistics = ({ store }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowThreeFilter(!!data.showThreeFilter);
-      
+
       if (data.threeFilterRows) {
         setThreeFilterRows(data.threeFilterRows);
       } else if (data.threeFilterNumber !== undefined || data.threeFilterSubtract !== undefined) {
@@ -340,13 +343,13 @@ const AdminStoreStatistics = ({ store }) => {
       } else {
         setThreeFilterRows([{ number: '', subtract: '' }]);
       }
-      
+
       setThreeFilterRowCount(data.threeFilterRowCount ?? '1');
       setThreeFilterPercent(data.threeFilterPercent ?? '');
       setTopNThreeCount(data.topNThreeCount ?? '');
       setTopNThreeSubtracts(data.topNThreeSubtracts ?? {});
       setPinThreeFilter(!!data.pinThreeFilter);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const loadXienFiltersFromStorage = () => {
@@ -356,7 +359,7 @@ const AdminStoreStatistics = ({ store }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowXienFilter(!!data.showXienFilter);
-      
+
       if (data.xienFilterRows) {
         setXienFilterRows(data.xienFilterRows);
       } else if (data.xienFilterNumber !== undefined || data.xienFilterSubtract !== undefined) {
@@ -364,13 +367,13 @@ const AdminStoreStatistics = ({ store }) => {
       } else {
         setXienFilterRows([{ number: '', subtract: '' }]);
       }
-      
+
       setXienFilterRowCount(data.xienFilterRowCount ?? '1');
       setXienFilterPercent(data.xienFilterPercent ?? '');
       setTopNXienCount(data.topNXienCount ?? '');
       setTopNXienSubtracts(data.topNXienSubtracts ?? {});
       setPinXienFilter(!!data.pinXienFilter);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const loadXienQuayFiltersFromStorage = () => {
@@ -380,7 +383,7 @@ const AdminStoreStatistics = ({ store }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowXienQuayFilter(!!data.showXienQuayFilter);
-      
+
       if (data.xienQuayFilterRows) {
         setXienQuayFilterRows(data.xienQuayFilterRows);
       } else if (data.xienQuayFilterNumber !== undefined || data.xienQuayFilterSubtract !== undefined) {
@@ -388,13 +391,13 @@ const AdminStoreStatistics = ({ store }) => {
       } else {
         setXienQuayFilterRows([{ number: '', subtract: '' }]);
       }
-      
+
       setXienQuayFilterRowCount(data.xienQuayFilterRowCount ?? '1');
       setXienQuayFilterPercent(data.xienQuayFilterPercent ?? '');
       setTopNXienQuayCount(data.topNXienQuayCount ?? '');
       setTopNXienQuaySubtracts(data.topNXienQuaySubtracts ?? {});
       setPinXienQuayFilter(!!data.pinXienQuayFilter);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const loadXienNhayFiltersFromStorage = () => {
@@ -404,7 +407,7 @@ const AdminStoreStatistics = ({ store }) => {
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
       setShowXienNhayFilter(!!data.showXienNhayFilter);
-      
+
       if (data.xienNhayFilterRows) {
         setXienNhayFilterRows(data.xienNhayFilterRows);
       } else if (data.xienNhayFilterNumber !== undefined || data.xienNhayFilterSubtract !== undefined) {
@@ -412,15 +415,15 @@ const AdminStoreStatistics = ({ store }) => {
       } else {
         setXienNhayFilterRows([{ number: '', subtract: '' }]);
       }
-      
+
       setXienNhayFilterRowCount(data.xienNhayFilterRowCount ?? '1');
       setXienNhayFilterPercent(data.xienNhayFilterPercent ?? '');
       setTopNXienNhayCount(data.topNXienNhayCount ?? '');
       setTopNXienNhaySubtracts(data.topNXienNhaySubtracts ?? {});
       setPinXienNhayFilter(!!data.pinXienNhayFilter);
-    } catch (e) {}
+    } catch (e) { }
   };
-  
+
   const loadCombinedFiltersFromStorage = () => {
     try {
       const raw = localStorage.getItem(getStoreCombinedFilterStorageKey());
@@ -430,7 +433,7 @@ const AdminStoreStatistics = ({ store }) => {
       setShowCombinedFilter(!!data.showCombinedFilter);
       setCombinedFilterPercent(data.combinedFilterPercent ?? '');
       setPinCombinedFilter(!!data.pinCombinedFilter);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Adjust amount functions for display
@@ -448,7 +451,7 @@ const AdminStoreStatistics = ({ store }) => {
       lotoFilterRows.forEach(row => {
         const numFilter = (row.number || '').trim();
         const subtractVal = parseInt(row.subtract, 10);
-        
+
         if (numFilter !== '' && !isNaN(subtractVal) && subtractVal > 0) {
           // Tách các số được nhập, phân cách bằng dấu phẩy
           const filterNumbers = numFilter.split(',').map(num => num.trim().padStart(2, '0'));
@@ -482,7 +485,7 @@ const AdminStoreStatistics = ({ store }) => {
       twoSFilterRows.forEach(row => {
         const numFilter = (row.number || '').trim();
         const subtractVal = parseInt(row.subtract, 10);
-        
+
         if (numFilter !== '' && !isNaN(subtractVal) && subtractVal > 0) {
           const filterNumbers = numFilter.split(',').map(num => num.trim().padStart(2, '0'));
           if (filterNumbers.includes(numberStr)) {
@@ -528,7 +531,7 @@ const AdminStoreStatistics = ({ store }) => {
       threeFilterRows.forEach(row => {
         const filterInput = (row.number || '').trim();
         const subtractVal = parseInt(row.subtract, 10);
-        
+
         if (filterInput !== '' && !isNaN(subtractVal) && subtractVal > 0) {
           const filterNumbers = filterInput.split(',').map(num => num.trim());
           if (filterNumbers.some(num => keyStr === num)) {
@@ -550,14 +553,14 @@ const AdminStoreStatistics = ({ store }) => {
   // Hàm lọc cho tổng kép đầu đít bộ (chỉ lọc %)
   const adjustCombinedAmountForDisplay = (rawAmount) => {
     let adjusted = rawAmount || 0;
-    
+
     // Trừ theo % toàn bảng
     const percentVal = parseInt(combinedFilterPercent, 10);
     if (!isNaN(percentVal) && percentVal > 0) {
       const clamped = Math.min(100, Math.max(0, percentVal));
       adjusted = adjusted * (100 - clamped) / 100;
     }
-    
+
     return adjusted;
   };
 
@@ -579,7 +582,7 @@ const AdminStoreStatistics = ({ store }) => {
       xienFilterRows.forEach(row => {
         const filterInput = (row.number || '').trim();
         const subtractVal = parseInt(row.subtract, 10);
-        
+
         if (filterInput !== '' && !isNaN(subtractVal) && subtractVal > 0) {
           const filterNumbers = filterInput.split(',').map(num => num.trim());
           if (filterNumbers.some(num => keyStr === num)) {
@@ -612,7 +615,7 @@ const AdminStoreStatistics = ({ store }) => {
       xienQuayFilterRows.forEach(row => {
         const filterInput = (row.number || '').trim();
         const subtractVal = parseInt(row.subtract, 10);
-        
+
         if (filterInput !== '' && !isNaN(subtractVal) && subtractVal > 0) {
           const filterNumbers = filterInput.split(',').map(num => num.trim());
           if (filterNumbers.some(num => keyStr === num)) {
@@ -650,7 +653,7 @@ const AdminStoreStatistics = ({ store }) => {
       xienNhayFilterRows.forEach(row => {
         const filterInput = (row.number || '').trim();
         const subtractVal = parseInt(row.subtract, 10);
-        
+
         if (filterInput !== '' && !isNaN(subtractVal) && subtractVal > 0) {
           const filterNumbers = filterInput.split(',').map(num => num.trim());
           if (filterNumbers.some(num => keyStr === num)) {
@@ -693,6 +696,105 @@ const AdminStoreStatistics = ({ store }) => {
       setIsLoading(false);
     }
   };
+
+  // Socket.io listener for real-time updates
+  useEffect(() => {
+    const { io } = require('socket.io-client');
+    const baseUrl = getApiUrl('').replace('/api', '');
+    const socket = io(baseUrl);
+
+    if (user) {
+      socket.emit('join_admin', user.id);
+
+      socket.on('new_invoice', (data) => {
+        console.log('[AdminStoreStatistics] 📨 New invoice event received:', data);
+
+        // Only reload if we are on betting tab AND the invoice belongs to this store
+        console.log('[AdminStoreStatistics] Tab check - Current:', activeTab, 'Is betting:', activeTab === 'betting');
+
+        if (activeTab === 'betting') {
+          console.log('[AdminStoreStatistics] ✅ Tab condition passed');
+
+          // Compare storeId (both converted to string for safety)
+          const invoiceStoreId = String(data.invoice?.storeId || '');
+          const currentStoreId = String(store._id || '');
+
+          console.log('[AdminStoreStatistics] Store comparison:', {
+            invoiceStoreId,
+            currentStoreId,
+            match: invoiceStoreId === currentStoreId,
+            types: {
+              invoice: typeof data.invoice?.storeId,
+              store: typeof store._id
+            }
+          });
+
+          if (invoiceStoreId && invoiceStoreId === currentStoreId) {
+            console.log('[AdminStoreStatistics] ✅✅✅ STORE MATCH! Calling loadStatistics...');
+            // Save container scroll position
+            const container = document.querySelector('.admin-content-section');
+            scrollPositionRef.current = container ? container.scrollTop : 0;
+            console.log('[AdminStoreStatistics] 💾 Saved scroll:', scrollPositionRef.current);
+
+            loadStatistics(selectedDate).then(() => {
+              requestAnimationFrame(() => {
+                if (container) {
+                  container.scrollTop = scrollPositionRef.current;
+                  console.log('[AdminStoreStatistics] 📌 Scroll restored');
+                }
+              });
+            }).catch(() => { });
+          } else {
+            console.log('[AdminStoreStatistics] ❌ Store mismatch - not reloading');
+          }
+        } else {
+          console.log('[AdminStoreStatistics] ❌ Tab condition failed - not reloading');
+        }
+      });
+
+      socket.on('edit_invoice', (data) => {
+        console.log('[AdminStoreStatistics] ✏️ Edit invoice event received:', data);
+        if (activeTab === 'betting') {
+          const invoiceStoreId = String(data.invoice?.storeId || '');
+          const currentStoreId = String(store._id || '');
+          if (invoiceStoreId === currentStoreId) {
+            console.log('[AdminStoreStatistics] Reloading after edit...');
+            const container = document.querySelector('.admin-content-section');
+            scrollPositionRef.current = container ? container.scrollTop : 0;
+
+            loadStatistics(selectedDate).then(() => {
+              requestAnimationFrame(() => {
+                if (container) container.scrollTop = scrollPositionRef.current;
+              });
+            }).catch(() => { });
+          }
+        }
+      });
+
+      socket.on('delete_invoice', (data) => {
+        console.log('[AdminStoreStatistics] 🗑️ Delete invoice event received:', data);
+        if (activeTab === 'betting') {
+          const invoiceStoreId = String(data.data?.storeId || '');
+          const currentStoreId = String(store._id || '');
+          if (invoiceStoreId === currentStoreId) {
+            console.log('[AdminStoreStatistics] Reloading after delete...');
+            const container = document.querySelector('.admin-content-section');
+            scrollPositionRef.current = container ? container.scrollTop : 0;
+
+            loadStatistics(selectedDate).then(() => {
+              requestAnimationFrame(() => {
+                if (container) container.scrollTop = scrollPositionRef.current;
+              });
+            }).catch(() => { });
+          }
+        }
+      });
+    }
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user, store._id, selectedDate, activeTab]);
 
   // Load data when component mounts or date changes
   useEffect(() => {
@@ -750,7 +852,7 @@ const AdminStoreStatistics = ({ store }) => {
   useEffect(() => { buildTopNXienSelection(); /* eslint-disable-line */ }, [statisticsData, topNXienCount]);
   useEffect(() => { buildTopNXienQuaySelection(); /* eslint-disable-line */ }, [statisticsData, topNXienQuayCount]);
   useEffect(() => { buildTopNXienNhaySelection(); /* eslint-disable-line */ }, [statisticsData, topNXienNhayCount]);
-  
+
   // Auto-apply top N filters when data is loaded (even if topN count doesn't change)
   useEffect(() => {
     if (statisticsData && topNXienNhayCount) {
@@ -888,7 +990,7 @@ const AdminStoreStatistics = ({ store }) => {
       setTopNXienQuaySelection([]);
       return;
     }
-    
+
     // Lọc và sắp xếp các mục xiên quay theo số tiền giảm dần
     // Tính toán số lượng số trong mỗi xiên quay để áp dụng hệ số
     const entries = Object.entries(statisticsData.xienquay)
@@ -898,24 +1000,24 @@ const AdminStoreStatistics = ({ store }) => {
         let multiplier = 1;
         if (numberCount === 3) multiplier = 4;
         else if (numberCount === 4) multiplier = 11;
-        
+
         // Tính toán số tiền thực tế sau khi nhân hệ số
         const adjustedAmount = amount * multiplier;
-        
+
         return { key, amount, adjustedAmount, multiplier };
       })
       .sort((a, b) => b.adjustedAmount - a.adjustedAmount) // Sắp xếp theo số tiền đã nhân hệ số
       .filter(item => item.amount > 0)
       .slice(0, n);
-    
+
     // Khởi tạo giá trị mặc định cho topNXienQuaySubtracts nếu chưa có
-    const newSubtracts = {...topNXienQuaySubtracts};
+    const newSubtracts = { ...topNXienQuaySubtracts };
     entries.forEach(item => {
       if (newSubtracts[item.key] === undefined) {
         newSubtracts[item.key] = '';
       }
     });
-    
+
     setTopNXienQuaySelection(entries);
     setTopNXienQuaySubtracts(newSubtracts);
   };
@@ -939,7 +1041,7 @@ const AdminStoreStatistics = ({ store }) => {
   const generateLotoTableData = () => {
     const lotoData = statisticsData?.loto || {};
     const tableData = [];
-    
+
     // Create 5 columns x 20 rows
     for (let row = 0; row < 20; row++) {
       const rowData = [];
@@ -950,7 +1052,7 @@ const AdminStoreStatistics = ({ store }) => {
       }
       tableData.push(rowData);
     }
-    
+
     return tableData;
   };
 
@@ -958,7 +1060,7 @@ const AdminStoreStatistics = ({ store }) => {
   const generate2sTableData = () => {
     const twoSData = statisticsData?.['2s'] || {};
     const tableData = [];
-    
+
     // Create 5 columns x 20 rows for 2s (00-99)
     for (let row = 0; row < 20; row++) {
       const rowData = [];
@@ -969,7 +1071,7 @@ const AdminStoreStatistics = ({ store }) => {
       }
       tableData.push(rowData);
     }
-    
+
     return tableData;
   };
 
@@ -987,7 +1089,7 @@ const AdminStoreStatistics = ({ store }) => {
     // Get bet type names
     const betTypeNames = {
       'tong': 'Tổng',
-      'kep': 'Kép', 
+      'kep': 'Kép',
       'dau': 'Đầu',
       'dit': 'Đít',
       'bo': 'Bộ',
@@ -999,7 +1101,7 @@ const AdminStoreStatistics = ({ store }) => {
     // Collect all data for the table
     const tableData = [];
     const isCombinedGroup = betTypes.includes('tong') && betTypes.includes('kep') && betTypes.includes('dau') && betTypes.includes('dit') && betTypes.includes('bo');
-    
+
     betTypes.forEach(betType => {
       const betData = statisticsData[betType] || {};
       Object.entries(betData).forEach(([number, amount]) => {
@@ -1027,7 +1129,7 @@ const AdminStoreStatistics = ({ store }) => {
         <div className="admin-stats-combined-total">
           <h4>{title}</h4>
           <div>
-            <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(groupTotal)}</span>
+            <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(groupTotal)}</span>
           </div>
         </div>
         <table>
@@ -1043,7 +1145,7 @@ const AdminStoreStatistics = ({ store }) => {
               <tr key={index} className={item.rowClass}>
                 <td>{item.betType}</td>
                 <td>{item.number}</td>
-                <td style={{color: '#d32f2f', fontWeight: 600}}>{item.amount}n</td>
+                <td style={{ color: '#d32f2f', fontWeight: 600 }}>{item.amount}n</td>
               </tr>
             ))}
           </tbody>
@@ -1147,7 +1249,7 @@ const AdminStoreStatistics = ({ store }) => {
         case 'loto':
           const lotoTableData = generateLotoTableData();
           const lotoTotalPoints = Object.values(statisticsData.loto || {}).reduce((sum, points) => sum + points, 0);
-          
+
           // Calculate filtered loto total
           const calculateFilteredLotoTotal = () => {
             let total = 0;
@@ -1159,18 +1261,18 @@ const AdminStoreStatistics = ({ store }) => {
           };
 
 
-          
+
           return (
             <div className="admin-stats-loto-table admin-filter-scope">
               <div className="admin-stats-loto-total">
                 <h4>Tổng kết lô tô</h4>
                 <div>
-                  <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.lotoTotal)}</span>
+                  <span style={{ color: '#1976d2', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData.lotoTotal)}</span>
                   <br />
                   <span className="admin-stats-loto-total-value">Tổng điểm: {lotoTotalPoints}đ</span>
                   {((lotoFilterRows && lotoFilterRows.some(row => row.number || row.subtract)) || lotoFilterPercent || Object.keys(topNSubtracts).length > 0) && (
-                    <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng điểm sau khi lọc: {calculateFilteredLotoTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'đ'}</span>
+                    <div style={{ marginTop: '5px' }}>
+                      <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng điểm sau khi lọc: {calculateFilteredLotoTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'đ'}</span>
                     </div>
                   )}
                 </div>
@@ -1198,13 +1300,13 @@ const AdminStoreStatistics = ({ store }) => {
                         const sortedEntries = Object.entries(lotoData)
                           .map(([number, points]) => ({ number, points }))
                           .sort((a, b) => b.points - a.points);
-                        
+
                         const n = parseInt(e.target.value, 10);
                         if (isNaN(n) || n <= 0) {
                           setTopNSelection([]);
                           return;
                         }
-                        
+
                         const selected = sortedEntries.slice(0, n);
                         setTopNSelection(selected);
                       }, 100);
@@ -1230,15 +1332,15 @@ const AdminStoreStatistics = ({ store }) => {
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                     <span>Số dòng lọc</span>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      placeholder="vd: 2" 
-                      value={lotoFilterRowCount} 
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="vd: 2"
+                      value={lotoFilterRowCount}
                       onChange={(e) => {
                         const newCount = parseInt(e.target.value, 10) || 1;
                         setLotoFilterRowCount(e.target.value);
-                        
+
                         // Cập nhật mảng dòng lọc khi thay đổi số dòng
                         const currentRows = [...lotoFilterRows];
                         if (newCount > currentRows.length) {
@@ -1252,38 +1354,38 @@ const AdminStoreStatistics = ({ store }) => {
                           // Bớt dòng nếu giảm số dòng
                           setLotoFilterRows(currentRows.slice(0, newCount));
                         }
-                      }} 
-                      style={{ width: '60px' }} 
+                      }}
+                      style={{ width: '60px' }}
                     />
                   </div>
-                  
+
                   {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
                   {lotoFilterRows.map((row, index) => (
                     <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                       <span>Lọc con</span>
-                      <input 
-                        type="text" 
-                        placeholder="12,23,45" 
-                        value={row.number} 
+                      <input
+                        type="text"
+                        placeholder="12,23,45"
+                        value={row.number}
                         onChange={(e) => {
                           const newRows = [...lotoFilterRows];
                           newRows[index].number = e.target.value;
                           setLotoFilterRows(newRows);
-                        }} 
-                        style={{ width: '120px' }} 
+                        }}
+                        style={{ width: '120px' }}
                       />
                       <span>, số điểm là</span>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        placeholder="vd: 100" 
-                        value={row.subtract} 
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="vd: 100"
+                        value={row.subtract}
                         onChange={(e) => {
                           const newRows = [...lotoFilterRows];
                           newRows[index].subtract = e.target.value;
                           setLotoFilterRows(newRows);
-                        }} 
-                        style={{ width: '100px' }} 
+                        }}
+                        style={{ width: '100px' }}
                       />
                     </div>
                   ))}
@@ -1316,7 +1418,7 @@ const AdminStoreStatistics = ({ store }) => {
                       {row.map((cell, colIndex) => {
                         const adjustedPoints = adjustLotoAmountForDisplay(cell.number, cell.points);
                         const hasFilter = ((lotoFilterRows && lotoFilterRows.some(row => row.number || row.subtract)) || lotoFilterPercent || Object.keys(topNSubtracts).length > 0);
-                        
+
                         return (
                           <>
                             <td key={`${colIndex}-num`} className={adjustedPoints > 0 ? 'admin-stats-has-bet' : ''}>
@@ -1346,7 +1448,7 @@ const AdminStoreStatistics = ({ store }) => {
         case '2s':
           const twoSTableData = generate2sTableData();
           const twoSTotalAmount = Object.values(statisticsData['2s'] || {}).reduce((sum, amount) => sum + amount, 0);
-          
+
           // Calculate filtered 2s total
           const calculateFiltered2sTotal = () => {
             let total = 0;
@@ -1358,17 +1460,17 @@ const AdminStoreStatistics = ({ store }) => {
           };
 
 
-          
+
           return (
             <div className="admin-stats-2s-table admin-filter-scope">
               <div className="admin-stats-loto-total">
                 <h4>Tổng kết 2 số</h4>
                 <div>
-                  <span style={{color: '#1976d2', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['2sTotal'])}</span>
+                  <span style={{ color: '#1976d2', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData['2sTotal'])}</span>
                   <br />
                   {((twoSFilterRows && twoSFilterRows.some(row => row.number || row.subtract)) || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0 || twoSCoefficientFactor) && (
-                    <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered2sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
+                    <div style={{ marginTop: '5px' }}>
+                      <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng tiền sau khi lọc: {calculateFiltered2sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1396,13 +1498,13 @@ const AdminStoreStatistics = ({ store }) => {
                         const sortedEntries = Object.entries(twoSData)
                           .map(([number, amount]) => ({ number, amount }))
                           .sort((a, b) => b.amount - a.amount);
-                        
+
                         const n = parseInt(e.target.value, 10);
                         if (isNaN(n) || n <= 0) {
                           setTopNTwoSSelection([]);
                           return;
                         }
-                        
+
                         const selected = sortedEntries.slice(0, n);
                         setTopNTwoSSelection(selected);
                       }, 100);
@@ -1428,15 +1530,15 @@ const AdminStoreStatistics = ({ store }) => {
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                     <span>Số dòng lọc</span>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      placeholder="vd: 2" 
-                      value={twoSFilterRowCount} 
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="vd: 2"
+                      value={twoSFilterRowCount}
                       onChange={(e) => {
                         const newCount = parseInt(e.target.value, 10) || 1;
                         setTwoSFilterRowCount(e.target.value);
-                        
+
                         // Cập nhật mảng dòng lọc khi thay đổi số dòng
                         const currentRows = [...twoSFilterRows];
                         if (newCount > currentRows.length) {
@@ -1450,38 +1552,38 @@ const AdminStoreStatistics = ({ store }) => {
                           // Bớt dòng nếu giảm số dòng
                           setTwoSFilterRows(currentRows.slice(0, newCount));
                         }
-                      }} 
-                      style={{ width: '60px' }} 
+                      }}
+                      style={{ width: '60px' }}
                     />
                   </div>
-                  
+
                   {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
                   {twoSFilterRows.map((row, index) => (
                     <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                       <span>Lọc con</span>
-                      <input 
-                        type="text" 
-                        placeholder="12,23,45" 
-                        value={row.number} 
+                      <input
+                        type="text"
+                        placeholder="12,23,45"
+                        value={row.number}
                         onChange={(e) => {
                           const newRows = [...twoSFilterRows];
                           newRows[index].number = e.target.value;
                           setTwoSFilterRows(newRows);
-                        }} 
-                        style={{ width: '120px' }} 
+                        }}
+                        style={{ width: '120px' }}
                       />
                       <span>, số tiền là</span>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        placeholder="vd: 50" 
-                        value={row.subtract} 
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="vd: 50"
+                        value={row.subtract}
                         onChange={(e) => {
                           const newRows = [...twoSFilterRows];
                           newRows[index].subtract = e.target.value;
                           setTwoSFilterRows(newRows);
-                        }} 
-                        style={{ width: '100px' }} 
+                        }}
+                        style={{ width: '100px' }}
                       />
                       <span>nghìn</span>
                     </div>
@@ -1495,15 +1597,15 @@ const AdminStoreStatistics = ({ store }) => {
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                     <span>Trừ theo số tiền thấp nhất (00-99)</span>
-                    <input 
-                      type="text" 
-                      placeholder="vd: 5,10,15" 
-                      value={twoSMinSubtracts.join(',')} 
+                    <input
+                      type="text"
+                      placeholder="vd: 5,10,15"
+                      value={twoSMinSubtracts.join(',')}
                       onChange={(e) => {
                         const values = e.target.value.split(',').map(v => v.trim()).filter(v => v !== '');
                         setTwoSMinSubtracts(values);
-                      }} 
-                      style={{ width: '120px' }} 
+                      }}
+                      style={{ width: '120px' }}
                     />
                     <span>nghìn</span>
                   </div>
@@ -1536,7 +1638,7 @@ const AdminStoreStatistics = ({ store }) => {
                       {row.map((cell, colIndex) => {
                         const adjustedAmount = adjustTwoSAmountForDisplay(cell.number, cell.amount);
                         const hasFilter = ((twoSFilterRows && twoSFilterRows.some(row => row.number || row.subtract)) || twoSFilterPercent || Object.keys(topNTwoSSubtracts).length > 0 || twoSMinSubtracts.length > 0 || twoSCoefficientFactor);
-                        
+
                         return (
                           <>
                             <td key={`${colIndex}-num`} className={adjustedAmount > 0 ? 'admin-stats-2s-has-bet' : ''}>
@@ -1579,10 +1681,10 @@ const AdminStoreStatistics = ({ store }) => {
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết: Tổng, Kép, Đầu, Đít, Bộ</h4>
                 <div>
-                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(['tong', 'kep', 'dau', 'dit', 'bo'].reduce((sum, betType) => sum + (statisticsData[`${betType}Total`] || 0), 0))}</span>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(['tong', 'kep', 'dau', 'dit', 'bo'].reduce((sum, betType) => sum + (statisticsData[`${betType}Total`] || 0), 0))}</span>
                   {combinedFilterPercent && (
-                    <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredCombinedTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
+                    <div style={{ marginTop: '5px' }}>
+                      <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng tiền sau khi lọc: {calculateFilteredCombinedTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1597,7 +1699,7 @@ const AdminStoreStatistics = ({ store }) => {
                 </label>
                 <button className="admin-stats-tab" onClick={handleRefreshCombined}>Làm mới</button>
                 {(combinedFilterPercent) && (
-                  <span style={{color: '#2e7d32', fontWeight: '600'}}>Đang áp dụng bộ lọc</span>
+                  <span style={{ color: '#2e7d32', fontWeight: '600' }}>Đang áp dụng bộ lọc</span>
                 )}
               </div>
 
@@ -1642,10 +1744,10 @@ const AdminStoreStatistics = ({ store }) => {
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết 3 số</h4>
                 <div>
-                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['3sTotal'])}</span>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData['3sTotal'])}</span>
                   {((threeFilterRows && threeFilterRows.some(row => row.number || row.subtract)) || threeFilterPercent || Object.keys(topNThreeSubtracts).length > 0) && (
-                    <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFiltered3sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
+                    <div style={{ marginTop: '5px' }}>
+                      <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng tiền sau khi lọc: {calculateFiltered3sTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1672,13 +1774,13 @@ const AdminStoreStatistics = ({ store }) => {
                         const sortedEntries = Object.entries(betData3s)
                           .map(([key, amount]) => ({ key, amount }))
                           .sort((a, b) => b.amount - a.amount);
-                        
+
                         const n = parseInt(e.target.value, 10);
                         if (isNaN(n) || n <= 0) {
                           setTopNThreeSelection([]);
                           return;
                         }
-                        
+
                         const selected = sortedEntries.slice(0, n);
                         setTopNThreeSelection(selected);
                       }, 100);
@@ -1704,15 +1806,15 @@ const AdminStoreStatistics = ({ store }) => {
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                     <span>Số dòng lọc</span>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      placeholder="vd: 2" 
-                      value={threeFilterRowCount} 
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="vd: 2"
+                      value={threeFilterRowCount}
                       onChange={(e) => {
                         const newCount = parseInt(e.target.value, 10);
                         setThreeFilterRowCount(e.target.value);
-                        
+
                         // Tự động điều chỉnh số dòng lọc dựa trên giá trị nhập vào
                         if (!isNaN(newCount) && newCount > 0) {
                           const currentRows = [...threeFilterRows];
@@ -1729,31 +1831,31 @@ const AdminStoreStatistics = ({ store }) => {
                             setThreeFilterRows(currentRows.slice(0, newCount));
                           }
                         }
-                      }} 
-                      style={{ width: '60px' }} 
+                      }}
+                      style={{ width: '60px' }}
                     />
                   </div>
-                  
+
                   {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
                   {threeFilterRows.map((row, index) => (
                     <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                       <span>Lọc mục</span>
-                      <input type="text" placeholder="vd: 123,456,789" 
-                        value={row.number || ''} 
+                      <input type="text" placeholder="vd: 123,456,789"
+                        value={row.number || ''}
                         onChange={(e) => {
                           const newRows = [...threeFilterRows];
                           newRows[index] = { ...newRows[index], number: e.target.value };
                           setThreeFilterRows(newRows);
-                        }} 
+                        }}
                         style={{ width: '180px' }} />
                       <span>, số tiền là</span>
-                      <input type="number" min="0" placeholder="vd: 50" 
-                        value={row.subtract || ''} 
+                      <input type="number" min="0" placeholder="vd: 50"
+                        value={row.subtract || ''}
                         onChange={(e) => {
                           const newRows = [...threeFilterRows];
                           newRows[index] = { ...newRows[index], subtract: e.target.value };
                           setThreeFilterRows(newRows);
-                        }} 
+                        }}
                         style={{ width: '100px' }} />
                       <span>nghìn</span>
                     </div>
@@ -1770,9 +1872,9 @@ const AdminStoreStatistics = ({ store }) => {
               <div className="admin-stats-bet-list">
                 {Object.entries(betData3s).map(([key, value]) => {
                   const adjustedAmount = adjustThreeAmountForDisplay(key, value);
-                  
+
                   if (adjustedAmount <= 0) return null;
-                  
+
                   return (
                     <div key={key} className="admin-stats-bet-item">
                       <span className="admin-stats-bet-number">{key}</span>
@@ -1801,7 +1903,7 @@ const AdminStoreStatistics = ({ store }) => {
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết 4 số</h4>
                 <div>
-                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData['4sTotal'])}</span>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData['4sTotal'])}</span>
                 </div>
               </div>
               <div className="admin-stats-bet-list">
@@ -1844,10 +1946,10 @@ const AdminStoreStatistics = ({ store }) => {
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết xiên</h4>
                 <div>
-                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(calculateXienTotal())}</span>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(calculateXienTotal())}</span>
                   {((xienFilterRows && xienFilterRows.some(row => row.number || row.subtract)) || xienFilterPercent || Object.keys(topNXienSubtracts).length > 0) && (
-                    <div style={{marginTop: '5px'}}>
-                      <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền sau khi lọc: {calculateFilteredXienTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
+                    <div style={{ marginTop: '5px' }}>
+                      <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng tiền sau khi lọc: {calculateFilteredXienTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
                     </div>
                   )}
                 </div>
@@ -1875,13 +1977,13 @@ const AdminStoreStatistics = ({ store }) => {
                           .filter(([key]) => !key.includes('(xiên nháy)')) // Lọc bỏ xiên nháy
                           .map(([key, amount]) => ({ key, amount }))
                           .sort((a, b) => b.amount - a.amount);
-                        
+
                         const n = parseInt(e.target.value, 10);
                         if (isNaN(n) || n <= 0) {
                           setTopNXienSelection([]);
                           return;
                         }
-                        
+
                         const selected = sortedEntries.slice(0, n);
                         setTopNXienSelection(selected);
                       }, 100);
@@ -1907,15 +2009,15 @@ const AdminStoreStatistics = ({ store }) => {
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                     <span>Số dòng lọc</span>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      placeholder="vd: 2" 
-                      value={xienFilterRowCount} 
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="vd: 2"
+                      value={xienFilterRowCount}
                       onChange={(e) => {
                         const newCount = parseInt(e.target.value, 10);
                         setXienFilterRowCount(e.target.value);
-                        
+
                         // Tự động điều chỉnh số dòng lọc dựa trên giá trị nhập vào
                         if (!isNaN(newCount) && newCount > 0) {
                           const currentRows = [...xienFilterRows];
@@ -1932,31 +2034,31 @@ const AdminStoreStatistics = ({ store }) => {
                             setXienFilterRows(currentRows.slice(0, newCount));
                           }
                         }
-                      }} 
-                      style={{ width: '60px' }} 
+                      }}
+                      style={{ width: '60px' }}
                     />
                   </div>
-                  
+
                   {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
                   {xienFilterRows.map((row, index) => (
                     <div key={index} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                       <span>Lọc mục</span>
-                      <input type="text" placeholder="vd: 12-34,56-78" 
-                        value={row.number || ''} 
+                      <input type="text" placeholder="vd: 12-34,56-78"
+                        value={row.number || ''}
                         onChange={(e) => {
                           const newRows = [...xienFilterRows];
                           newRows[index] = { ...newRows[index], number: e.target.value };
                           setXienFilterRows(newRows);
-                        }} 
+                        }}
                         style={{ width: '180px' }} />
                       <span>, số tiền là</span>
-                      <input type="number" min="0" placeholder="vd: 50" 
-                        value={row.subtract || ''} 
+                      <input type="number" min="0" placeholder="vd: 50"
+                        value={row.subtract || ''}
                         onChange={(e) => {
                           const newRows = [...xienFilterRows];
                           newRows[index] = { ...newRows[index], subtract: e.target.value };
                           setXienFilterRows(newRows);
-                        }} 
+                        }}
                         style={{ width: '100px' }} />
                       <span>n</span>
                     </div>
@@ -1976,11 +2078,11 @@ const AdminStoreStatistics = ({ store }) => {
                   .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                   .map(([key, value]) => {
                     const adjustedAmount = adjustXienAmountForDisplay(key, value);
-                    
+
                     if (adjustedAmount <= 0) return null;
-                    
+
                     return (
-                      <div key={key} className="admin-stats-bet-item" style={{padding: '8px'}}>
+                      <div key={key} className="admin-stats-bet-item" style={{ padding: '8px' }}>
                         <span className="admin-stats-bet-number">
                           {key}
                         </span>
@@ -2047,13 +2149,13 @@ const AdminStoreStatistics = ({ store }) => {
                           .filter(([key]) => key.includes('(xiên nháy)'))
                           .map(([key, amount]) => ({ key, amount }))
                           .sort((a, b) => b.amount - a.amount);
-                        
+
                         const n = parseInt(e.target.value, 10);
                         if (isNaN(n) || n <= 0) {
                           setTopNXienNhaySelection([]);
                           return;
                         }
-                        
+
                         const selected = sortedEntries.slice(0, n);
                         setTopNXienNhaySelection(selected);
                       }, 100);
@@ -2079,15 +2181,15 @@ const AdminStoreStatistics = ({ store }) => {
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                     <span>Số dòng lọc</span>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      placeholder="vd: 2" 
-                      value={xienNhayFilterRowCount} 
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="vd: 2"
+                      value={xienNhayFilterRowCount}
                       onChange={(e) => {
                         const count = parseInt(e.target.value, 10) || 1;
                         setXienNhayFilterRowCount(e.target.value);
-                        
+
                         // Điều chỉnh số dòng lọc
                         const currentRows = [...xienNhayFilterRows];
                         if (count > currentRows.length) {
@@ -2101,12 +2203,12 @@ const AdminStoreStatistics = ({ store }) => {
                         }
                         setXienNhayFilterRows(currentRows);
                       }}
-                      style={{width: '60px'}}
+                      style={{ width: '60px' }}
                     />
                   </div>
 
                   {xienNhayFilterRows.map((row, index) => (
-                    <div key={index} style={{marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <div key={index} style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
                         type="text"
                         placeholder="Số xiên nháy"
@@ -2116,7 +2218,7 @@ const AdminStoreStatistics = ({ store }) => {
                           newRows[index].number = e.target.value;
                           setXienNhayFilterRows(newRows);
                         }}
-                        style={{width: '120px'}}
+                        style={{ width: '120px' }}
                       />
                       <input
                         type="number"
@@ -2128,21 +2230,21 @@ const AdminStoreStatistics = ({ store }) => {
                           newRows[index].subtract = e.target.value;
                           setXienNhayFilterRows(newRows);
                         }}
-                        style={{width: '80px'}}
+                        style={{ width: '80px' }}
                       />
                     </div>
                   ))}
 
-                  <div style={{marginTop: '10px'}}>
+                  <div style={{ marginTop: '10px' }}>
                     <span>Lọc tất cả </span>
-                    <input 
-                      type="number" 
-                      min="0" 
-                      max="100" 
-                      placeholder="vd: 50" 
-                      value={xienNhayFilterPercent} 
-                      onChange={(e) => setXienNhayFilterPercent(e.target.value)} 
-                      style={{width: '80px'}} 
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      placeholder="vd: 50"
+                      value={xienNhayFilterPercent}
+                      onChange={(e) => setXienNhayFilterPercent(e.target.value)}
+                      style={{ width: '80px' }}
                     />
                     <span> % số tiền</span>
                   </div>
@@ -2150,14 +2252,14 @@ const AdminStoreStatistics = ({ store }) => {
               )}
 
               <div className="admin-stats-combined-total">
-                 <h4>Tổng kết xiên nháy</h4>
-                 <div>
-                     <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền cược: {formatThousand(calculateXienNhayBetTotal())}</span>
-                     <div style={{marginTop: '5px'}}>
-                       <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(calculateXienNhayFilteredTotal())}</span>
-                     </div>
-                   </div>
-               </div>
+                <h4>Tổng kết xiên nháy</h4>
+                <div>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền cược: {formatThousand(calculateXienNhayBetTotal())}</span>
+                  <div style={{ marginTop: '5px' }}>
+                    <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(calculateXienNhayFilteredTotal())}</span>
+                  </div>
+                </div>
+              </div>
 
               <div className="admin-stats-bet-list">
                 {Object.entries(betDataXienNhay)
@@ -2165,14 +2267,14 @@ const AdminStoreStatistics = ({ store }) => {
                   .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                   .map(([key, value]) => {
                     const adjustedAmount = adjustXienNhayAmountForDisplay(key, value);
-                    
+
                     if (adjustedAmount <= 0) return null;
-                    
+
                     return (
-                      <div key={key} className="admin-stats-bet-item" style={{padding: '8px'}}>
+                      <div key={key} className="admin-stats-bet-item" style={{ padding: '8px' }}>
                         <span className="admin-stats-bet-number">
                           {key.replace(' (xiên nháy)', '')}
-                          <span style={{color: 'red'}}> nháy</span>
+                          <span style={{ color: 'red' }}> nháy</span>
                         </span>
                         <span className="admin-stats-bet-amount" style={{
                           background: 'gray',
@@ -2207,11 +2309,11 @@ const AdminStoreStatistics = ({ store }) => {
             let total = 0;
             Object.entries(betDataXienQuay).forEach(([key, value]) => {
               const adjustedAmount = adjustXienQuayAmountForDisplay(key, value);
-              
+
               // Áp dụng hệ số tương ứng với từng loại xiên quay
               // Đếm số lượng số trong xiên quay bằng cách đếm số dấu gạch ngang + 1
               const numberCount = key.split('-').length;
-              
+
               if (numberCount === 3) {
                 // Xiên 3 nhân với hệ số 4
                 total += adjustedAmount * 4;
@@ -2225,7 +2327,7 @@ const AdminStoreStatistics = ({ store }) => {
             });
             return total;
           };
-          
+
           // Tính tổng xiên quay không nhân hệ số
           const calculateXienQuayFilteredTotalNoMultiplier = () => {
             let total = 0;
@@ -2242,21 +2344,21 @@ const AdminStoreStatistics = ({ store }) => {
               <div className="admin-stats-combined-total">
                 <h4>Tổng kết xiên quay</h4>
                 <div>
-                  <span style={{color: '#333', fontWeight: 600, fontSize: '14px'}}>Tổng tiền đánh: {formatThousand(statisticsData.xienquayTotal)}</span>
-                  <div style={{marginTop: '5px'}}>
-                    <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng sau lọc (không nhân hệ số): {formatThousand(calculateXienQuayFilteredTotalNoMultiplier())}</span>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData.xienquayTotal)}</span>
+                  <div style={{ marginTop: '5px' }}>
+                    <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng sau lọc (không nhân hệ số): {formatThousand(calculateXienQuayFilteredTotalNoMultiplier())}</span>
                   </div>
-                  <div style={{marginTop: '5px'}}>
-                    <span style={{color: '#388e3c', fontWeight: 600, fontSize: '14px'}}>Tổng sau lọc (có nhân hệ số): {formatThousand(calculateXienQuayFilteredTotal())}</span>
+                  <div style={{ marginTop: '5px' }}>
+                    <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng sau lọc (có nhân hệ số): {formatThousand(calculateXienQuayFilteredTotal())}</span>
                   </div>
                 </div>
               </div>
 
               {/* UI bộ lọc cho xiên quay */}
 
-              <div className="filter-controls" style={{display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap'}}>
+              <div className="filter-controls" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '8px 0 12px 0', flexWrap: 'wrap' }}>
                 <button className="admin-stats-tab filter-toggle-btn" onClick={() => setShowXienQuayFilter(prev => !prev)}>{showXienQuayFilter ? 'Ẩn bộ lọc' : 'Bộ lọc'}</button>
-                <label style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <input type="checkbox" checked={pinXienQuayFilter} onChange={(e) => setPinXienQuayFilter(e.target.checked)} />
                   <span>Ghim bộ lọc</span>
                 </label>
@@ -2264,42 +2366,42 @@ const AdminStoreStatistics = ({ store }) => {
               </div>
 
               {(showXienQuayFilter || pinXienQuayFilter) && (
-                <div className="panel filter-panel" style={{marginBottom: '12px'}}>
+                <div className="panel filter-panel" style={{ marginBottom: '12px' }}>
                   <div className="filter-row">
                     <span>Chọn ra</span>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      placeholder="vd: 5" 
-                      value={topNXienQuayCount} 
-                      onChange={(e) => setTopNXienQuayCount(e.target.value)} 
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="vd: 5"
+                      value={topNXienQuayCount}
+                      onChange={(e) => setTopNXienQuayCount(e.target.value)}
                       className="filter-input-small"
                     />
                     <span>mục cao nhất</span>
                     <button className="admin-stats-tab filter-button" onClick={buildTopNXienQuaySelection}>Chọn</button>
                   </div>
-                  
+
                   {topNXienQuaySelection.length > 0 && (
                     <div className="filter-selection-list">
                       {topNXienQuaySelection.map(item => (
                         <div key={item.key} className="filter-selection-item">
                           <div className="filter-selection-row">
                             <span>Lọc:</span>
-                            <input type="text" value={item.key} readOnly className="filter-input-medium" style={{background: '#f0f0f0'}} />
+                            <input type="text" value={item.key} readOnly className="filter-input-medium" style={{ background: '#f0f0f0' }} />
                           </div>
                           <div className="filter-selection-row">
                             <span>Số tiền:</span>
-                            <input type="text" value={item.amount} readOnly className="filter-input-small" style={{background: '#f0f0f0'}} />
+                            <input type="text" value={item.amount} readOnly className="filter-input-small" style={{ background: '#f0f0f0' }} />
                             <span>n</span>
                           </div>
                           <div className="filter-selection-row">
                             <span>Lọc đi:</span>
-                            <input 
-                              type="number" 
-                              min="0" 
-                              placeholder="vd: 50" 
-                              value={topNXienQuaySubtracts[item.key] ?? ''} 
-                              onChange={(e) => setTopNXienQuaySubtracts(prev => ({...prev, [item.key]: e.target.value}))} 
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="vd: 50"
+                              value={topNXienQuaySubtracts[item.key] ?? ''}
+                              onChange={(e) => setTopNXienQuaySubtracts(prev => ({ ...prev, [item.key]: e.target.value }))}
                               className="filter-input-small"
                             />
                             <span>n</span>
@@ -2311,15 +2413,15 @@ const AdminStoreStatistics = ({ store }) => {
 
                   <div className="filter-row">
                     <span>Số dòng lọc</span>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      placeholder="vd: 2" 
-                      value={xienQuayFilterRowCount} 
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="vd: 2"
+                      value={xienQuayFilterRowCount}
                       onChange={(e) => {
                         const newCount = parseInt(e.target.value, 10);
                         setXienQuayFilterRowCount(e.target.value);
-                        
+
                         // Tự động điều chỉnh số dòng lọc dựa trên giá trị nhập vào
                         if (!isNaN(newCount) && newCount > 0) {
                           const currentRows = [...xienQuayFilterRows];
@@ -2336,34 +2438,34 @@ const AdminStoreStatistics = ({ store }) => {
                             setXienQuayFilterRows(currentRows.slice(0, newCount));
                           }
                         }
-                      }} 
+                      }}
                       className="filter-input-small"
                     />
                   </div>
-                  
+
                   {/* Hiển thị số dòng lọc dựa trên giá trị nhập vào */}
                   {xienQuayFilterRows.map((row, index) => (
                     <div key={index} className="filter-row filter-item-row">
                       <div className="filter-item-group">
                         <span>Lọc mục:</span>
-                        <input type="text" placeholder="vd: 12-34-56,23-45-67" 
-                          value={row.number || ''} 
+                        <input type="text" placeholder="vd: 12-34-56,23-45-67"
+                          value={row.number || ''}
                           onChange={(e) => {
                             const newRows = [...xienQuayFilterRows];
                             newRows[index] = { ...newRows[index], number: e.target.value };
                             setXienQuayFilterRows(newRows);
-                          }} 
+                          }}
                           className="filter-input-medium" />
                       </div>
                       <div className="filter-item-group">
                         <span>Số tiền:</span>
-                        <input type="number" min="0" placeholder="vd: 50" 
-                          value={row.subtract || ''} 
+                        <input type="number" min="0" placeholder="vd: 50"
+                          value={row.subtract || ''}
                           onChange={(e) => {
                             const newRows = [...xienQuayFilterRows];
                             newRows[index] = { ...newRows[index], subtract: e.target.value };
                             setXienQuayFilterRows(newRows);
-                          }} 
+                          }}
                           className="filter-input-small" />
                         <span>n</span>
                       </div>
@@ -2381,19 +2483,19 @@ const AdminStoreStatistics = ({ store }) => {
               <div className="admin-stats-bet-list">
                 {Object.entries(betDataXienQuay).map(([key, value]) => {
                   const adjustedAmount = adjustXienQuayAmountForDisplay(key, value);
-                  
+
                   if (adjustedAmount <= 0) return null;
-                  
+
                   // Tính hệ số dựa trên số lượng số trong xiên quay
                   const numberCount = key.split('-').length;
                   let multiplier = 1;
                   if (numberCount === 3) multiplier = 4;
                   else if (numberCount === 4) multiplier = 11;
-                  
+
                   return (
                     <div key={key} className="admin-stats-bet-item">
                       <span className="admin-stats-bet-number">{key}</span>
-                      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end'}}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                         <span className="admin-stats-bet-amount">{Math.round(adjustedAmount)}n</span>
                       </div>
                     </div>
@@ -2497,7 +2599,7 @@ const AdminStoreStatistics = ({ store }) => {
             </div>
           )
         ) : (
-          <AdminStoreDetailPrizeStats 
+          <AdminStoreDetailPrizeStats
             storeId={store._id}
             storeName={store.name}
             onBack={() => handleTabChange('betting')}

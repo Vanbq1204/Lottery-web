@@ -7,8 +7,13 @@
 
 /* Loading animation */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .prize-header {
@@ -101,7 +106,7 @@
   padding: 25px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
 }
 
@@ -125,7 +130,7 @@
   background: white;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .winning-invoices h3 {
@@ -176,7 +181,7 @@
 
 .prize-table td.detail {
   color: #000;
-  font-weight : 500;
+  font-weight: 500;
 }
 
 /* Summary Row */
@@ -207,7 +212,9 @@
 .invoice-list,
 .winning-invoice-card,
 .invoice-header,
-.winning-items { display: none; }
+.winning-items {
+  display: none;
+}
 
 .loading {
   text-align: center;
@@ -244,7 +251,7 @@
 
 .winning-invoice-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .invoice-header {
@@ -263,7 +270,8 @@
   font-weight: 700;
 }
 
-.customer-name, .invoice-date {
+.customer-name,
+.invoice-date {
   margin: 4px 0;
   color: #6c757d;
   font-size: 14px;
@@ -393,41 +401,241 @@
 /* Responsive */
 @media (max-width: 768px) {
   .prize-interface {
-    padding: 15px;
+    padding: 12px;
+    overflow-x: hidden;
   }
-  
+
+  .prize-header h2 {
+    font-size: 24px;
+  }
+
   .prize-controls {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
+    padding: 12px;
   }
-  
+
+  .date-selector,
+  .paid-filter {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-selector label,
+  .paid-filter label {
+    min-width: auto;
+    margin-bottom: 4px;
+  }
+
+  .date-input,
+  .filter-select {
+    width: 100%;
+  }
+
+  .calculate-btn {
+    width: 100%;
+    padding: 12px;
+  }
+
   .prize-stats {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
-  
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .winning-invoices {
+    padding: 12px;
+    overflow-x: hidden;
+  }
+
+  .winning-invoices h3 {
+    font-size: 18px;
+  }
+
+  /* Hide table structure on mobile */
+  .prize-table thead {
+    display: none;
+  }
+
+  .prize-table,
+  .prize-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  /* Transform each row into a card */
+  .prize-table tbody tr:not(.prize-summary-row) {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  /* Paid/Unpaid row styling for mobile cards */
+  .prize-table tbody tr.paid-row {
+    border-left: 4px solid #28a745;
+    background: #d4edda !important;
+  }
+
+  .prize-table tbody tr.unpaid-row {
+    border-left: 4px solid #ffc107;
+    background: #fff3cd !important;
+  }
+
+  .prize-table tbody tr:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .prize-table td {
+    display: block;
+    width: 100% !important;
+    padding: 10px 15px;
+    border: none;
+    text-align: left !important;
+  }
+
+  /* Checkbox cell - Header with toggle */
+  .prize-table td.checkbox-cell {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .prize-table td.checkbox-cell::before {
+    content: '💰 Trạng thái trả thưởng';
+    font-weight: 600;
+    color: #495057;
+  }
+
+  /* Invoice Code */
+  .prize-table td.code {
+    background: linear-gradient(135deg, #4a7c59 0%, #5a8c69 100%);
+    color: white !important;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .prize-table td.code::before {
+    content: '🧾 Mã HĐ: ';
+    font-weight: 600;
+  }
+
+  /* Customer Name */
+  .prize-table td.customer-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2c5530;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .prize-table td.customer-name::before {
+    content: '👤 Khách hàng: ';
+    font-weight: 500;
+    color: #666;
+  }
+
+  /* Prize Money */
+  .prize-table td.money {
+    font-size: 18px !important;
+    font-weight: 700;
+    color: #e74c3c;
+    padding: 12px 15px;
+    background: #fff5f5;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left !important;
+  }
+
+  .prize-table td.money::before {
+    content: '💵 Tổng tiền thưởng: ';
+    font-weight: 600;
+    color: #495057;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+
+  /* Prize Details */
+  .prize-table td.detail {
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    color: #000;
+    font-weight: 500;
+    word-wrap: break-word;
+  }
+
+  .prize-table td.detail::before {
+    content: '🎯 Chi tiết thưởng:';
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+  }
+
+  /* Summary Row - Keep as is */
+  .prize-summary-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 15px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+    border-radius: 8px;
+    margin-top: 15px;
+  }
+
+  .sum-item {
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border-left: 3px solid #17a2b8;
+  }
+
+  .sum-label {
+    font-size: 14px;
+  }
+
+  .sum-value {
+    font-size: 16px;
+  }
+
+  /* Old responsive styles - removed */
   .invoice-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
   }
-  
+
   .total-prize {
     text-align: left;
   }
-  
+
   .item-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .bet-details {
     margin-left: 0;
-  }
-
-  .prize-table th, .prize-table td {
-    font-size: 13px;
-    padding: 10px 8px;
   }
 }
 
@@ -437,10 +645,12 @@
     transform: translateX(-50%) scale(1);
     opacity: 1;
   }
+
   50% {
     transform: translateX(-50%) scale(1.05);
     opacity: 0.8;
   }
+
   100% {
     transform: translateX(-50%) scale(1);
     opacity: 1;
