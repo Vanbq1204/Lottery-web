@@ -787,63 +787,7 @@ const AdminTotalStatistics = ({ user }) => {
     }
   }, [selectedDate, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Socket.io listener for real-time updates
-  useEffect(() => {
-    const { io } = require('socket.io-client');
-    // Fix: Socket.io connects to root, not /api
-    const baseUrl = getApiUrl('').replace('/api', '');
-    const socket = io(baseUrl);
-
-    if (user) {
-      socket.emit('join_admin', user.id);
-
-      socket.on('new_invoice', (data) => {
-        console.log('Real-time update: New invoice received', data);
-        // Reload if we are viewing the betting tab
-        if (activeTab === 'betting') {
-          // Save current scroll position from container (not window!)
-          const container = document.querySelector('.admin-content-section');
-          const currentScroll = container ? container.scrollTop : 0;
-          scrollPositionRef.current = currentScroll;
-          shouldRestoreScroll.current = true;
-
-          console.log('💾 Saved container scroll position:', currentScroll);
-          console.log('🚩 Set shouldRestoreScroll flag to TRUE');
-
-          // Call loadStatistics with the current selectedDate explicitly to be safe
-          loadStatistics(selectedDate);
-        }
-      });
-
-      socket.on('edit_invoice', (data) => {
-        console.log('Real-time update: Invoice edited', data);
-        if (activeTab === 'betting') {
-          const container = document.querySelector('.admin-content-section');
-          const currentScroll = container ? container.scrollTop : 0;
-          scrollPositionRef.current = currentScroll;
-          shouldRestoreScroll.current = true;
-          console.log('💾 Saved container scroll position (edit):', currentScroll);
-          loadStatistics(selectedDate);
-        }
-      });
-
-      socket.on('delete_invoice', (data) => {
-        console.log('Real-time update: Invoice deleted', data);
-        if (activeTab === 'betting') {
-          const container = document.querySelector('.admin-content-section');
-          const currentScroll = container ? container.scrollTop : 0;
-          scrollPositionRef.current = currentScroll;
-          shouldRestoreScroll.current = true;
-          console.log('💾 Saved container scroll position (delete):', currentScroll);
-          loadStatistics(selectedDate);
-        }
-      });
-    }
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [user, selectedDate, activeTab]);
+  
 
   // Restore scroll position after data loads
   useEffect(() => {
