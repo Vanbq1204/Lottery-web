@@ -23,8 +23,12 @@ const AdminMessageExport = ({ user }) => {
   const [ditMessage, setDitMessage] = useState('');
   const [kepMessage, setKepMessage] = useState('');
   const [boMessage, setBoMessage] = useState('');
-  const [xMessage, setXMessage] = useState('');
-  const [xquayMessage, setXquayMessage] = useState('');
+  const [x2Message, setX2Message] = useState('');
+  const [x3Message, setX3Message] = useState('');
+  const [x4Message, setX4Message] = useState('');
+  const [xq3Message, setXq3Message] = useState('');
+  const [xq4Message, setXq4Message] = useState('');
+  const [xNhayMessage, setXNhayMessage] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
   const [history, setHistory] = useState([]);
   const [exporting, setExporting] = useState(false);
@@ -85,13 +89,18 @@ const AdminMessageExport = ({ user }) => {
     setTwoSMessage(buildTwoSMessage(twoSStats));
     setThreeSMessage(buildThreeSMessage(threeSStats));
     setFourSMessage(buildFourSMessage(fourSStats));
-    setTongMessage(buildGroupedLine('Tổng', grouped?.tong));
-    setDauMessage(buildGroupedLine('Đầu', grouped?.dau));
-    setDitMessage(buildGroupedLine('Đít', grouped?.dit));
-    setKepMessage(buildGroupedLine('Kép', grouped?.kep));
-    setBoMessage(buildGroupedLine('Bộ', grouped?.bo));
-    setXMessage(buildXMessage(xStats));
-    setXquayMessage(buildXquayMessage(xqStats));
+    setTongMessage(buildGroupedLines('De Tong', grouped?.tong));
+    setDauMessage(buildGroupedLines('De Dau', grouped?.dau));
+    setDitMessage(buildGroupedLines('De Dit', grouped?.dit));
+    setKepMessage(buildGroupedLinesNoAccent('Kep', grouped?.kep));
+    setBoMessage(buildBoLines(grouped?.bo));
+    const { x2, x3, x4 } = buildXSplitMessages(xStats);
+    setX2Message(x2);
+    setX3Message(x3);
+    setX4Message(x4);
+    const { xq3, xq4 } = buildXqSplitMessages(xqStats);
+    setXq3Message(xq3);
+    setXq4Message(xq4);
   };
 
   // Khi hệ số thay đổi, tính lại ngay từ baseStats (không gọi API)
@@ -104,7 +113,7 @@ const AdminMessageExport = ({ user }) => {
   // Gom nhóm theo cùng số điểm và tạo chuỗi tin cho Lô
   const buildLotoMessage = (lotoStats) => {
     if (!lotoStats || Object.keys(lotoStats).length === 0) {
-      return 'L: (Không có dữ liệu)';
+      return 'Lo: (Không có dữ liệu)';
     }
 
     const groups = new Map(); // key: points, value: array of numbers
@@ -127,11 +136,11 @@ const AdminMessageExport = ({ user }) => {
       segments.push(`${listStr}x${p}đ`);
     }
 
-    return `L: ${segments.join(', ')}`;
+    return `Lo: ${segments.join(', ')}`;
   };
 
   const buildTwoSMessage = (twoSStats) => {
-    if (!twoSStats || Object.keys(twoSStats).length === 0) return 'Đ: (Không có dữ liệu)';
+    if (!twoSStats || Object.keys(twoSStats).length === 0) return 'De: (Không có dữ liệu)';
     const groups = new Map();
     for (const [number, amountN] of Object.entries(twoSStats)) {
       const a = parseInt(amountN) || 0;
@@ -142,9 +151,9 @@ const AdminMessageExport = ({ user }) => {
     const sortedAmounts = Array.from(groups.keys()).sort((a, b) => b - a);
     const segments = sortedAmounts.map(a => {
       const nums = groups.get(a).sort((x, y) => parseInt(x) - parseInt(y));
-      return `${nums.join(',')}x${a}n`;
+      return `${nums.join(',')} x ${a}n`;
     });
-    return `Đ: ${segments.join(', ')}`;
+    return `De: ${segments.join(', ')}`;
   };
 
   const aggregateAmountNFromNested = (nested) => {
@@ -172,7 +181,7 @@ const AdminMessageExport = ({ user }) => {
 
   const buildThreeSMessage = (threeSStats) => {
     const agg = aggregateAmountNFromNested(threeSStats);
-    if (Object.keys(agg).length === 0) return '3s: (Không có dữ liệu)';
+    if (Object.keys(agg).length === 0) return 'Bc: (Không có dữ liệu)';
     const groups = new Map();
     for (const [num, n] of Object.entries(agg)) {
       const amount = parseInt(n) || 0;
@@ -183,9 +192,9 @@ const AdminMessageExport = ({ user }) => {
     const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
     const segments = sorted.map(a => {
       const nums = groups.get(a).sort((x, y) => parseInt(x) - parseInt(y));
-      return `${nums.join(',')}x${a}n`;
+      return `${nums.join(',')} x ${a}n`;
     });
-    return `3s: ${segments.join(', ')}`;
+    return `Bc: ${segments.join(', ')}`;
   };
 
   const buildFourSMessage = (fourSStats) => {
@@ -201,7 +210,7 @@ const AdminMessageExport = ({ user }) => {
     const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
     const segments = sorted.map(a => {
       const nums = groups.get(a).sort((x, y) => parseInt(x) - parseInt(y));
-      return `${nums.join(',')}x${a}n`;
+      return `${nums.join(',')} x ${a}n`;
     });
     return `4s: ${segments.join(', ')}`;
   };
@@ -223,9 +232,110 @@ const AdminMessageExport = ({ user }) => {
     const sortedAmounts = Array.from(groups.keys()).sort((a, b) => b - a);
     const segments = sortedAmounts.map(a => {
       const items = groups.get(a).sort();
-      return `${items.join(',')}x${a}n`;
+      return `${items.join(',')} x ${a}n`;
     });
     return `${label}: ${segments.join(', ')}`;
+  };
+
+  const buildGroupedLines = (label, groupedMap) => {
+    const simple = {};
+    Object.entries(groupedMap || {}).forEach(([key, val]) => {
+      const amt = parseInt(val?.totalAmount || 0) || 0;
+      simple[key] = (simple[key] || 0) + amt;
+    });
+    if (Object.keys(simple).length === 0) return `${label} : (Không có dữ liệu)`;
+    const groups = new Map();
+    for (const [key, n] of Object.entries(simple)) {
+      const a = parseInt(n) || 0;
+      const scaled = Math.max(1, Math.round(a * sendFactor));
+      if (!groups.has(scaled)) groups.set(scaled, []);
+      groups.get(scaled).push(key);
+    }
+    const sortedAmounts = Array.from(groups.keys()).sort((a, b) => b - a);
+    const lines = sortedAmounts.map(a => {
+      const items = groups.get(a).sort();
+      return `${label} : ${items.join(',')} x ${a}n`;
+    });
+    return lines.join('\n');
+  };
+
+  const buildBoLines = (groupedMap) => {
+    const map = groupedMap || {};
+    const getAlias = (name) => {
+      const n = String(name).toLowerCase();
+      const base = (x) => `De cham ${x}`;
+      switch (n) {
+        case 'chamkhong': return base('0');
+        case 'chammot': return base('1');
+        case 'chamhai': return base('2');
+        case 'chamba': return base('3');
+        case 'chambon': return base('4');
+        case 'chamnam': return base('5');
+        case 'chamsau': return base('6');
+        case 'chambay': return base('7');
+        case 'chamtam': return base('8');
+        case 'chamchin': return base('9');
+        case 'chanle': return 'De chanle';
+        case 'lechan': return 'De lechan';
+        case 'lele': return 'De lele';
+        case 'chanchan': return 'De chanchan';
+        default: return null;
+      }
+    };
+    const numeric = {};
+    const special = [];
+    Object.entries(map).forEach(([key, val]) => {
+      const alias = getAlias(key);
+      const amt = Math.max(1, Math.round((parseInt(val?.totalAmount || val || 0) || 0) * sendFactor));
+      if (!amt) return;
+      const isNumericTwo = /^\d{2}$/.test(String(key));
+      if (alias) special.push(`${alias} x ${amt}n`);
+      else if (!isNumericTwo) special.push(`De ${removeAccents(String(key).toLowerCase())} x ${amt}n`);
+      else numeric[key] = (numeric[key] || 0) + amt;
+    });
+    const byAmount = new Map();
+    Object.entries(numeric).forEach(([k, a]) => {
+      if (a <= 0) return;
+      if (!byAmount.has(a)) byAmount.set(a, []);
+      byAmount.get(a).push(k);
+    });
+    const numericLines = Array.from(byAmount.keys()).sort((a,b)=>b-a).map(a => {
+      const items = byAmount.get(a).sort();
+      return `De Bo : ${items.join(',')} x ${a}n`;
+    });
+    return [...numericLines, ...special.sort()].join('\n');
+  };
+
+  const removeAccents = (s) => {
+    if (!s) return s;
+    return String(s)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D');
+  };
+
+  const buildGroupedLinesNoAccent = (label, groupedMap) => {
+    const simple = {};
+    Object.entries(groupedMap || {}).forEach(([key, val]) => {
+      const amt = parseInt(val?.totalAmount || 0) || 0;
+      const normKey = removeAccents(key);
+      simple[normKey] = (simple[normKey] || 0) + amt;
+    });
+    if (Object.keys(simple).length === 0) return `${label} : (Không có dữ liệu)`;
+    const groups = new Map();
+    for (const [key, n] of Object.entries(simple)) {
+      const a = parseInt(n) || 0;
+      const scaled = Math.max(1, Math.round(a * sendFactor));
+      if (!groups.has(scaled)) groups.set(scaled, []);
+      groups.get(scaled).push(removeAccents(key));
+    }
+    const sortedAmounts = Array.from(groups.keys()).sort((a, b) => b - a);
+    const lines = sortedAmounts.map(a => {
+      const items = groups.get(a).map(x => removeAccents(x)).sort();
+      return `${label} : ${items.join(',')} x ${a}n`;
+    });
+    return lines.join('\n');
   };
 
   const aggregateCombosN = (nested) => {
@@ -251,40 +361,66 @@ const AdminMessageExport = ({ user }) => {
     return agg;
   };
 
-  const buildXMessage = (xStats) => {
+  const buildXSplitMessages = (xStats) => {
     const agg = aggregateCombosN(xStats);
-    if (Object.keys(agg).length === 0) return 'X: (Không có dữ liệu)';
-    const groups = new Map();
-    for (const [combo, n] of Object.entries(agg)) {
-      const a = parseInt(n) || 0;
-      const scaled = Math.max(1, Math.round(a * sendFactor));
-      if (!groups.has(scaled)) groups.set(scaled, []);
-      groups.get(scaled).push(combo);
-    }
-    const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
-    const segments = sorted.map(a => {
-      const combos = groups.get(a).sort();
-      return `${combos.join(', ')}x${a}n`;
+    const byLen = { 2: {}, 3: {}, 4: {} };
+    Object.entries(agg).forEach(([combo, n]) => {
+      const core = combo.split(' ')[0];
+      const parts = core.split('-').filter(Boolean);
+      const len = parts.length;
+      if (byLen[len]) byLen[len][combo] = n;
     });
-    return `X: ${segments.join(', ')}`;
+    const buildLabel = (label, map) => {
+      if (Object.keys(map).length === 0) return `${label}: (Không có dữ liệu)`;
+      const groups = new Map();
+      for (const [combo, n] of Object.entries(map)) {
+        const a = parseInt(n) || 0;
+        const scaled = Math.max(1, Math.round(a * sendFactor));
+        if (!groups.has(scaled)) groups.set(scaled, []);
+        groups.get(scaled).push(combo);
+      }
+      const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
+      const segments = sorted.map(a => {
+        const combos = groups.get(a).sort();
+        return `${combos.join(', ')} x ${a}n`;
+      });
+      return `${label}: ${segments.join(', ')}`;
+    };
+    return {
+      x2: buildLabel('Xien2', byLen[2]),
+      x3: buildLabel('Xien3', byLen[3]),
+      x4: buildLabel('Xien4', byLen[4])
+    };
   };
 
-  const buildXquayMessage = (xqStats) => {
+  const buildXqSplitMessages = (xqStats) => {
     const agg = aggregateCombosN(xqStats);
-    if (Object.keys(agg).length === 0) return 'Xquay: (Không có dữ liệu)';
-    const groups = new Map();
-    for (const [combo, n] of Object.entries(agg)) {
-      const a = parseInt(n) || 0;
-      const scaled = Math.max(1, Math.round(a * sendFactor));
-      if (!groups.has(scaled)) groups.set(scaled, []);
-      groups.get(scaled).push(combo);
-    }
-    const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
-    const segments = sorted.map(a => {
-      const combos = groups.get(a).sort();
-      return `${combos.join(', ')}x${a}n`;
+    const byLen = { 3: {}, 4: {} };
+    Object.entries(agg).forEach(([combo, n]) => {
+      const parts = combo.split('-').filter(Boolean);
+      const len = parts.length;
+      if (byLen[len]) byLen[len][combo] = n;
     });
-    return `Xquay: ${segments.join(', ')}`;
+    const buildLabel = (label, map) => {
+      if (Object.keys(map).length === 0) return `${label}: (Không có dữ liệu)`;
+      const groups = new Map();
+      for (const [combo, n] of Object.entries(map)) {
+        const a = parseInt(n) || 0;
+        const scaled = Math.max(1, Math.round(a * sendFactor));
+        if (!groups.has(scaled)) groups.set(scaled, []);
+        groups.get(scaled).push(combo);
+      }
+      const sorted = Array.from(groups.keys()).filter(a => a > 0).sort((a, b) => b - a);
+      const segments = sorted.map(a => {
+        const combos = groups.get(a).sort();
+        return `${combos.join(', ')} x ${a}n`;
+      });
+      return `${label}: ${segments.join(', ')}`;
+    };
+    return {
+      xq3: buildLabel('Xienq3', byLen[3]),
+      xq4: buildLabel('Xienq4', byLen[4])
+    };
   };
 
   const loadStatistics = async (date) => {
@@ -301,7 +437,7 @@ const AdminMessageExport = ({ user }) => {
       recomputeMessagesFromStats(stats);
     } catch (error) {
       console.error('Lỗi tải thống kê:', error);
-      setLotoMessage('L: (Không thể tải dữ liệu)');
+      setLotoMessage('Lo: (Không thể tải dữ liệu)');
     } finally {
       setIsLoading(false);
     }
@@ -363,8 +499,12 @@ const AdminMessageExport = ({ user }) => {
         setDitMessage(m.dit || ditMessage);
         setKepMessage(m.kep || kepMessage);
         setBoMessage(m.bo || boMessage);
-        setXMessage(m.xien || xMessage);
-        setXquayMessage(m.xienquay || xquayMessage);
+        setX2Message(m.xien2 || x2Message);
+        setX3Message(m.xien3 || x3Message);
+        setX4Message(m.xien4 || x4Message);
+        setXq3Message(m.xienq3 || xq3Message);
+        setXq4Message(m.xienq4 || xq4Message);
+        setXNhayMessage(m.xiennhay || '');
       }
       await loadHistory(selectedDate);
     } catch (error) {
@@ -387,8 +527,12 @@ const AdminMessageExport = ({ user }) => {
         ditMessage,
         kepMessage,
         boMessage,
-        xMessage,
-        xquayMessage
+        x2Message,
+        x3Message,
+        x4Message,
+        xq3Message,
+        xq4Message,
+        xNhayMessage
       ].filter(Boolean);
       const text = lines.join('\n\n');
       await navigator.clipboard.writeText(text);
@@ -411,8 +555,12 @@ const AdminMessageExport = ({ user }) => {
       messages?.dit,
       messages?.kep,
       messages?.bo,
-      messages?.xien,
-      messages?.xienquay
+      messages?.xien2 || messages?.xien,
+      messages?.xien3 || messages?.xien,
+      messages?.xien4 || messages?.xien,
+      messages?.xienq3 || messages?.xienquay,
+      messages?.xienq4 || messages?.xienquay,
+      messages?.xiennhay
     ].filter(Boolean);
     return lines.join('\n\n');
   };
@@ -599,17 +747,23 @@ const AdminMessageExport = ({ user }) => {
             )}
           </div>
         )}
-        <div className="msg-block"><div className="msg-title">Lô</div><pre className="msg-line">{lotoMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">2 số (Đề)</div><pre className="msg-line">{twoSMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">3 số</div><pre className="msg-line">{threeSMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">Lo</div><pre className="msg-line">{lotoMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">De</div><pre className="msg-line">{twoSMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">Bc</div><pre className="msg-line">{threeSMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">4 số</div><pre className="msg-line">{fourSMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">Tổng</div><pre className="msg-line">{tongMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">Đầu</div><pre className="msg-line">{dauMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">Đít</div><pre className="msg-line">{ditMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">Kép</div><pre className="msg-line">{kepMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">Bộ</div><pre className="msg-line">{boMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">Xiên</div><pre className="msg-line">{xMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">Xiên quay</div><pre className="msg-line">{xquayMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">De Tong</div><pre className="msg-line">{tongMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">De Dau</div><pre className="msg-line">{dauMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">De Dit</div><pre className="msg-line">{ditMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">Kep</div><pre className="msg-line">{kepMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">De Bo</div><pre className="msg-line">{boMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">Xien2</div><pre className="msg-line">{x2Message}</pre></div>
+        <div className="msg-block"><div className="msg-title">Xien3</div><pre className="msg-line">{x3Message}</pre></div>
+        <div className="msg-block"><div className="msg-title">Xien4</div><pre className="msg-line">{x4Message}</pre></div>
+        <div className="msg-block"><div className="msg-title">Xienq3</div><pre className="msg-line">{xq3Message}</pre></div>
+        <div className="msg-block"><div className="msg-title">Xienq4</div><pre className="msg-line">{xq4Message}</pre></div>
+        {xNhayMessage && (
+          <div className="msg-block"><div className="msg-title">Xiennhay</div><pre className="msg-line">{xNhayMessage}</pre></div>
+        )}
         <div className="msg-block">
           <div className="msg-title">Lịch sử xuất trong ngày</div>
           {history && history.length > 0 ? (
@@ -658,8 +812,14 @@ const AdminMessageExport = ({ user }) => {
                   <pre className="msg-line">{h.messages?.dit}</pre>
                   <pre className="msg-line">{h.messages?.kep}</pre>
                   <pre className="msg-line">{h.messages?.bo}</pre>
-                  <pre className="msg-line">{h.messages?.xien}</pre>
-                  <pre className="msg-line">{h.messages?.xienquay}</pre>
+                  <pre className="msg-line">{h.messages?.xien2 || h.messages?.xien}</pre>
+                  <pre className="msg-line">{h.messages?.xien3 || h.messages?.xien}</pre>
+                  <pre className="msg-line">{h.messages?.xien4 || h.messages?.xien}</pre>
+                  <pre className="msg-line">{h.messages?.xienq3 || h.messages?.xienquay}</pre>
+                  <pre className="msg-line">{h.messages?.xienq4 || h.messages?.xienquay}</pre>
+                  {h.messages?.xiennhay && (
+                    <pre className="msg-line">{h.messages?.xiennhay}</pre>
+                  )}
                 </div>
               ))}
             </div>
