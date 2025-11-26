@@ -1057,6 +1057,11 @@ const EmployeeInterface = ({ user }) => {
 
     // Xử lý tự động thêm/xóa dấu `-` cho xiên và xiên quay
     if (field === 'numbers' && (betType === 'xien' || betType === 'xienquay')) {
+      // Ngăn chặn nhập 2 dấu gạch ngang liên tiếp
+      if (value.includes('--')) {
+        value = value.replace(/--/g, '-');
+      }
+
       const oldValue = betData[betType].rows[rowIndex]?.numbers || '';
 
       // Chỉ chạy logic tự động format khi người dùng đang NHẬP (độ dài tăng hoặc bằng)
