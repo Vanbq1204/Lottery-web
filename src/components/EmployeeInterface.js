@@ -1054,6 +1054,57 @@ const EmployeeInterface = ({ user }) => {
         return next;
       });
     }
+
+    // Xử lý tự động thêm/xóa dấu `-` cho xiên và xiên quay
+    if (field === 'numbers' && (betType === 'xien' || betType === 'xienquay')) {
+      const oldValue = betData[betType].rows[rowIndex]?.numbers || '';
+
+      // Chỉ chạy logic tự động format khi người dùng đang NHẬP (độ dài tăng hoặc bằng)
+      // Nếu đang xóa (độ dài giảm), cho phép xóa tự nhiên không can thiệp
+      if (value.length >= oldValue.length) {
+        let processedValue = value;
+
+        // Xử lý khi người dùng nhập dấu cách
+        if (value.endsWith(' ')) {
+          // Nếu có dấu `-` ở cuối trước dấu cách, xóa dấu `-` đó
+          if (value.trimEnd().endsWith('-')) {
+            processedValue = value.trimEnd().slice(0, -1) + ' ';
+          }
+        } else {
+          // Tự động thêm dấu `-` sau mỗi 2 chữ số
+          // Tách chuỗi thành các phần bằng dấu cách hoặc dấu phẩy
+          const parts = processedValue.split(/[\s,]+/);
+          const lastPart = parts[parts.length - 1] || '';
+
+          // Chỉ xử lý phần cuối cùng đang được nhập
+          if (lastPart && !lastPart.includes('-')) {
+            // Nếu phần cuối có đúng 2 chữ số và không có dấu `-`, thêm dấu `-`
+            if (/^\d{2}$/.test(lastPart)) {
+              parts[parts.length - 1] = lastPart + '-';
+              processedValue = parts.join(' ');
+            }
+          } else if (lastPart) {
+            // Xử lý khi đã có dấu `-`
+            const segments = lastPart.split('-');
+            const lastSegment = segments[segments.length - 1] || '';
+
+            // Nếu segment cuối có đúng 2 chữ số và chưa có dấu `-` sau nó
+            if (/^\d{2}$/.test(lastSegment) && !lastPart.endsWith('-')) {
+              // Kiểm tra xem đã đủ số chưa (xiên: 2-4 số, xiên quay: 3-4 số)
+              const currentSegments = lastPart.split('-').filter(s => s.length > 0);
+              const maxSegments = betType === 'xienquay' ? 4 : 4;
+
+              if (currentSegments.length < maxSegments) {
+                parts[parts.length - 1] = lastPart + '-';
+                processedValue = parts.join(' ');
+              }
+            }
+          }
+        }
+
+        value = processedValue;
+      }
+    }
     // Track changes if in edit mode
     if (isEditMode) {
       console.log('📝 Row change detected in edit mode:', { betType, rowIndex, field, value });

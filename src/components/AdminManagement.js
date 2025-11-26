@@ -92,7 +92,7 @@ const AdminManagement = () => {
 
   const handleCreateAdmin = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.username || !formData.password || !formData.name || !formData.email) {
       alert('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
@@ -181,7 +181,7 @@ const AdminManagement = () => {
   const toggleAdminStatus = (adminId, currentStatus) => {
     const newStatus = !currentStatus;
     const message = newStatus ? 'kích hoạt' : 'vô hiệu hóa';
-    
+
     if (window.confirm(`Bạn có chắc muốn ${message} tài khoản này?`)) {
       handleUpdateAdmin(adminId, { isActive: newStatus });
     }
@@ -206,7 +206,7 @@ const AdminManagement = () => {
 
   const handleEditAdmin = async (e) => {
     e.preventDefault();
-    
+
     if (!editFormData.name || !editFormData.email) {
       alert('Vui lòng điền đầy đủ thông tin');
       return;
@@ -241,7 +241,7 @@ const AdminManagement = () => {
     <div className="admin-mgmt-container">
       <div className="admin-mgmt-header">
         <h2>Quản lý tài khoản Admin</h2>
-        <button 
+        <button
           className="admin-mgmt-create-btn"
           onClick={() => setShowCreateForm(true)}
         >
@@ -260,28 +260,28 @@ const AdminManagement = () => {
                 <input
                   type="text"
                   value={editFormData.name}
-                  onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="admin-mgmt-form-group">
                 <label>Email:</label>
                 <input
                   type="email"
                   value={editFormData.email}
-                  onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="admin-mgmt-form-group">
                 <label>Mật khẩu mới (để trống nếu không đổi):</label>
                 <div className="password-input-row">
                   <input
                     type={showEditPwd ? 'text' : 'password'}
                     value={editFormData.password}
-                    onChange={(e) => setEditFormData({...editFormData, password: e.target.value})}
+                    onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
                     placeholder="Để trống nếu không thay đổi"
                   />
                   <button type="button" className="toggle-eye-btn" onClick={() => setShowEditPwd(p => !p)}>
@@ -289,16 +289,16 @@ const AdminManagement = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="admin-mgmt-form-group">
                 <label>
-                  <input type="checkbox" checked={editFormData.allowChangePassword} onChange={(e)=>setEditFormData({...editFormData, allowChangePassword: e.target.checked})} />
+                  <input type="checkbox" checked={editFormData.allowChangePassword} onChange={(e) => setEditFormData({ ...editFormData, allowChangePassword: e.target.checked })} />
                   Cho phép hiển thị Đổi mật khẩu
                 </label>
               </div>
               <div className="admin-mgmt-form-group">
                 <label>
-                  <input type="checkbox" checked={editFormData.allowMessageExport} onChange={(e)=>setEditFormData({...editFormData, allowMessageExport: e.target.checked})} />
+                  <input type="checkbox" checked={editFormData.allowMessageExport} onChange={(e) => setEditFormData({ ...editFormData, allowMessageExport: e.target.checked })} />
                   Cho phép sử dụng Xuất tin nhắn
                 </label>
               </div>
@@ -323,18 +323,18 @@ const AdminManagement = () => {
                 <input
                   type="text"
                   value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="admin-mgmt-form-group">
                 <label>Mật khẩu:</label>
                 <div className="password-input-row">
                   <input
                     type={showCreatePwd ? 'text' : 'password'}
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
                   />
                   <button type="button" className="toggle-eye-btn" onClick={() => setShowCreatePwd(p => !p)}>
@@ -342,50 +342,50 @@ const AdminManagement = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="admin-mgmt-form-group">
                 <label>Họ tên:</label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="admin-mgmt-form-group">
                 <label>Email:</label>
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="admin-mgmt-form-group">
                 <label>Cửa hàng (tạm thời bỏ qua):</label>
                 <select
                   value={formData.storeId}
-                  onChange={(e) => setFormData({...formData, storeId: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, storeId: e.target.value })}
                   disabled
                 >
                   <option value="">Sẽ triển khai sau</option>
                 </select>
-                <small style={{color: '#666', fontSize: '12px'}}>
+                <small style={{ color: '#666', fontSize: '12px' }}>
                   Chức năng quản lý cửa hàng sẽ được triển khai sau
                 </small>
               </div>
-              
+
               <div className="admin-mgmt-form-group">
                 <label>
-                  <input type="checkbox" checked={formData.allowChangePassword} onChange={(e)=>setFormData({...formData, allowChangePassword: e.target.checked})} />
+                  <input type="checkbox" checked={formData.allowChangePassword} onChange={(e) => setFormData({ ...formData, allowChangePassword: e.target.checked })} />
                   Cho phép hiển thị Đổi mật khẩu
                 </label>
               </div>
               <div className="admin-mgmt-form-group">
                 <label>
-                  <input type="checkbox" checked={formData.allowMessageExport} onChange={(e)=>setFormData({...formData, allowMessageExport: e.target.checked})} />
+                  <input type="checkbox" checked={formData.allowMessageExport} onChange={(e) => setFormData({ ...formData, allowMessageExport: e.target.checked })} />
                   Cho phép sử dụng Xuất tin nhắn
                 </label>
               </div>
@@ -407,16 +407,16 @@ const AdminManagement = () => {
           </div>
         ) : (
           <table className="admin-mgmt-table">
-                          <thead>
-                <tr>
-                  <th>Username</th>
-                  <th>Họ tên</th>
-                  <th>Email</th>
-                  <th>Trạng thái</th>
-                  <th>Ngày tạo</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
             <tbody>
               {admins.map(admin => (
                 <tr key={admin.id} className={openDropdown === admin.id ? 'dropdown-open' : ''}>
@@ -433,7 +433,7 @@ const AdminManagement = () => {
                   </td>
                   <td>
                     <div className="admin-mgmt-dropdown">
-                      <button 
+                      <button
                         className={`admin-mgmt-dropdown-btn ${openDropdown === admin.id ? 'open' : ''}`}
                         onClick={() => toggleDropdown(admin.id)}
                       >

@@ -60,7 +60,7 @@ const AdminMessageExport = ({ user }) => {
   const resolveFormatKey = (u) => { const id = u?._id || u?.id; return id ? `msgExportFormat:${id}` : 'msgExportFormat'; };
   const getInitialFormat = (u) => { try { const raw = localStorage.getItem(resolveFormatKey(u)); if (!raw) return defaultFormat; const parsed = JSON.parse(raw); return { ...defaultFormat, ...(parsed || {}) }; } catch (_) { return defaultFormat; } };
   const [format, setFormat] = useState(() => getInitialFormat(user));
-  useEffect(() => { try { localStorage.setItem(resolveFormatKey(user), JSON.stringify(format)); } catch (_) {} }, [format, user]);
+  useEffect(() => { try { localStorage.setItem(resolveFormatKey(user), JSON.stringify(format)); } catch (_) { } }, [format, user]);
 
   // Scroll position preservation
   const scrollPositionRef = React.useRef(0);
@@ -304,7 +304,7 @@ const AdminMessageExport = ({ user }) => {
       if (!byAmount.has(a)) byAmount.set(a, []);
       byAmount.get(a).push(k);
     });
-    const numericLines = Array.from(byAmount.keys()).sort((a,b)=>b-a).map(a => {
+    const numericLines = Array.from(byAmount.keys()).sort((a, b) => b - a).map(a => {
       const items = byAmount.get(a).sort();
       return `Bo : ${items.join(',')} x ${a}n`;
     });
@@ -542,6 +542,7 @@ const AdminMessageExport = ({ user }) => {
         lotoMessage,
         twoSMessage,
         threeSMessage,
+        // Chỉ thêm fourSMessage nếu có dữ liệu thật (không rỗng)
         fourSMessage,
         tongMessage,
         dauMessage,
@@ -570,6 +571,7 @@ const AdminMessageExport = ({ user }) => {
       messages?.loto,
       messages?.twoS,
       messages?.threeS,
+      // Chỉ thêm fourS nếu có dữ liệu thật (không rỗng)
       messages?.fourS,
       messages?.tong,
       messages?.dau,
@@ -703,15 +705,15 @@ const AdminMessageExport = ({ user }) => {
         </div>
       )}
 
-        <div className="msg-export-controls">
-          <div className="msg-control-group">
-            <label>Chọn ngày:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={onDateChange}
-            />
-          </div>
+      <div className="msg-export-controls">
+        <div className="msg-control-group">
+          <label>Chọn ngày:</label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={onDateChange}
+          />
+        </div>
         <div className="msg-control-group">
           <label>Hệ số gửi đi:</label>
           <input
@@ -771,7 +773,10 @@ const AdminMessageExport = ({ user }) => {
         <div className="msg-block"><div className="msg-title">Lo</div><pre className="msg-line">{lotoMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">De</div><pre className="msg-line">{twoSMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">Bc</div><pre className="msg-line">{threeSMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">4 số</div><pre className="msg-line">{fourSMessage}</pre></div>
+        {/* Chỉ hiển thị 4 số nếu có dữ liệu thật */}
+        {fourSMessage && (
+          <div className="msg-block"><div className="msg-title">4 số</div><pre className="msg-line">{fourSMessage}</pre></div>
+        )}
         <div className="msg-block"><div className="msg-title">De Tong</div><pre className="msg-line">{tongMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">De Dau</div><pre className="msg-line">{dauMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">De Dit</div><pre className="msg-line">{ditMessage}</pre></div>
@@ -827,7 +832,10 @@ const AdminMessageExport = ({ user }) => {
                   <pre className="msg-line">{h.messages?.loto}</pre>
                   <pre className="msg-line">{h.messages?.twoS}</pre>
                   <pre className="msg-line">{h.messages?.threeS}</pre>
-                  <pre className="msg-line">{h.messages?.fourS}</pre>
+                  {/* Chỉ hiển thị 4 số nếu có dữ liệu thật */}
+                  {h.messages?.fourS && (
+                    <pre className="msg-line">{h.messages?.fourS}</pre>
+                  )}
                   <pre className="msg-line">{h.messages?.tong}</pre>
                   <pre className="msg-line">{h.messages?.dau}</pre>
                   <pre className="msg-line">{h.messages?.dit}</pre>
