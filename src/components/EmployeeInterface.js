@@ -160,6 +160,12 @@ const EmployeeInterface = ({ user }) => {
     return saved || 'đ'; // Mặc định là 'đ'
   });
 
+  // Cài đặt gõ xiên nhanh - lưu trong localStorage
+  const [quickXienInput, setQuickXienInput] = useState(() => {
+    const saved = localStorage.getItem('quickXienInput');
+    return saved === null ? true : saved === 'true'; // Mặc định là true
+  });
+
   // Thêm state để track thời gian thay đổi cho logic gộp số trùng
   const [mergeTimeouts, setMergeTimeouts] = useState({});
   const [lastChanges, setLastChanges] = useState({});
@@ -1056,7 +1062,7 @@ const EmployeeInterface = ({ user }) => {
     }
 
     // Xử lý tự động thêm/xóa dấu `-` cho xiên và xiên quay
-    if (field === 'numbers' && (betType === 'xien' || betType === 'xienquay')) {
+    if (quickXienInput && field === 'numbers' && (betType === 'xien' || betType === 'xienquay')) {
       // Ngăn chặn nhập 2 dấu gạch ngang liên tiếp
       if (value.includes('--')) {
         value = value.replace(/--/g, '-');
@@ -3232,6 +3238,7 @@ const EmployeeInterface = ({ user }) => {
         { id: 'loto-multiplier', label: 'Hệ số lô', icon: '🎯' },
         { id: 'special-groups', label: 'Bộ số đặc biệt (2 số)', icon: '🗂️' },
         { id: 'loto-unit', label: 'Đơn vị lô', icon: '🔤' },
+        { id: 'quick-xien-settings', label: 'Gõ xiên nhanh', icon: '⚡' },
         ...(user?.allowChangePassword ? [{ id: 'emp-change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : [])
       ]
     }
@@ -4535,6 +4542,49 @@ const EmployeeInterface = ({ user }) => {
     );
   };
 
+  const renderQuickXienSettings = () => {
+    return (
+      <div className="admin-content-section">
+        <h2>Cài đặt gõ xiên nhanh</h2>
+        <div className="settings-card" style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+          <div className="setting-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="setting-info" style={{ maxWidth: '80%' }}>
+              <label className="setting-label" style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Tự động thêm dấu gạch ngang (-)</label>
+              <p className="setting-desc" style={{ color: '#666', margin: 0 }}>
+                Khi bật, hệ thống sẽ tự động thêm dấu gạch ngang sau mỗi 2 số khi nhập xiên hoặc xiên quay.
+                <br />
+                Ví dụ: nhập "12" thành "12-", nhập tiếp "34" thành "12-34-".
+              </p>
+            </div>
+            <div className="setting-control">
+              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px' }}>
+                <input
+                  type="checkbox"
+                  checked={quickXienInput}
+                  onChange={(e) => {
+                    const newValue = e.target.checked;
+                    setQuickXienInput(newValue);
+                    localStorage.setItem('quickXienInput', String(newValue));
+                  }}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span className="slider round" style={{
+                  position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                  backgroundColor: quickXienInput ? '#2196F3' : '#ccc', transition: '.4s', borderRadius: '34px'
+                }}>
+                  <span style={{
+                    position: 'absolute', content: '""', height: '20px', width: '20px', left: quickXienInput ? '26px' : '4px', bottom: '4px',
+                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
+                  }}></span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'betting':
@@ -4553,6 +4603,8 @@ const EmployeeInterface = ({ user }) => {
         return <LotoMultiplierSettings />;
       case 'loto-unit':
         return renderLotoUnitSettings();
+      case 'quick-xien-settings':
+        return renderQuickXienSettings();
       case 'special-groups':
         return <SpecialNumberGroupsSettings />;
       case 'emp-change-password':
