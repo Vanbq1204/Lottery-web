@@ -56,6 +56,11 @@ const AdminMessageExport = ({ user }) => {
 
   const [sendFactor, setSendFactor] = useState(() => getInitialFactor(user)); // Hệ số gửi đi, mặc định 1.0 (tối thiểu 1)
   const [baseStats, setBaseStats] = useState(null); // Lưu thống kê thô để tính lại nhanh
+  const defaultFormat = { lo: 'Lo', twoS: 'De', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
+  const resolveFormatKey = (u) => { const id = u?._id || u?.id; return id ? `msgExportFormat:${id}` : 'msgExportFormat'; };
+  const getInitialFormat = (u) => { try { const raw = localStorage.getItem(resolveFormatKey(u)); if (!raw) return defaultFormat; const parsed = JSON.parse(raw); return { ...defaultFormat, ...(parsed || {}) }; } catch (_) { return defaultFormat; } };
+  const [format, setFormat] = useState(() => getInitialFormat(user));
+  useEffect(() => { try { localStorage.setItem(resolveFormatKey(user), JSON.stringify(format)); } catch (_) {} }, [format, user]);
 
   // Scroll position preservation
   const scrollPositionRef = React.useRef(0);
@@ -89,10 +94,10 @@ const AdminMessageExport = ({ user }) => {
     setTwoSMessage(buildTwoSMessage(twoSStats));
     setThreeSMessage(buildThreeSMessage(threeSStats));
     setFourSMessage(buildFourSMessage(fourSStats));
-    setTongMessage(buildGroupedLines('De Tong', grouped?.tong));
-    setDauMessage(buildGroupedLines('De Dau', grouped?.dau));
-    setDitMessage(buildGroupedLines('De Dit', grouped?.dit));
-    setKepMessage(buildGroupedLinesNoAccent('Kep', grouped?.kep));
+    setTongMessage(buildGroupedLines(format.tong, grouped?.tong));
+    setDauMessage(buildGroupedLines(format.dau, grouped?.dau));
+    setDitMessage(buildGroupedLines(format.dit, grouped?.dit));
+    setKepMessage(buildGroupedLinesNoAccent(format.kep, grouped?.kep));
     setBoMessage(buildBoLines(grouped?.bo));
     const { x2, x3, x4 } = buildXSplitMessages(xStats);
     setX2Message(x2);
@@ -113,7 +118,7 @@ const AdminMessageExport = ({ user }) => {
   // Gom nhóm theo cùng số điểm và tạo chuỗi tin cho Lô
   const buildLotoMessage = (lotoStats) => {
     if (!lotoStats || Object.keys(lotoStats).length === 0) {
-      return 'Lo: (Không có dữ liệu)';
+      return `${format.lo}: (Không có dữ liệu)`;
     }
 
     const groups = new Map(); // key: points, value: array of numbers
@@ -136,11 +141,11 @@ const AdminMessageExport = ({ user }) => {
       segments.push(`${listStr}x${p}đ`);
     }
 
-    return `Lo: ${segments.join(', ')}`;
+    return `${format.lo}: ${segments.join(', ')}`;
   };
 
   const buildTwoSMessage = (twoSStats) => {
-    if (!twoSStats || Object.keys(twoSStats).length === 0) return 'De: (Không có dữ liệu)';
+    if (!twoSStats || Object.keys(twoSStats).length === 0) return `${format.twoS}: (Không có dữ liệu)`;
     const groups = new Map();
     for (const [number, amountN] of Object.entries(twoSStats)) {
       const a = parseInt(amountN) || 0;
@@ -153,7 +158,7 @@ const AdminMessageExport = ({ user }) => {
       const nums = groups.get(a).sort((x, y) => parseInt(x) - parseInt(y));
       return `${nums.join(',')} x ${a}n`;
     });
-    return `De: ${segments.join(', ')}`;
+    return `${format.twoS}: ${segments.join(', ')}`;
   };
 
   const aggregateAmountNFromNested = (nested) => {
@@ -181,7 +186,7 @@ const AdminMessageExport = ({ user }) => {
 
   const buildThreeSMessage = (threeSStats) => {
     const agg = aggregateAmountNFromNested(threeSStats);
-    if (Object.keys(agg).length === 0) return 'Bc: (Không có dữ liệu)';
+    if (Object.keys(agg).length === 0) return `${format.threeS}: (Không có dữ liệu)`;
     const groups = new Map();
     for (const [num, n] of Object.entries(agg)) {
       const amount = parseInt(n) || 0;
@@ -194,12 +199,12 @@ const AdminMessageExport = ({ user }) => {
       const nums = groups.get(a).sort((x, y) => parseInt(x) - parseInt(y));
       return `${nums.join(',')} x ${a}n`;
     });
-    return `Bc: ${segments.join(', ')}`;
+    return `${format.threeS}: ${segments.join(', ')}`;
   };
 
   const buildFourSMessage = (fourSStats) => {
     const agg = aggregateAmountNFromNested(fourSStats);
-    if (Object.keys(agg).length === 0) return '4s: (Không có dữ liệu)';
+    if (Object.keys(agg).length === 0) return `${format.fourS}: (Không có dữ liệu)`;
     const groups = new Map();
     for (const [num, n] of Object.entries(agg)) {
       const amount = parseInt(n) || 0;
@@ -212,7 +217,7 @@ const AdminMessageExport = ({ user }) => {
       const nums = groups.get(a).sort((x, y) => parseInt(x) - parseInt(y));
       return `${nums.join(',')} x ${a}n`;
     });
-    return `4s: ${segments.join(', ')}`;
+    return `${format.fourS}: ${segments.join(', ')}`;
   };
 
   const buildGroupedLine = (label, groupedMap) => {
@@ -485,7 +490,7 @@ const AdminMessageExport = ({ user }) => {
       setExporting(true);
       const token = localStorage.getItem('token');
       const resp = await axios.post(getApiUrl('/admin/message-exports/export'),
-        { date: selectedDate, multiplier: sendFactor },
+        { date: selectedDate, multiplier: sendFactor, format },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (resp.data?.success) {
@@ -682,15 +687,15 @@ const AdminMessageExport = ({ user }) => {
         </div>
       )}
 
-      <div className="msg-export-controls">
-        <div className="msg-control-group">
-          <label>Chọn ngày:</label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={onDateChange}
-          />
-        </div>
+        <div className="msg-export-controls">
+          <div className="msg-control-group">
+            <label>Chọn ngày:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={onDateChange}
+            />
+          </div>
         <div className="msg-control-group">
           <label>Hệ số gửi đi:</label>
           <input
@@ -785,7 +790,7 @@ const AdminMessageExport = ({ user }) => {
                           const token = localStorage.getItem('token');
                           const resp = await axios.put(
                             getApiUrl(`/admin/message-exports/reexport/${h._id}`),
-                            { multiplier: sendFactor },
+                            { multiplier: sendFactor, format },
                             { headers: { Authorization: `Bearer ${token}` } }
                           );
                           if (resp.data?.success) {

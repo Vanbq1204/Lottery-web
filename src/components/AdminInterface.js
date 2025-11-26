@@ -9,6 +9,7 @@ import AdminPrizeStatistics from './AdminPrizeStatistics';
 import TimeSettings from './TimeSettings';
 import DataCleanup from './DataCleanup';
 import AdminMessageExport from './AdminMessageExport';
+import AdminMessageExportSettings from './AdminMessageExportSettings';
 import AdminChangePassword from './AdminChangePassword';
 import NotificationBell from './NotificationBell';
 import NotificationModal from './NotificationModal';
@@ -23,7 +24,7 @@ const AdminInterface = ({ user, onLogout }) => {
   const menuItems = [
     { id: 'my-store', label: 'Cửa hàng của tôi', icon: '🏪' },
     { id: 'reports', label: 'Báo cáo tổng hợp', icon: '📊' },
-    ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }] : []),
+    ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }, { id: 'message-export-settings', label: 'Cài đặt định dạng xuất', icon: '⚙️' }] : []),
     { id: 'prize-stats', label: 'Thống kê thưởng tổng hợp', icon: '🏆' },
     { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' },
     ...(user?.allowChangePassword ? [{ id: 'change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : []),
@@ -166,6 +167,12 @@ const AdminInterface = ({ user, onLogout }) => {
           <div className="admin-content-section">
             {/* Xuất tin nhắn tổng hợp theo ngày */}
             <AdminMessageExport user={user} />
+          </div>
+        );
+      case 'message-export-settings':
+        return (
+          <div className="admin-content-section">
+            <AdminMessageExportSettings user={user} />
           </div>
         );
       case 'change-password':
