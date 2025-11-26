@@ -511,21 +511,43 @@ const AdminMessageExport = ({ user }) => {
       );
       if (resp.data?.success) {
         const m = resp.data.snapshot?.messages || {};
-        setLotoMessage(m.loto || lotoMessage);
-        setTwoSMessage(m.twoS || twoSMessage);
-        setThreeSMessage(m.threeS || threeSMessage);
-        setFourSMessage(m.fourS || fourSMessage);
-        setTongMessage(m.tong || tongMessage);
-        setDauMessage(m.dau || dauMessage);
-        setDitMessage(m.dit || ditMessage);
-        setKepMessage(m.kep || kepMessage);
-        setBoMessage(m.bo || boMessage);
-        setX2Message(m.xien2 || x2Message);
-        setX3Message(m.xien3 || x3Message);
-        setX4Message(m.xien4 || x4Message);
-        setXq3Message(m.xienq3 || xq3Message);
-        setXq4Message(m.xienq4 || xq4Message);
-        setXNhayMessage(m.xiennhay || '');
+
+        // Kiểm tra xem có phải là message "Không có cược trong thời gian này" không
+        if (m.loto === 'Không có cược trong thời gian này') {
+          setLotoMessage('Không có cược trong thời gian này');
+          setTwoSMessage('');
+          setThreeSMessage('');
+          setFourSMessage('');
+          setTongMessage('');
+          setDauMessage('');
+          setDitMessage('');
+          setKepMessage('');
+          setBoMessage('');
+          setX2Message('');
+          setX3Message('');
+          setX4Message('');
+          setXq3Message('');
+          setXq4Message('');
+          setXNhayMessage('');
+        } else {
+          // Cập nhật messages từ snapshot
+          // Nếu rỗng thì hiển thị "(Không có dữ liệu)" ở UI, nhưng snapshot vẫn lưu rỗng
+          setLotoMessage(m.loto || `${format.lo}: (Không có dữ liệu)`);
+          setTwoSMessage(m.twoS || `${format.twoS}: (Không có dữ liệu)`);
+          setThreeSMessage(m.threeS || `${format.threeS}: (Không có dữ liệu)`);
+          setFourSMessage(m.fourS || `${format.fourS}: (Không có dữ liệu)`);
+          setTongMessage(m.tong || `${format.tong} : (Không có dữ liệu)`);
+          setDauMessage(m.dau || `${format.dau} : (Không có dữ liệu)`);
+          setDitMessage(m.dit || `${format.dit} : (Không có dữ liệu)`);
+          setKepMessage(m.kep || `${format.kep}: (Không có dữ liệu)`);
+          setBoMessage(m.bo || 'Bo : (Không có dữ liệu)');
+          setX2Message(m.xien2 || `${format.xien2}: (Không có dữ liệu)`);
+          setX3Message(m.xien3 || `${format.xien3}: (Không có dữ liệu)`);
+          setX4Message(m.xien4 || `${format.xien4}: (Không có dữ liệu)`);
+          setXq3Message(m.xienq3 || `${format.xq3}: (Không có dữ liệu)`);
+          setXq4Message(m.xienq4 || `${format.xq4}: (Không có dữ liệu)`);
+          setXNhayMessage(m.xiennhay || ''); // Xiên nháy có thể không có
+        }
       }
       await loadHistory(selectedDate);
     } catch (error) {
@@ -542,7 +564,6 @@ const AdminMessageExport = ({ user }) => {
         lotoMessage,
         twoSMessage,
         threeSMessage,
-        // Chỉ thêm fourSMessage nếu có dữ liệu thật (không rỗng)
         fourSMessage,
         tongMessage,
         dauMessage,
@@ -555,7 +576,7 @@ const AdminMessageExport = ({ user }) => {
         xq3Message,
         xq4Message,
         xNhayMessage
-      ].filter(Boolean);
+      ].filter(msg => msg && msg.trim().length > 0 && !msg.includes('(Không có dữ liệu)'));
       const text = lines.join('\n\n');
       await navigator.clipboard.writeText(text);
       setCopyStatus('Đã sao chép');
@@ -571,7 +592,6 @@ const AdminMessageExport = ({ user }) => {
       messages?.loto,
       messages?.twoS,
       messages?.threeS,
-      // Chỉ thêm fourS nếu có dữ liệu thật (không rỗng)
       messages?.fourS,
       messages?.tong,
       messages?.dau,
@@ -584,7 +604,7 @@ const AdminMessageExport = ({ user }) => {
       messages?.xienq3 || messages?.xienquay,
       messages?.xienq4 || messages?.xienquay,
       messages?.xiennhay
-    ].filter(Boolean);
+    ].filter(msg => msg && msg.trim().length > 0); // Chỉ loại bỏ chuỗi rỗng hoặc undefined
     return lines.join('\n\n');
   };
 
