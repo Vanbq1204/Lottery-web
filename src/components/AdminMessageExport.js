@@ -301,7 +301,7 @@ const AdminMessageExport = ({ user }) => {
     });
     const numericLines = Array.from(byAmount.keys()).sort((a,b)=>b-a).map(a => {
       const items = byAmount.get(a).sort();
-      return `De Bo : ${items.join(',')} x ${a}n`;
+      return `Bo : ${items.join(',')} x ${a}n`;
     });
     return [...numericLines, ...special.sort()].join('\n');
   };
@@ -418,8 +418,8 @@ const AdminMessageExport = ({ user }) => {
       return `${label}: ${segments.join(', ')}`;
     };
     return {
-      xq3: buildLabel('Xienq3', byLen[3]),
-      xq4: buildLabel('Xienq4', byLen[4])
+      xq3: buildLabel('xq3', byLen[3]),
+      xq4: buildLabel('xq4', byLen[4])
     };
   };
 
@@ -755,12 +755,12 @@ const AdminMessageExport = ({ user }) => {
         <div className="msg-block"><div className="msg-title">De Dau</div><pre className="msg-line">{dauMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">De Dit</div><pre className="msg-line">{ditMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">Kep</div><pre className="msg-line">{kepMessage}</pre></div>
-        <div className="msg-block"><div className="msg-title">De Bo</div><pre className="msg-line">{boMessage}</pre></div>
+        <div className="msg-block"><div className="msg-title">Bo</div><pre className="msg-line">{boMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">Xien2</div><pre className="msg-line">{x2Message}</pre></div>
         <div className="msg-block"><div className="msg-title">Xien3</div><pre className="msg-line">{x3Message}</pre></div>
         <div className="msg-block"><div className="msg-title">Xien4</div><pre className="msg-line">{x4Message}</pre></div>
-        <div className="msg-block"><div className="msg-title">Xienq3</div><pre className="msg-line">{xq3Message}</pre></div>
-        <div className="msg-block"><div className="msg-title">Xienq4</div><pre className="msg-line">{xq4Message}</pre></div>
+        <div className="msg-block"><div className="msg-title">xq3</div><pre className="msg-line">{xq3Message}</pre></div>
+        <div className="msg-block"><div className="msg-title">xq4</div><pre className="msg-line">{xq4Message}</pre></div>
         {xNhayMessage && (
           <div className="msg-block"><div className="msg-title">Xiennhay</div><pre className="msg-line">{xNhayMessage}</pre></div>
         )}
