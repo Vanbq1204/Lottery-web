@@ -97,7 +97,7 @@ const AdminMessageExport = ({ user }) => {
     setTongMessage(buildGroupedLines(format.tong, grouped?.tong));
     setDauMessage(buildGroupedLines(format.dau, grouped?.dau));
     setDitMessage(buildGroupedLines(format.dit, grouped?.dit));
-    setKepMessage(buildGroupedLinesNoAccent(format.kep, grouped?.kep));
+    setKepMessage(buildKepPerItemLines(format.kep, grouped?.kep));
     setBoMessage(buildBoLines(grouped?.bo));
     const { x2, x3, x4 } = buildXSplitMessages(xStats);
     setX2Message(x2);
@@ -340,6 +340,22 @@ const AdminMessageExport = ({ user }) => {
       const items = groups.get(a).map(x => removeAccents(x)).sort();
       return `${label} : ${items.join(',')} x ${a}n`;
     });
+    return lines.join('\n');
+  };
+
+  const buildKepPerItemLines = (label, groupedMap) => {
+    const map = groupedMap || {};
+    const totals = new Map();
+    Object.entries(map).forEach(([key, val]) => {
+      const amt = Math.max(1, Math.round((parseInt(val?.totalAmount || val || 0) || 0) * sendFactor));
+      if (!amt) return;
+      const item = removeAccents(String(key)).toLowerCase().trim();
+      totals.set(item, (totals.get(item) || 0) + amt);
+    });
+    const lab = removeAccents(String(label || 'Kep')).toLowerCase();
+    const lines = Array.from(totals.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([item, amt]) => `${lab} ${item} x ${amt}n`);
     return lines.join('\n');
   };
 

@@ -84,6 +84,7 @@ const AdminInterface = ({ user, onLogout }) => {
   };
 
   const renderContent = () => {
+    const allowedMessageExport = Boolean(user?.allowMessageExport);
     switch (activeTab) {
       case 'my-store':
         if (selectedStore) {
@@ -163,6 +164,14 @@ const AdminInterface = ({ user, onLogout }) => {
           </div>
         );
       case 'message-export':
+        if (!allowedMessageExport) {
+          return (
+            <div className="admin-content-section">
+              <h2>Không có quyền</h2>
+              <p>Bạn không có quyền sử dụng chức năng xuất tin nhắn.</p>
+            </div>
+          );
+        }
         return (
           <div className="admin-content-section">
             {/* Xuất tin nhắn tổng hợp theo ngày */}
@@ -170,6 +179,14 @@ const AdminInterface = ({ user, onLogout }) => {
           </div>
         );
       case 'message-export-settings':
+        if (!allowedMessageExport) {
+          return (
+            <div className="admin-content-section">
+              <h2>Không có quyền</h2>
+              <p>Bạn không có quyền cài đặt định dạng xuất tin nhắn.</p>
+            </div>
+          );
+        }
         return (
           <div className="admin-content-section">
             <AdminMessageExportSettings user={user} />
