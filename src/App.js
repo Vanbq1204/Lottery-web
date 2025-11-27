@@ -76,6 +76,19 @@ function App() {
         window.dispatchEvent(new Event('refresh_notifications'));
       });
 
+      // Listen for force reload event from SuperAdmin
+      socket.on('force-reload', (data) => {
+        console.log('🔄 Force reload event received:', data);
+        // Show notification before reload
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Hệ thống', { body: 'Quản trị viên yêu cầu reload trang...' });
+        }
+        // Reload page after short delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      });
+
       return () => {
         socket.disconnect();
       };
