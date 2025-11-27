@@ -43,34 +43,24 @@ code {
 
 .expiration-bar-container {
   height: 16px;
-  background-color: #e9ecef;
+  background-color: #ffffff;
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 6px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
-  border: 1px solid #dee2e6;
+  box-shadow: none;
+  border: 2px solid #000000;
 }
 
 .expiration-bar {
   height: 100%;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
-  border-radius: 8px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0;
   position: relative;
   overflow: hidden;
 }
 
 .expiration-bar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.2) 0%,
-      rgba(255, 255, 255, 0) 50%,
-      rgba(255, 255, 255, 0.2) 100%);
-  animation: shimmer 2s infinite;
+  display: none;
 }
 
 @keyframes shimmer {
@@ -84,15 +74,15 @@ code {
 }
 
 .expiration-bar.green {
-  background: linear-gradient(90deg, #28a745 0%, #20c997 50%, #17a2b8 100%);
+  background: #000000;
 }
 
 .expiration-bar.yellow {
-  background: linear-gradient(90deg, #ffc107 0%, #ff9800 50%, #fb8c00 100%);
+  background: #666666;
 }
 
 .expiration-bar.red {
-  background: linear-gradient(90deg, #dc3545 0%, #c82333 50%, #bd2130 100%);
+  background: #333333;
 }
 
 .expiration-dates {
@@ -121,13 +111,13 @@ code {
 
 .days-remaining {
   font-weight: 700;
-  color: #495057;
+  color: #a51a21;
   padding: 2px 8px;
-  background-color: #0579ee45;
+  background-color: #0000002b;
   border-radius: 4px;
   font-size: 12px;
   letter-spacing: 0.3px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #0000004a;
   flex-shrink: 0;
   text-align: center;
 }
