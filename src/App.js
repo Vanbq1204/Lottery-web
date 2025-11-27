@@ -83,9 +83,10 @@ function App() {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification('Hệ thống', { body: 'Quản trị viên yêu cầu reload trang...' });
         }
-        // Reload page after short delay
+        // Force reload with cache busting (hard reload)
         setTimeout(() => {
-          window.location.reload();
+          // Add timestamp to force cache refresh
+          window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
         }, 500);
       });
 
