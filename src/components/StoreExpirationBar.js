@@ -62,7 +62,7 @@ const StoreExpirationBar = ({ startDate, endDate, storeName }) => {
             <div className="expiration-dates">
                 <span className="start-date">Bắt đầu: {formatDate(start)}</span>
                 <span className="days-remaining">
-                    {isExpired ? 'Đã hết hạn' : `Còn ${remainingDays} ngày`}
+                    {isExpired ? 'Đã hết hạn' : `Còn ${remainingDays}/${totalDays} ngày`}
                 </span>
                 <span className="end-date">Kết thúc: {formatDate(end)}</span>
             </div>
