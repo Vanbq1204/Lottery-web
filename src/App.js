@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import { getApiUrl } from './config/api';
 import Login from './components/Login';
 import EmployeeInterface from './components/EmployeeInterface';
 import AdminInterface from './components/AdminInterface';
@@ -31,7 +32,17 @@ function App() {
   // Socket.io integration
   useEffect(() => {
     if (user) {
-      const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5001');
+      // Get base URL without /api prefix for Socket.io
+      const apiUrl = getApiUrl('');
+      const socketUrl = apiUrl.replace('/api', '');
+      console.log('🔌 Connecting to Socket.io:', socketUrl);
+
+      const socket = io(socketUrl, {
+        transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5
+      });
 
       socket.on('connect', () => {
         console.log('Connected to socket server');
