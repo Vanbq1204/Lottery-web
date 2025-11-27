@@ -13,6 +13,7 @@ import AdminMessageExportSettings from './AdminMessageExportSettings';
 import AdminChangePassword from './AdminChangePassword';
 import NotificationBell from './NotificationBell';
 import NotificationModal from './NotificationModal';
+import StoreExpirationBar from './StoreExpirationBar';
 
 const AdminInterface = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('my-store');
@@ -118,6 +119,11 @@ const AdminInterface = ({ user, onLogout }) => {
                       className="admin-store-card"
                       onClick={() => viewStoreDetail(store)}
                     >
+                      <StoreExpirationBar
+                        startDate={store.startDate}
+                        endDate={store.endDate}
+                        storeName={store.name}
+                      />
                       <div className="admin-store-header">
                         <h3>{store.name}</h3>
                       </div>

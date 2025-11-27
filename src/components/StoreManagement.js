@@ -21,7 +21,9 @@ const StoreManagement = () => {
     storePhone: '',
     isActive: true,
     allowChangePassword: true,
-    showLotteryResults: false
+    showLotteryResults: false,
+    startDate: '',
+    endDate: ''
   });
   const [showCreatePwd, setShowCreatePwd] = useState(false);
   const [showEditPwd, setShowEditPwd] = useState(false);
@@ -38,7 +40,7 @@ const StoreManagement = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       const data = await response.json();
       if (data.success) {
         setAdmins(data.admins);
@@ -61,7 +63,7 @@ const StoreManagement = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       const data = await response.json();
       if (data.success) {
         setStores(data.stores);
@@ -81,7 +83,7 @@ const StoreManagement = () => {
 
   const handleCreateStore = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedAdmin) {
       alert('Vui lòng chọn admin trước');
       return;
@@ -120,7 +122,9 @@ const StoreManagement = () => {
           storePhone: '',
           isActive: true,
           allowChangePassword: true,
-          showLotteryResults: false
+          showLotteryResults: false,
+          startDate: '',
+          endDate: ''
         });
         loadStoresForAdmin(selectedAdmin.id);
       } else {
@@ -136,7 +140,7 @@ const StoreManagement = () => {
 
   const handleEditStore = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.employeeName || !formData.storeName) {
       alert('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
@@ -144,7 +148,7 @@ const StoreManagement = () => {
 
     try {
       const token = localStorage.getItem('token');
-              const response = await fetch(getApiUrl(`/superadmin/stores/${editingStore.id}`), {
+      const response = await fetch(getApiUrl(`/superadmin/stores/${editingStore.id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -206,7 +210,9 @@ const StoreManagement = () => {
       storePhone: store.phone || '',
       isActive: store.isActive,
       allowChangePassword: store.allowChangePassword ?? true,
-      showLotteryResults: store.showLotteryResults ?? false
+      showLotteryResults: store.showLotteryResults ?? false,
+      startDate: store.startDate ? new Date(store.startDate).toISOString().split('T')[0] : '',
+      endDate: store.endDate ? new Date(store.endDate).toISOString().split('T')[0] : ''
     });
     setShowEditForm(true);
   };
@@ -227,8 +233,8 @@ const StoreManagement = () => {
           <h3>Danh sách Admin</h3>
           <div className="store-mgmt-admin-list">
             {admins.map(admin => (
-              <div 
-                key={admin.id} 
+              <div
+                key={admin.id}
                 className={`store-mgmt-admin-card ${selectedAdmin?.id === admin.id ? 'selected' : ''}`}
                 onClick={() => handleSelectAdmin(admin)}
               >
@@ -250,7 +256,7 @@ const StoreManagement = () => {
           <div className="store-mgmt-store-section">
             <div className="store-section-header">
               <h3>Cửa hàng của {selectedAdmin.name}</h3>
-              <button 
+              <button
                 className="store-mgmt-create-btn"
                 onClick={() => setShowCreateForm(true)}
               >
@@ -319,18 +325,18 @@ const StoreManagement = () => {
                   <input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     required
                   />
                 </div>
-                
+
                 <div className="store-mgmt-form-group">
                   <label>Mật khẩu:</label>
                   <div className="password-input-row">
                     <input
                       type={showCreatePwd ? 'text' : 'password'}
                       value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       required
                     />
                     <button type="button" className="toggle-eye-btn" onClick={() => setShowCreatePwd(p => !p)}>
@@ -345,45 +351,45 @@ const StoreManagement = () => {
                 <input
                   type="text"
                   value={formData.employeeName}
-                  onChange={(e) => setFormData({...formData, employeeName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>Tên cửa hàng:</label>
                 <input
                   type="text"
                   value={formData.storeName}
-                  onChange={(e) => setFormData({...formData, storeName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, storeName: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>Địa chỉ cửa hàng:</label>
                 <textarea
                   value={formData.storeAddress}
-                  onChange={(e) => setFormData({...formData, storeAddress: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, storeAddress: e.target.value })}
                   rows="3"
                 />
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>Số điện thoại:</label>
                 <input
                   type="text"
                   value={formData.storePhone}
-                  onChange={(e) => setFormData({...formData, storePhone: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, storePhone: e.target.value })}
                 />
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>
                   <input
                     type="checkbox"
                     checked={formData.isActive}
-                    onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   />
                   Hoạt động
                 </label>
@@ -394,7 +400,7 @@ const StoreManagement = () => {
                   <input
                     type="checkbox"
                     checked={formData.allowChangePassword}
-                    onChange={(e) => setFormData({...formData, allowChangePassword: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, allowChangePassword: e.target.checked })}
                   />
                   Cho phép hiển thị Đổi mật khẩu cho nhân viên
                 </label>
@@ -406,13 +412,33 @@ const StoreManagement = () => {
                     <input
                       type="checkbox"
                       checked={formData.showLotteryResults}
-                      onChange={(e) => setFormData({...formData, showLotteryResults: e.target.checked})}
+                      onChange={(e) => setFormData({ ...formData, showLotteryResults: e.target.checked })}
                     />
                     Hiển thị tab Kết quả xổ số
                   </label>
                 </div>
               </div>
-              
+
+              <div className="store-mgmt-form-row">
+                <div className="store-mgmt-form-group">
+                  <label>Ngày bắt đầu:</label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  />
+                </div>
+
+                <div className="store-mgmt-form-group">
+                  <label>Ngày kết thúc:</label>
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  />
+                </div>
+              </div>
+
               <div className="store-mgmt-form-actions">
                 <button type="submit" disabled={creating}>{creating ? 'Đang tạo...' : 'Tạo cửa hàng'}</button>
                 <button type="button" onClick={() => setShowCreateForm(false)} disabled={creating}>Hủy</button>
@@ -433,46 +459,46 @@ const StoreManagement = () => {
                 <input
                   type="text"
                   value={formData.employeeName}
-                  onChange={(e) => setFormData({...formData, employeeName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>Tên cửa hàng:</label>
                 <input
                   type="text"
                   value={formData.storeName}
-                  onChange={(e) => setFormData({...formData, storeName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, storeName: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>Địa chỉ cửa hàng:</label>
                 <textarea
                   value={formData.storeAddress}
-                  onChange={(e) => setFormData({...formData, storeAddress: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, storeAddress: e.target.value })}
                   rows="3"
                 />
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>Số điện thoại:</label>
                 <input
                   type="text"
                   value={formData.storePhone}
-                  onChange={(e) => setFormData({...formData, storePhone: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, storePhone: e.target.value })}
                 />
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>Mật khẩu mới (để trống nếu không đổi):</label>
                 <div className="password-input-row">
                   <input
                     type={showEditPwd ? 'text' : 'password'}
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder="Để trống nếu không thay đổi"
                   />
                   <button type="button" className="toggle-eye-btn" onClick={() => setShowEditPwd(p => !p)}>
@@ -480,13 +506,13 @@ const StoreManagement = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="store-mgmt-form-group">
                 <label>
                   <input
                     type="checkbox"
                     checked={formData.isActive}
-                    onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   />
                   Hoạt động
                 </label>
@@ -497,7 +523,7 @@ const StoreManagement = () => {
                   <input
                     type="checkbox"
                     checked={formData.allowChangePassword}
-                    onChange={(e) => setFormData({...formData, allowChangePassword: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, allowChangePassword: e.target.checked })}
                   />
                   Cho phép hiển thị Đổi mật khẩu cho nhân viên
                 </label>
@@ -509,13 +535,33 @@ const StoreManagement = () => {
                     <input
                       type="checkbox"
                       checked={formData.showLotteryResults}
-                      onChange={(e) => setFormData({...formData, showLotteryResults: e.target.checked})}
+                      onChange={(e) => setFormData({ ...formData, showLotteryResults: e.target.checked })}
                     />
                     Hiển thị tab Kết quả xổ số
                   </label>
                 </div>
               </div>
-              
+
+              <div className="store-mgmt-form-row">
+                <div className="store-mgmt-form-group">
+                  <label>Ngày bắt đầu:</label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  />
+                </div>
+
+                <div className="store-mgmt-form-group">
+                  <label>Ngày kết thúc:</label>
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  />
+                </div>
+              </div>
+
               <div className="store-mgmt-form-actions">
                 <button type="submit">Cập nhật</button>
                 <button type="button" onClick={() => setShowEditForm(false)}>Hủy</button>
