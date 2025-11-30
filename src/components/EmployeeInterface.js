@@ -1442,6 +1442,26 @@ const EmployeeInterface = ({ user }) => {
       });
     }
     if (field === 'numbers') {
+      // Xóa dấu `-` thừa ở cuối cho xiên và xiên quay khi blur
+      if ((betType === 'xien' || betType === 'xienquay') && value.trim().endsWith('-')) {
+        value = value.trim().slice(0, -1);
+        // Cập nhật lại giá trị trong state
+        setBetData(prev => {
+          const newRows = [...prev[betType].rows];
+          newRows[rowIndex] = {
+            ...newRows[rowIndex],
+            numbers: value
+          };
+          return {
+            ...prev,
+            [betType]: {
+              ...prev[betType],
+              rows: newRows
+            }
+          };
+        });
+      }
+
       // Khi blur numbers, nếu cho phép gộp cho các loại hỗ trợ gộp thì kích hoạt gộp ngay nếu đủ dữ liệu
       if (allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType) && !isMerging && !isLoadingInvoice) {
         const currentRow = betData[betType].rows[rowIndex];
