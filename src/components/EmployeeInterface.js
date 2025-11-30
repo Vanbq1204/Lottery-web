@@ -754,6 +754,14 @@ const EmployeeInterface = ({ user }) => {
             }
           }
 
+          // Kiểm tra không được gộp bằng và lệch trong cùng một hàng
+          const hasBang = numbers.some(item => ['bằng', 'bang'].includes(item.toLowerCase()));
+          const hasLech = numbers.some(item => ['lệch', 'lech'].includes(item.toLowerCase()));
+
+          if (hasBang && hasLech) {
+            return { isValid: false, message: 'Một hàng chỉ được nhập "bằng" hoặc "lệch", không được gộp chung' };
+          }
+
           // Kiểm tra trùng lặp cho kép (luôn kiểm tra, không phụ thuộc vào allowMergeDuplicates)
           const uniqueNumbers = [...new Set(numbers)];
           if (uniqueNumbers.length !== numbers.length) {
@@ -1116,6 +1124,69 @@ const EmployeeInterface = ({ user }) => {
         value = processedValue;
       }
     }
+
+    // Xử lý tự động thêm dấu cách cho lô, 2s, 3s, tổng, kép, đầu, đít, bộ
+    if (field === 'numbers' && ['loto', '2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo'].includes(betType)) {
+      const oldValue = betData[betType].rows[rowIndex]?.numbers || '';
+
+      // Chỉ xử lý khi đang nhập (độ dài tăng), không xử lý khi xóa
+      if (value.length > oldValue.length && !value.endsWith(' ')) {
+        // Tách thành các phần bằng dấu cách/phẩy
+        const parts = value.split(/[\s,]+/);
+        const lastPart = parts[parts.length - 1] || '';
+
+        let shouldAddSpace = false;
+
+        // Kiểm tra điều kiện thêm dấu cách cho từng loại cược
+        switch (betType) {
+          case 'loto':
+          case '2s':
+            // Thêm dấu cách sau 2 chữ số (00-99)
+            if (/^\d{2}$/.test(lastPart)) {
+              shouldAddSpace = true;
+            }
+            break;
+
+          case '3s':
+            // Thêm dấu cách sau 3 chữ số (000-999)
+            if (/^\d{3}$/.test(lastPart)) {
+              shouldAddSpace = true;
+            }
+            break;
+
+          case 'tong':
+          case 'dau':
+          case 'dit':
+            // Thêm dấu cách sau 1 chữ số (0-9)
+            if (/^\d{1}$/.test(lastPart)) {
+              shouldAddSpace = true;
+            }
+            break;
+
+          case 'kep':
+            // Thêm dấu cách sau "bằng" hoặc "lệch" (và các biến thể)
+            const kepLower = lastPart.toLowerCase();
+            if (['bang', 'bằng', 'lech', 'lệch'].includes(kepLower)) {
+              shouldAddSpace = true;
+            }
+            break;
+
+          case 'bo':
+            // CHỈ thêm dấu cách sau 2 chữ số (00-99)
+            // KHÔNG thêm space cho tên bộ để tránh xung đột với bộ gõ tiếng Việt
+            if (/^\d{2}$/.test(lastPart)) {
+              shouldAddSpace = true;
+            }
+            // Người dùng sẽ tự gõ space sau khi nhập xong tên bộ
+            break;
+        }
+
+        // Thêm dấu cách nếu cần
+        if (shouldAddSpace) {
+          value = value + ' ';
+        }
+      }
+    }
     // Track changes if in edit mode
     if (isEditMode) {
       console.log('📝 Row change detected in edit mode:', { betType, rowIndex, field, value });
@@ -1410,6 +1481,21 @@ const EmployeeInterface = ({ user }) => {
 
   // Handle bo name change - special handler for bo bet type (removed, now using standard numbers field)
   // Handle bo name blur - validate and update count (removed, now using standard validation)
+
+  // Handle Enter key for xien, xienquay, and bo to add space instead of submitting
+  const handleKeyDown = (betType, rowIndex, field, event) => {
+    // Only handle Enter key for numbers field in xien, xienquay, and bo
+    if (event.key === 'Enter' && field === 'numbers' && ['xien', 'xienquay', 'bo'].includes(betType)) {
+      event.preventDefault(); // Prevent form submission
+
+      const currentValue = betData[betType].rows[rowIndex]?.numbers || '';
+
+      // Add space at the end if not already there
+      if (!currentValue.endsWith(' ')) {
+        handleRowChange(betType, rowIndex, 'numbers', currentValue + ' ');
+      }
+    }
+  };
 
   // Handle input blur - validate when user leaves the input field
   const handleInputBlur = (betType, rowIndex, field, value, event) => {
@@ -3460,6 +3546,7 @@ const EmployeeInterface = ({ user }) => {
                       value={row.numbers}
                       onChange={(e) => handleRowChange(betType, index, 'numbers', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'numbers', e.target.value, e)}
+                      onKeyDown={(e) => handleKeyDown(betType, index, 'numbers', e)}
                       placeholder="Tên bộ (VD: 05, 06, 07, chanle, lechan, lele, chanchan)"
                       className={`numbers-input ${validationErrors[`${betType}-${index}`] ? 'error' : ''}`}
                       ref={el => inputRefs.current[`${betType}-${index}`] = el}
@@ -3483,6 +3570,7 @@ const EmployeeInterface = ({ user }) => {
                       value={row.numbers}
                       onChange={(e) => handleRowChange(betType, index, 'numbers', e.target.value)}
                       onBlur={(e) => handleInputBlur(betType, index, 'numbers', e.target.value, e)}
+                      onKeyDown={(e) => handleKeyDown(betType, index, 'numbers', e)}
                       placeholder={getPlaceholderText(betType)}
                       className={`numbers-input ${validationErrors[`${betType}-${index}`] ? 'error' : ''}`}
                       ref={el => inputRefs.current[`${betType}-${index}`] = el}
