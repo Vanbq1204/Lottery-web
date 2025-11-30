@@ -160,7 +160,13 @@ const EmployeeInterface = ({ user }) => {
     return saved || 'đ'; // Mặc định là 'đ'
   });
 
-  // Cài đặt gõ xiên nhanh - lưu trong localStorage
+  // Cài đặt nhập cược nhanh - lưu trong localStorage
+  const [quickBetEnabled, setQuickBetEnabled] = useState(() => {
+    const saved = localStorage.getItem('quickBetEnabled');
+    return saved === null ? true : saved === 'true'; // Mặc định là true
+  });
+
+  // Cài đặt gõ xiên nhanh (dấu gạch ngang) - lưu trong localStorage
   const [quickXienInput, setQuickXienInput] = useState(() => {
     const saved = localStorage.getItem('quickXienInput');
     return saved === null ? true : saved === 'true'; // Mặc định là true
@@ -1126,7 +1132,7 @@ const EmployeeInterface = ({ user }) => {
     }
 
     // Xử lý tự động thêm dấu cách cho lô, 2s, 3s, tổng, kép, đầu, đít, bộ
-    if (field === 'numbers' && ['loto', '2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo'].includes(betType)) {
+    if (quickBetEnabled && field === 'numbers' && ['loto', '2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo'].includes(betType)) {
       const oldValue = betData[betType].rows[rowIndex]?.numbers || '';
 
       // Chỉ xử lý khi đang nhập (độ dài tăng), không xử lý khi xóa
@@ -3344,7 +3350,7 @@ const EmployeeInterface = ({ user }) => {
         { id: 'loto-multiplier', label: 'Hệ số lô', icon: '🎯' },
         { id: 'special-groups', label: 'Bộ số đặc biệt (2 số)', icon: '🗂️' },
         { id: 'loto-unit', label: 'Đơn vị lô', icon: '🔤' },
-        { id: 'quick-xien-settings', label: 'Gõ xiên nhanh', icon: '⚡' },
+        { id: 'quick-bet-settings', label: 'Nhập cược nhanh', icon: '⚡' },
         ...(user?.allowChangePassword ? [{ id: 'emp-change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : [])
       ]
     }
@@ -4650,11 +4656,55 @@ const EmployeeInterface = ({ user }) => {
     );
   };
 
-  const renderQuickXienSettings = () => {
+  const renderQuickBetSettings = () => {
     return (
       <div className="admin-content-section">
-        <h2>Cài đặt gõ xiên nhanh</h2>
-        <div className="settings-card" style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+        <h2>Cài đặt nhập cược nhanh</h2>
+
+        {/* Toggle 1 - Tự động thêm dấu cách cho lô, 2s, 3s, tổng, đầu, đít, bộ */}
+        <div className="settings-card" style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
+          <div className="setting-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="setting-info" style={{ maxWidth: '80%' }}>
+              <label className="setting-label" style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '16px' }}>Tự động thêm dấu cách ( )</label>
+              <p className="setting-desc" style={{ color: '#666', margin: 0 }}>
+                Khi bật, hệ thống sẽ tự động thêm dấu cách sau mỗi 2 số khi nhập lô, 2s, 3s, tổng, đầu, đít, bộ.
+                <br />
+                Ví dụ: nhập "12" thành "12 ", nhập tiếp "34" thành "12 34 ".
+              </p>
+            </div>
+            <div className="setting-control">
+              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px' }}>
+                <input
+                  type="checkbox"
+                  checked={quickBetEnabled}
+                  onChange={(e) => {
+                    const newValue = e.target.checked;
+                    setQuickBetEnabled(newValue);
+                    localStorage.setItem('quickBetEnabled', String(newValue));
+                  }}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span className="slider round" style={{
+                  position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                  backgroundColor: quickBetEnabled ? '#2196F3' : '#ccc', transition: '.4s', borderRadius: '34px'
+                }}>
+                  <span style={{
+                    position: 'absolute', content: '""', height: '20px', width: '20px', left: quickBetEnabled ? '26px' : '4px', bottom: '4px',
+                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
+                  }}></span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Toggle 2 - Tự động thêm dấu gạch ngang cho xiên/xiên quay */}
+        <div className="settings-card" style={{
+          background: '#fff',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
           <div className="setting-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div className="setting-info" style={{ maxWidth: '80%' }}>
               <label className="setting-label" style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Tự động thêm dấu gạch ngang (-)</label>
@@ -4711,8 +4761,8 @@ const EmployeeInterface = ({ user }) => {
         return <LotoMultiplierSettings />;
       case 'loto-unit':
         return renderLotoUnitSettings();
-      case 'quick-xien-settings':
-        return renderQuickXienSettings();
+      case 'quick-bet-settings':
+        return renderQuickBetSettings();
       case 'special-groups':
         return <SpecialNumberGroupsSettings />;
       case 'emp-change-password':
