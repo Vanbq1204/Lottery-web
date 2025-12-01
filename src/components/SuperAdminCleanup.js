@@ -97,7 +97,7 @@ const SuperAdminCleanup = () => {
       return;
     }
 
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa dữ liệu ngày ${date} cho ${selectedStoreIds.size} cửa hàng đã chọn không ? Hành động này không thể hoàn tác!`)) {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa dữ liệu ngày ${date} cho ${selectedStoreIds.size} cửa hàng đã chọn không?\n\nLƯU Ý: Hành động này sẽ xóa cả LỊCH SỬ XUẤT TIN NHẮN của các Admin liên quan.\n\nHành động này không thể hoàn tác!`)) {
       return;
     }
 
@@ -111,7 +111,7 @@ const SuperAdminCleanup = () => {
       });
 
       if (resp.data?.success) {
-        alert(`Đã xóa thành công: \n - ${resp.data.deletedInvoices} hóa đơn cược\n - ${resp.data.deletedWinningInvoices} hóa đơn thưởng`);
+        alert(`Đã xóa thành công:\n- ${resp.data.deletedInvoices} hóa đơn cược\n- ${resp.data.deletedWinningInvoices} hóa đơn thưởng\n- ${resp.data.deletedSnapshots || 0} bản ghi xuất tin nhắn`);
         // Refresh stats
         checkStats();
       } else setError(resp.data?.message || 'Không thể xóa');
@@ -216,11 +216,15 @@ const SuperAdminCleanup = () => {
                                 padding: '12px',
                                 border: '1px solid #ddd',
                                 verticalAlign: 'top',
-                                fontWeight: 'bold',
                                 background: '#fff'
                               }}
                             >
-                              {admin.adminName}
+                              <div style={{ fontWeight: 'bold' }}>{admin.adminName}</div>
+                              {admin.totalSnapshots > 0 && (
+                                <div style={{ fontSize: '12px', color: '#d32f2f', marginTop: '5px' }}>
+                                  ({admin.totalSnapshots} bản ghi tin nhắn)
+                                </div>
+                              )}
                             </td>
                           )}
                           <td style={{ padding: '12px', border: '1px solid #ddd' }}>{store.storeName}</td>
