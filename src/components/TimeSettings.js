@@ -22,7 +22,7 @@ const TimeSettings = () => {
     const updateCurrentTime = () => {
       // Sử dụng timezone chính xác
       const now = new Date();
-      const vietnamTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
+      const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
       const timeString = vietnamTime.toTimeString().slice(0, 5); // HH:MM
       setCurrentTime(timeString);
     };
@@ -61,7 +61,7 @@ const TimeSettings = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
-      
+
       const response = await axios.put(getApiUrl('/admin/time-settings'), settings, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -127,13 +127,13 @@ const TimeSettings = () => {
   // Kiểm tra xem hiện tại có được phép nhập cược không
   const isCurrentlyAllowed = () => {
     if (!settings.isActive) return true;
-    
+
     const [currentHour, currentMinute] = currentTime.split(':').map(Number);
     const [cutoffHour, cutoffMinute] = settings.bettingCutoffTime.split(':').map(Number);
-    
+
     const currentMinutes = currentHour * 60 + currentMinute;
     const cutoffMinutes = cutoffHour * 60 + cutoffMinute;
-    
+
     return currentMinutes < cutoffMinutes;
   };
 
@@ -150,8 +150,8 @@ const TimeSettings = () => {
       <div className="time-settings-header">
         <h2>⏰ Tinh chỉnh thời gian nhập cược</h2>
         <p className="description">
-          Thiết lập thời gian giới hạn để nhân viên không thể nhập cược sau giờ quy định.
-          Thường được đặt sau 18:30 để đảm bảo công tác xử lý dữ liệu thưởng.
+          Thiết lập thời gian giới hạn để nhân viên không thể nhập 2 số, 3 số, tổng, kép, đầu, đít, 4 số, bộ sau giờ quy định.
+          Nhân viên vẫn có thể nhập lô, xiên, xiên quay sau thời gian này.
         </p>
       </div>
 
@@ -161,7 +161,7 @@ const TimeSettings = () => {
             <h3>🕐 Thời gian hiện tại</h3>
             <div className="current-time">{currentTime}</div>
           </div>
-          
+
           <div className={`status-card ${isCurrentlyAllowed() ? 'allowed' : 'blocked'}`}>
             <h3>📝 Trạng thái nhập cược</h3>
             <div className="status-text">
@@ -182,7 +182,7 @@ const TimeSettings = () => {
           <div className="time-settings-form-group">
             <label htmlFor="cutoff-time">
               <span className="label-text">🕕 Thời gian giới hạn nhập cược</span>
-              <span className="label-desc">Nhân viên không thể nhập cược sau thời gian này</span>
+              <span className="label-desc">Nhân viên không thể nhập 2s, 3s, tổng, kép, đầu, đít, 4s, bộ sau thời gian này </span>
             </label>
             <input
               type="time"
@@ -207,9 +207,9 @@ const TimeSettings = () => {
               </div>
             </label>
           </div>
-          
+
           <hr className="settings-divider" />
-          
+
           <div className="time-settings-form-group">
             <label htmlFor="edit-delete-cutoff-time">
               <span className="label-text">🔒 Thời gian giới hạn sửa/xóa hóa đơn</span>
@@ -240,7 +240,7 @@ const TimeSettings = () => {
           </div>
 
           <hr className="settings-divider" />
-          
+
           <div className="time-settings-form-group">
             <label htmlFor="special-bets-cutoff-time">
               <span className="label-text">🎯 Thời gian giới hạn nhập lô, xiên, xiên quay</span>
@@ -285,7 +285,7 @@ const TimeSettings = () => {
           <div className="warning-card">
             <h4>⚠️ Lưu ý quan trọng</h4>
             <ul>
-              <li>Sau thời gian giới hạn nhập cược, nhân viên sẽ không thể lưu hóa đơn mới</li>
+              <li>Sau thời gian giới hạn nhập cược, nhân viên sẽ không thể nhập 2 số, 3 số, tổng, kép, đầu, đít, 4 số, bộ (vẫn được nhập lô, xiên, xiên quay)</li>
               <li>Sau thời gian giới hạn sửa/xóa, nhân viên sẽ không thể sửa hoặc xóa hóa đơn</li>
               <li>Sau thời gian giới hạn lô, xiên, xiên quay, nhân viên sẽ không thể nhập các loại cược này</li>
               <li>Hệ thống sẽ hiển thị thông báo từ chối khi nhân viên cố gắng thực hiện các thao tác này</li>
