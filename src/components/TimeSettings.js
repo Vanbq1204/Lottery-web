@@ -152,6 +152,8 @@ const TimeSettings = () => {
         <p className="description">
           Thiết lập thời gian giới hạn để nhân viên không thể nhập 2 số, 3 số, tổng, kép, đầu, đít, 4 số, bộ sau giờ quy định.
           Nhân viên vẫn có thể nhập lô, xiên, xiên quay sau thời gian này.
+          <br />
+          <strong>Lưu ý:</strong> Cài đặt này chỉ áp dụng cho các cửa hàng được bật trong phần "Quản lý thời gian theo cửa hàng".
         </p>
       </div>
 

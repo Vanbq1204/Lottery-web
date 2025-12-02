@@ -82,6 +82,51 @@
 .admin-nav-label {
   font-size: 0.95em;
   font-weight: 500;
+  flex: 1;
+}
+
+/* Dropdown styles */
+.admin-dropdown-toggle {
+  position: relative;
+}
+
+.admin-dropdown-arrow {
+  font-size: 0.7em;
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.admin-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.admin-dropdown-menu {
+  background-color: #f9f9f9;
+  border-left: 3px solid #e0e0e0;
+  margin-left: 20px;
+}
+
+.admin-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: transparent;
+  border: none;
+  color: #000000;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.admin-dropdown-item:hover {
+  background-color: #e8e8e8;
+}
+
+.admin-dropdown-item.active {
+  background-color: #e0e0e0;
+  font-weight: 600;
 }
 
 /* Footer của sidebar - nút đăng xuất */
@@ -145,7 +190,6 @@
 }
 
 .admin-content-section p {
-  margin: 0 0 20px 0;
   color: #000000;
   font-size: 1em;
   line-height: 1.5;
@@ -302,33 +346,33 @@
   .admin-sidebar {
     width: 200px;
   }
-  
+
   .admin-main-content {
     margin-left: 200px;
   }
-  
+
   .admin-content-wrapper {
     max-width: 100%;
     margin: 0;
   }
-  
+
   .admin-nav-item {
     padding: 12px 15px;
   }
-  
+
   .admin-nav-label {
     font-size: 0.9em;
   }
-  
+
   .admin-stores-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .admin-store-detail-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-    padding : 10px;
+    padding: 10px;
   }
 }
 
@@ -336,45 +380,47 @@
   .admin-sidebar {
     width: 180px;
   }
-  
+
   .admin-main-content {
     margin-left: 180px;
   }
-  
+
   .admin-content-wrapper {
     max-width: 100%;
     margin: 0;
   }
-  
+
   .admin-sidebar-header {
     padding: 15px;
   }
-  
+
   .admin-sidebar-footer {
     padding: 15px;
   }
-  
+
   .admin-stores-grid {
     grid-template-columns: 1fr;
     gap: 15px;
   }
-  
+
   .admin-store-card {
     padding: 15px;
-    margin : 0px 20px;
+    margin: 0px 20px;
   }
-  .admin-store-card:last-child {
-    margin-bottom : 20px;
-  }
-  .admin-content-section h2 {
-  text-align: center;
-  margin-top : 5px;
-}
 
-.title-mobile {
-  display: none;
+  .admin-store-card:last-child {
+    margin-bottom: 20px;
+  }
+
+  .admin-content-section h2 {
+    text-align: center;
+    margin-top: 5px;
+  }
+
+  .title-mobile {
+    display: none;
+  }
 }
-} 
 
 /* Mobile top bar and menu toggle - only visible on small screens */
 .admin-mobile-topbar {
@@ -440,7 +486,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     z-index: 1000;
   }
 
@@ -461,7 +507,8 @@
 
   .admin-main-content {
     margin-left: 0;
-    padding-top: 60px; /* space for topbar */
+    padding-top: 60px;
+    /* space for topbar */
     overflow: hidden;
   }
 

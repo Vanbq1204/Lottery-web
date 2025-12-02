@@ -11,6 +11,7 @@ import DataCleanup from './DataCleanup';
 import AdminMessageExport from './AdminMessageExport';
 import AdminMessageExportSettings from './AdminMessageExportSettings';
 import AdminChangePassword from './AdminChangePassword';
+import AdminStoreTimeSettings from './AdminStoreTimeSettings';
 import NotificationBell from './NotificationBell';
 import NotificationModal from './NotificationModal';
 import StoreExpirationBar from './StoreExpirationBar';
@@ -21,13 +22,24 @@ const AdminInterface = ({ user, onLogout }) => {
   const [selectedStore, setSelectedStore] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
 
   const menuItems = [
     { id: 'my-store', label: 'Cửa hàng của tôi', icon: '🏪' },
     { id: 'reports', label: 'Báo cáo tổng hợp', icon: '📊' },
-    ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }, { id: 'message-export-settings', label: 'Cài đặt định dạng xuất', icon: '⚙️' }] : []),
+    ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }] : []),
     { id: 'prize-stats', label: 'Thống kê thưởng tổng hợp', icon: '🏆' },
-    { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' },
+    {
+      id: 'settings',
+      label: 'Cài đặt',
+      icon: '⚙️',
+      hasDropdown: true,
+      subItems: [
+        ...(user?.allowMessageExport ? [{ id: 'message-export-settings', label: 'Cài đặt định dạng xuất', icon: '📝' }] : []),
+        { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' },
+        { id: 'store-time-settings', label: 'Quản lý thời gian theo cửa hàng', icon: '🏪' }
+      ]
+    },
     ...(user?.allowChangePassword ? [{ id: 'change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : []),
     { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' }
   ];
@@ -73,6 +85,10 @@ const AdminInterface = ({ user, onLogout }) => {
 
   const handleMenuClick = (itemId) => {
     setActiveTab(itemId);
+    // Close settings dropdown when switching to non-settings menu
+    if (!['message-export-settings', 'time-settings', 'store-time-settings'].includes(itemId)) {
+      setIsSettingsDropdownOpen(false);
+    }
     if (window.innerWidth <= 992) setIsMobileMenuOpen(false);
   };
 
@@ -210,6 +226,12 @@ const AdminInterface = ({ user, onLogout }) => {
             <TimeSettings />
           </div>
         );
+      case 'store-time-settings':
+        return (
+          <div className="admin-content-section">
+            <AdminStoreTimeSettings />
+          </div>
+        );
       case 'data-cleanup':
         return (
           <div className="admin-content-section">
@@ -239,14 +261,44 @@ const AdminInterface = ({ user, onLogout }) => {
 
         <nav className="admin-sidebar-nav">
           {menuItems.map((item) => (
-            <button
-              key={item.id}
-              className={`admin-nav-item ${activeTab === item.id ? 'admin-nav-active' : ''}`}
-              onClick={() => handleMenuClick(item.id)}
-            >
-              <span className="admin-nav-icon">{item.icon}</span>
-              <span className="admin-nav-label">{item.label}</span>
-            </button>
+            item.hasDropdown ? (
+              <div key={item.id}>
+                <button
+                  className={`admin-nav-item ${(['message-export-settings', 'time-settings', 'store-time-settings'].includes(activeTab)) ? 'admin-nav-active' : ''} admin-dropdown-toggle`}
+                  onClick={() => setIsSettingsDropdownOpen(!isSettingsDropdownOpen)}
+                >
+                  <span className="admin-nav-icon">{item.icon}</span>
+                  <span className="admin-nav-label">{item.label}</span>
+                  <span className={`admin-dropdown-arrow ${isSettingsDropdownOpen ? 'open' : ''}`}>▼</span>
+                </button>
+                {isSettingsDropdownOpen && (
+                  <div className="admin-dropdown-menu">
+                    {item.subItems.map((subItem) => (
+                      <button
+                        key={subItem.id}
+                        className={`admin-dropdown-item ${activeTab === subItem.id ? 'active' : ''}`}
+                        onClick={() => {
+                          handleMenuClick(subItem.id);
+                          setIsSettingsDropdownOpen(false);
+                        }}
+                      >
+                        <span className="admin-nav-icon">{subItem.icon}</span>
+                        <span className="admin-nav-label">{subItem.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                key={item.id}
+                className={`admin-nav-item ${activeTab === item.id ? 'admin-nav-active' : ''}`}
+                onClick={() => handleMenuClick(item.id)}
+              >
+                <span className="admin-nav-icon">{item.icon}</span>
+                <span className="admin-nav-label">{item.label}</span>
+              </button>
+            )
           ))}
         </nav>
 
