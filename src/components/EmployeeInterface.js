@@ -15,7 +15,7 @@ import QuickLotteryResults from './QuickLotteryResults';
 import NotificationBell from './NotificationBell';
 import NotificationModal from './NotificationModal';
 import { getCurrentAddress, getGeolocationPermission } from '../utils/geolocationUtils';
-import LocationPermissionModal from './LocationPermissionModal';
+
 
 const EmployeeInterface = ({ user }) => {
   const [activeMenu, setActiveMenu] = useState('betting');
@@ -35,9 +35,7 @@ const EmployeeInterface = ({ user }) => {
   const [editInvoiceId, setEditInvoiceId] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Location Modal State
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [pendingLocationAction, setPendingLocationAction] = useState(null); // { type: 'edit'|'delete', data: ... }
+
 
   // History state
   const [invoiceHistory, setInvoiceHistory] = useState([]);
@@ -2271,55 +2269,17 @@ const EmployeeInterface = ({ user }) => {
 
       const reason = prompt('Nhập lý do sửa hóa đơn (không bắt buộc):') || 'Cập nhật hóa đơn';
 
-      // Check if location is required
-      const isLocationRequired = user?.requireLocation !== false; // Default to true if undefined
-
-      if (isLocationRequired) {
-        // Check permission state first
-        const permissionState = await getGeolocationPermission();
-
-        if (permissionState !== 'granted') {
-          // Show modal immediately if not granted (prompt or denied)
-          setPendingLocationAction({
-            type: 'edit',
-            data: {
-              invoiceId: editInvoiceId,
-              items: itemsForDB,
-              customerName: customerName || 'Khách lẻ',
-              totalAmount,
-              customerPaid: customerGiveAmount,
-              changeAmount: changeAmountValue,
-              reason
-            }
-          });
-          setShowLocationModal(true);
-          return;
-        }
-      }
-
-      // If granted or not required, try to get address
+      // Try to get location if available, but don't block
       let locationAddress = '';
-      if (isLocationRequired) {
-        try {
+      try {
+        // Check permission first to avoid unnecessary prompts if already denied
+        const permissionState = await getGeolocationPermission();
+        // If granted OR prompt, try to get address (which will trigger prompt if needed)
+        if (permissionState !== 'denied') {
           locationAddress = await getCurrentAddress();
-        } catch (err) {
-          console.warn('Location granted but failed to retrieve:', err);
-          // Fallback to modal if retrieval fails
-          setPendingLocationAction({
-            type: 'edit',
-            data: {
-              invoiceId: editInvoiceId,
-              items: itemsForDB,
-              customerName: customerName || 'Khách lẻ',
-              totalAmount,
-              customerPaid: customerGiveAmount,
-              changeAmount: changeAmountValue,
-              reason
-            }
-          });
-          setShowLocationModal(true);
-          return;
         }
+      } catch (err) {
+        console.warn('Could not get location, proceeding without it:', err);
       }
 
       await executeEditInvoice(editInvoiceId, {
@@ -2426,43 +2386,16 @@ const EmployeeInterface = ({ user }) => {
 
     const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
 
-    // Check if location is required
-    const isLocationRequired = user?.requireLocation !== false; // Default to true if undefined
-
-    let locationAddress = ''; // Initialize here
-
-    if (isLocationRequired) {
-      // Check permission state first
+    // Try to get location if available, but don't block
+    let locationAddress = '';
+    try {
+      // Check permission first to avoid unnecessary prompts if already denied
       const permissionState = await getGeolocationPermission();
-
-      if (permissionState !== 'granted') {
-        setPendingLocationAction({
-          type: 'delete',
-          data: {
-            invoiceId: finalInvoiceId,
-            reason
-          }
-        });
-        setShowLocationModal(true);
-        return;
-      }
-
-      // If granted, try to get address
-      try {
+      if (permissionState === 'granted') {
         locationAddress = await getCurrentAddress();
-      } catch (err) {
-        console.warn('Location granted but failed to retrieve:', err);
-        // Fallback to modal if retrieval fails
-        setPendingLocationAction({
-          type: 'delete',
-          data: {
-            invoiceId: finalInvoiceId,
-            reason
-          }
-        });
-        setShowLocationModal(true);
-        return;
       }
+    } catch (err) {
+      console.warn('Could not get location, proceeding without it:', err);
     }
 
     // eslint-disable-next-line no-restricted-globals
@@ -4239,24 +4172,17 @@ const EmployeeInterface = ({ user }) => {
 
     const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
 
-    // Check location permission
+    // Try to get location if available, but don't block
     let locationAddress = '';
     try {
-      locationAddress = await getCurrentAddress();
+      // Check permission first to avoid unnecessary prompts if already denied
+      const permissionState = await getGeolocationPermission();
+      // If granted OR prompt, try to get address (which will trigger prompt if needed)
+      if (permissionState !== 'denied') {
+        locationAddress = await getCurrentAddress();
+      }
     } catch (err) {
-      console.warn('Location check failed, showing modal:', err);
-    }
-
-    if (!locationAddress) {
-      setPendingLocationAction({
-        type: 'delete',
-        data: {
-          invoiceId: finalInvoiceId,
-          reason
-        }
-      });
-      setShowLocationModal(true);
-      return;
+      console.warn('Could not get location, proceeding without it:', err);
     }
 
     await executeDeleteInvoice(finalInvoiceId, reason, locationAddress);
@@ -4874,20 +4800,6 @@ const EmployeeInterface = ({ user }) => {
     }
   };
 
-  // Handle location success from modal
-  const handleLocationSuccess = (address) => {
-    setShowLocationModal(false);
-    if (pendingLocationAction) {
-      const { type, data } = pendingLocationAction;
-      if (type === 'edit') {
-        executeEditInvoice(data.invoiceId, data, address);
-      } else if (type === 'delete') {
-        executeDeleteInvoice(data.invoiceId, data.reason, address);
-      }
-      setPendingLocationAction(null);
-    }
-  };
-
   return (
     <div className="employee-interface">
       <NotificationBell />
@@ -4995,17 +4907,9 @@ const EmployeeInterface = ({ user }) => {
           {renderContent()}
         </div>
       </div>
-      {/* Location Permission Modal */}
-      <LocationPermissionModal
-        isOpen={showLocationModal}
-        onClose={() => {
-          setShowLocationModal(false);
-          setPendingLocationAction(null);
-        }}
-        onSuccess={handleLocationSuccess}
-      />
     </div>
   );
+
 };
 
 export default EmployeeInterface;

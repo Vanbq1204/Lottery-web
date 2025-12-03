@@ -17,7 +17,8 @@ const AdminManagement = () => {
     storeId: '',
     allowChangePassword: true,
     allowMessageExport: true,
-    requireLocation: true
+    allowChangePassword: true,
+    allowMessageExport: true
   });
   const [showEditForm, setShowEditForm] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -201,7 +202,8 @@ const AdminManagement = () => {
       password: '',
       allowChangePassword: admin.allowChangePassword ?? true,
       allowMessageExport: admin.allowMessageExport ?? true,
-      requireLocation: admin.requireLocation ?? true
+      allowChangePassword: admin.allowChangePassword ?? true,
+      allowMessageExport: admin.allowMessageExport ?? true
     });
     setShowEditForm(true);
     setOpenDropdown(null); // Close dropdown
@@ -221,7 +223,8 @@ const AdminManagement = () => {
       email: editFormData.email,
       allowChangePassword: !!editFormData.allowChangePassword,
       allowMessageExport: !!editFormData.allowMessageExport,
-      requireLocation: !!editFormData.requireLocation
+      allowChangePassword: !!editFormData.allowChangePassword,
+      allowMessageExport: !!editFormData.allowMessageExport
     };
 
     if (editFormData.password) {
@@ -307,12 +310,7 @@ const AdminManagement = () => {
                   Cho phép sử dụng Xuất tin nhắn
                 </label>
               </div>
-              <div className="admin-mgmt-form-group">
-                <label>
-                  <input type="checkbox" checked={editFormData.requireLocation} onChange={(e) => setEditFormData({ ...editFormData, requireLocation: e.target.checked })} />
-                  Yêu cầu vị trí khi Sửa/Xóa
-                </label>
-              </div>
+
 
               <div className="admin-mgmt-form-actions">
                 <button type="submit">Cập nhật</button>
@@ -400,12 +398,7 @@ const AdminManagement = () => {
                   Cho phép sử dụng Xuất tin nhắn
                 </label>
               </div>
-              <div className="admin-mgmt-form-group">
-                <label>
-                  <input type="checkbox" checked={formData.requireLocation} onChange={(e) => setFormData({ ...formData, requireLocation: e.target.checked })} />
-                  Yêu cầu vị trí khi Sửa/Xóa
-                </label>
-              </div>
+
 
               <div className="admin-mgmt-form-actions">
                 <button type="submit">Tạo Admin</button>
