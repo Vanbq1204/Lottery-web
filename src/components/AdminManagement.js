@@ -16,7 +16,8 @@ const AdminManagement = () => {
     email: '',
     storeId: '',
     allowChangePassword: true,
-    allowMessageExport: true
+    allowMessageExport: true,
+    requireLocation: true
   });
   const [showEditForm, setShowEditForm] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -197,8 +198,10 @@ const AdminManagement = () => {
       name: admin.name,
       email: admin.email,
       password: '',
+      password: '',
       allowChangePassword: admin.allowChangePassword ?? true,
-      allowMessageExport: admin.allowMessageExport ?? true
+      allowMessageExport: admin.allowMessageExport ?? true,
+      requireLocation: admin.requireLocation ?? true
     });
     setShowEditForm(true);
     setOpenDropdown(null); // Close dropdown
@@ -215,8 +218,10 @@ const AdminManagement = () => {
     const updateData = {
       name: editFormData.name,
       email: editFormData.email,
+      email: editFormData.email,
       allowChangePassword: !!editFormData.allowChangePassword,
-      allowMessageExport: !!editFormData.allowMessageExport
+      allowMessageExport: !!editFormData.allowMessageExport,
+      requireLocation: !!editFormData.requireLocation
     };
 
     if (editFormData.password) {
@@ -300,6 +305,12 @@ const AdminManagement = () => {
                 <label>
                   <input type="checkbox" checked={editFormData.allowMessageExport} onChange={(e) => setEditFormData({ ...editFormData, allowMessageExport: e.target.checked })} />
                   Cho phép sử dụng Xuất tin nhắn
+                </label>
+              </div>
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={editFormData.requireLocation} onChange={(e) => setEditFormData({ ...editFormData, requireLocation: e.target.checked })} />
+                  Yêu cầu vị trí khi Sửa/Xóa
                 </label>
               </div>
 
@@ -387,6 +398,12 @@ const AdminManagement = () => {
                 <label>
                   <input type="checkbox" checked={formData.allowMessageExport} onChange={(e) => setFormData({ ...formData, allowMessageExport: e.target.checked })} />
                   Cho phép sử dụng Xuất tin nhắn
+                </label>
+              </div>
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={formData.requireLocation} onChange={(e) => setFormData({ ...formData, requireLocation: e.target.checked })} />
+                  Yêu cầu vị trí khi Sửa/Xóa
                 </label>
               </div>
 

@@ -14,6 +14,8 @@ import QuantityControls from './QuantityControls';
 import QuickLotteryResults from './QuickLotteryResults';
 import NotificationBell from './NotificationBell';
 import NotificationModal from './NotificationModal';
+import { getCurrentAddress, getGeolocationPermission } from '../utils/geolocationUtils';
+import LocationPermissionModal from './LocationPermissionModal';
 
 const EmployeeInterface = ({ user }) => {
   const [activeMenu, setActiveMenu] = useState('betting');
@@ -32,6 +34,10 @@ const EmployeeInterface = ({ user }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editInvoiceId, setEditInvoiceId] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Location Modal State
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [pendingLocationAction, setPendingLocationAction] = useState(null); // { type: 'edit'|'delete', data: ... }
 
   // History state
   const [invoiceHistory, setInvoiceHistory] = useState([]);
@@ -2265,13 +2271,76 @@ const EmployeeInterface = ({ user }) => {
 
       const reason = prompt('Nhập lý do sửa hóa đơn (không bắt buộc):') || 'Cập nhật hóa đơn';
 
-      const response = await axios.put(getApiUrl(`/invoice/edit/${editInvoiceId}`), {
+      // Check if location is required
+      const isLocationRequired = user?.requireLocation !== false; // Default to true if undefined
+
+      if (isLocationRequired) {
+        // Check permission state first
+        const permissionState = await getGeolocationPermission();
+
+        if (permissionState !== 'granted') {
+          // Show modal immediately if not granted (prompt or denied)
+          setPendingLocationAction({
+            type: 'edit',
+            data: {
+              invoiceId: editInvoiceId,
+              items: itemsForDB,
+              customerName: customerName || 'Khách lẻ',
+              totalAmount,
+              customerPaid: customerGiveAmount,
+              changeAmount: changeAmountValue,
+              reason
+            }
+          });
+          setShowLocationModal(true);
+          return;
+        }
+      }
+
+      // If granted or not required, try to get address
+      let locationAddress = '';
+      if (isLocationRequired) {
+        try {
+          locationAddress = await getCurrentAddress();
+        } catch (err) {
+          console.warn('Location granted but failed to retrieve:', err);
+          // Fallback to modal if retrieval fails
+          setPendingLocationAction({
+            type: 'edit',
+            data: {
+              invoiceId: editInvoiceId,
+              items: itemsForDB,
+              customerName: customerName || 'Khách lẻ',
+              totalAmount,
+              customerPaid: customerGiveAmount,
+              changeAmount: changeAmountValue,
+              reason
+            }
+          });
+          setShowLocationModal(true);
+          return;
+        }
+      }
+
+      await executeEditInvoice(editInvoiceId, {
         customerName: customerName || 'Khách lẻ',
         items: itemsForDB,
         totalAmount,
         customerPaid: customerGiveAmount,
         changeAmount: changeAmountValue,
         reason
+      }, locationAddress);
+    } catch (error) {
+      console.error('Lỗi khi lưu sửa hóa đơn:', error);
+      alert('Có lỗi xảy ra khi lưu hóa đơn. Vui lòng thử lại.');
+    }
+  };
+
+  const executeEditInvoice = async (invoiceId, data, locationAddress) => {
+    try {
+      const response = await axios.put(getApiUrl(`/invoice/edit/${invoiceId}`), {
+        ...data,
+        locationAddress
       }, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -2355,16 +2424,62 @@ const EmployeeInterface = ({ user }) => {
       }
     }
 
+    const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
+
+    // Check if location is required
+    const isLocationRequired = user?.requireLocation !== false; // Default to true if undefined
+
+    let locationAddress = ''; // Initialize here
+
+    if (isLocationRequired) {
+      // Check permission state first
+      const permissionState = await getGeolocationPermission();
+
+      if (permissionState !== 'granted') {
+        setPendingLocationAction({
+          type: 'delete',
+          data: {
+            invoiceId: finalInvoiceId,
+            reason
+          }
+        });
+        setShowLocationModal(true);
+        return;
+      }
+
+      // If granted, try to get address
+      try {
+        locationAddress = await getCurrentAddress();
+      } catch (err) {
+        console.warn('Location granted but failed to retrieve:', err);
+        // Fallback to modal if retrieval fails
+        setPendingLocationAction({
+          type: 'delete',
+          data: {
+            invoiceId: finalInvoiceId,
+            reason
+          }
+        });
+        setShowLocationModal(true);
+        return;
+      }
+    }
+
     // eslint-disable-next-line no-restricted-globals
     if (!confirm(`Bạn có chắc chắn muốn xóa hóa đơn ${finalInvoiceId}?`)) {
       return;
     }
 
-    const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
+    await executeDeleteInvoice(finalInvoiceId, reason, locationAddress);
+  };
 
+  const executeDeleteInvoice = async (invoiceId, reason, locationAddress) => {
     try {
-      const response = await axios.delete(getApiUrl(`/invoice/delete/${finalInvoiceId}`), {
-        data: { reason },
+      const response = await axios.delete(getApiUrl(`/invoice/delete/${invoiceId}`), {
+        data: {
+          reason,
+          locationAddress
+        },
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -2396,7 +2511,7 @@ const EmployeeInterface = ({ user }) => {
           try {
             const token = localStorage.getItem('token');
             const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
-              invoiceId: finalInvoiceId,
+              invoiceId: invoiceId,
               requestType: 'delete',
               reason: reasonReq || ''
             }, { headers: { Authorization: `Bearer ${token}` } });
@@ -3890,6 +4005,11 @@ const EmployeeInterface = ({ user }) => {
                   <div className="history-reason">
                     <strong>Lý do:</strong> {history.reason || 'Không có'}
                   </div>
+                  {history.locationAddress && (
+                    <div className="history-location">
+                      <strong>Địa điểm:</strong> {history.locationAddress}
+                    </div>
+                  )}
 
                   {history.action === 'edit' && Object.keys(history.changes).length > 0 && (
                     <div className="history-changes">
@@ -4119,52 +4239,30 @@ const EmployeeInterface = ({ user }) => {
 
     const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
 
+    // Check location permission
+    let locationAddress = '';
     try {
-      const response = await axios.delete(getApiUrl(`/invoice/delete/${finalInvoiceId}`), {
-        data: { reason },
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+      locationAddress = await getCurrentAddress();
+    } catch (err) {
+      console.warn('Location check failed, showing modal:', err);
+    }
+
+    if (!locationAddress) {
+      setPendingLocationAction({
+        type: 'delete',
+        data: {
+          invoiceId: finalInvoiceId,
+          reason
         }
       });
-
-      if (response.data.success) {
-        alert('Xóa hóa đơn thành công!');
-        loadInvoiceList();
-      } else {
-        alert('Lỗi: ' + response.data.message);
-      }
-    } catch (error) {
-      console.error('Delete invoice error:', error);
-      const errorData = error.response?.data;
-      if (error.response?.status === 404) {
-        alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
-      } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
-        alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
-      } else if (errorData?.code === 'INVOICE_LOCKED_BY_MESSAGE_EXPORT' || (error.response?.status === 403 && (errorData?.message || '').includes('xuất tin nhắn'))) {
-        const reasonReq = prompt('Hóa đơn đã được xuất tin nhắn, không thể xóa. Nhập lý do gửi yêu cầu tới admin để xin xóa:');
-        if (reasonReq !== null) {
-          try {
-            const token = localStorage.getItem('token');
-            const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
-              invoiceId: finalInvoiceId,
-              requestType: 'delete',
-              reason: reasonReq || ''
-            }, { headers: { Authorization: `Bearer ${token}` } });
-            if (resp.data?.success) {
-              alert('Đã gửi yêu cầu tới admin. Vui lòng chờ phê duyệt.');
-            } else {
-              alert(resp.data?.message || 'Không thể gửi yêu cầu');
-            }
-          } catch (err) {
-            alert(err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
-          }
-        }
-      } else {
-        alert('Lỗi khi xóa hóa đơn: ' + (errorData?.message || error.message));
-      }
+      setShowLocationModal(true);
+      return;
     }
+
+    await executeDeleteInvoice(finalInvoiceId, reason, locationAddress);
   };
+
+
 
   const renderEditableCell = (value, prizeType, index = null) => {
     const cellKey = `${prizeType}-${index || 0}`;
@@ -4776,6 +4874,20 @@ const EmployeeInterface = ({ user }) => {
     }
   };
 
+  // Handle location success from modal
+  const handleLocationSuccess = (address) => {
+    setShowLocationModal(false);
+    if (pendingLocationAction) {
+      const { type, data } = pendingLocationAction;
+      if (type === 'edit') {
+        executeEditInvoice(data.invoiceId, data, address);
+      } else if (type === 'delete') {
+        executeDeleteInvoice(data.invoiceId, data.reason, address);
+      }
+      setPendingLocationAction(null);
+    }
+  };
+
   return (
     <div className="employee-interface">
       <NotificationBell />
@@ -4883,6 +4995,15 @@ const EmployeeInterface = ({ user }) => {
           {renderContent()}
         </div>
       </div>
+      {/* Location Permission Modal */}
+      <LocationPermissionModal
+        isOpen={showLocationModal}
+        onClose={() => {
+          setShowLocationModal(false);
+          setPendingLocationAction(null);
+        }}
+        onSuccess={handleLocationSuccess}
+      />
     </div>
   );
 };
