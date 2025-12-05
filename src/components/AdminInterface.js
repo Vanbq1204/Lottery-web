@@ -10,7 +10,6 @@ import TimeSettings from './TimeSettings';
 import DataCleanup from './DataCleanup';
 import AdminMessageExport from './AdminMessageExport';
 import AdminMessageExportSettings from './AdminMessageExportSettings';
-import PrizeSettings from './PrizeSettings';
 import AdminChangePassword from './AdminChangePassword';
 import AdminStoreTimeSettings from './AdminStoreTimeSettings';
 import NotificationBell from './NotificationBell';
@@ -37,7 +36,6 @@ const AdminInterface = ({ user, onLogout }) => {
       hasDropdown: true,
       subItems: [
         ...(user?.allowMessageExport ? [{ id: 'message-export-settings', label: 'Cài đặt định dạng xuất', icon: '📝' }] : []),
-        { id: 'prize-settings', label: 'Hệ số thưởng', icon: '🏆' },
         { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' },
         { id: 'store-time-settings', label: 'Quản lý thời gian theo cửa hàng', icon: '🏪' }
       ]
@@ -88,7 +86,7 @@ const AdminInterface = ({ user, onLogout }) => {
   const handleMenuClick = (itemId) => {
     setActiveTab(itemId);
     // Close settings dropdown when switching to non-settings menu
-    if (!['message-export-settings', 'prize-settings', 'time-settings', 'store-time-settings'].includes(itemId)) {
+    if (!['message-export-settings', 'time-settings', 'store-time-settings'].includes(itemId)) {
       setIsSettingsDropdownOpen(false);
     }
     if (window.innerWidth <= 992) setIsMobileMenuOpen(false);
@@ -214,12 +212,6 @@ const AdminInterface = ({ user, onLogout }) => {
         return (
           <div className="admin-content-section">
             <AdminMessageExportSettings user={user} />
-          </div>
-        );
-      case 'prize-settings':
-        return (
-          <div className="admin-content-section">
-            <PrizeSettings />
           </div>
         );
       case 'change-password':
