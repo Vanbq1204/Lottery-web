@@ -1190,6 +1190,7 @@ const EmployeeInterface = ({ user }) => {
         switch (betType) {
           case 'loto':
           case '2s':
+          case 'deaA':
             // Thêm dấu cách sau 2 chữ số (00-99)
             if (/^\d{2}$/.test(lastPart)) {
               shouldAddSpace = true;
@@ -1206,6 +1207,8 @@ const EmployeeInterface = ({ user }) => {
           case 'tong':
           case 'dau':
           case 'dit':
+          case 'dauA':
+          case 'ditA':
             // Thêm dấu cách sau 1 chữ số (0-9)
             if (/^\d{1}$/.test(lastPart)) {
               shouldAddSpace = true;
