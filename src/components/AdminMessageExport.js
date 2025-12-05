@@ -16,11 +16,14 @@ const AdminMessageExport = ({ user }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [lotoMessage, setLotoMessage] = useState('');
   const [twoSMessage, setTwoSMessage] = useState('');
+  const [deaAMessage, setDeaAMessage] = useState('');
   const [threeSMessage, setThreeSMessage] = useState('');
   const [fourSMessage, setFourSMessage] = useState('');
   const [tongMessage, setTongMessage] = useState('');
   const [dauMessage, setDauMessage] = useState('');
   const [ditMessage, setDitMessage] = useState('');
+  const [dauAMessage, setDauAMessage] = useState('');
+  const [ditAMessage, setDitAMessage] = useState('');
   const [kepMessage, setKepMessage] = useState('');
   const [boMessage, setBoMessage] = useState('');
   const [x2Message, setX2Message] = useState('');
@@ -56,7 +59,7 @@ const AdminMessageExport = ({ user }) => {
 
   const [sendFactor, setSendFactor] = useState(() => getInitialFactor(user)); // Hệ số gửi đi, mặc định 1.0 (tối thiểu 1)
   const [baseStats, setBaseStats] = useState(null); // Lưu thống kê thô để tính lại nhanh
-  const defaultFormat = { lo: 'Lo', twoS: 'De', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
+  const defaultFormat = { lo: 'Lo', twoS: 'De', deaA: 'De A', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', dauA: 'De Dau A', ditA: 'De Dit A', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
   const resolveFormatKey = (u) => { const id = u?._id || u?.id; return id ? `msgExportFormat:${id}` : 'msgExportFormat'; };
   const getInitialFormat = (u) => { try { const raw = localStorage.getItem(resolveFormatKey(u)); if (!raw) return defaultFormat; const parsed = JSON.parse(raw); return { ...defaultFormat, ...(parsed || {}) }; } catch (_) { return defaultFormat; } };
   const [format, setFormat] = useState(() => getInitialFormat(user));
@@ -84,6 +87,7 @@ const AdminMessageExport = ({ user }) => {
     if (!stats) return;
     const lotoStats = stats?.loto || {};
     const twoSStats = stats?.['2s'] || {};
+    const deAStats = stats?.['deaA'] || {};
     const threeSStats = stats?.['3s'] || {};
     const fourSStats = stats?.['4s'] || {};
     const grouped = stats?.grouped || {};
@@ -92,11 +96,22 @@ const AdminMessageExport = ({ user }) => {
 
     setLotoMessage(buildLotoMessage(lotoStats)); // Lô không nhân hệ số
     setTwoSMessage(buildTwoSMessage(twoSStats));
+    {
+      const hasDeA = deAStats && Object.keys(deAStats).length > 0;
+      const msg = buildTwoSMessage(deAStats).replace(/^De:/, `${format.deaA}:`);
+      setDeaAMessage(hasDeA ? msg : '');
+    }
     setThreeSMessage(buildThreeSMessage(threeSStats));
     setFourSMessage(buildFourSMessage(fourSStats));
     setTongMessage(buildGroupedLines(format.tong, grouped?.tong));
     setDauMessage(buildGroupedLines(format.dau, grouped?.dau));
     setDitMessage(buildGroupedLines(format.dit, grouped?.dit));
+    {
+      const dauAMap = grouped?.dauA || grouped?.daua || {};
+      const ditAMap = grouped?.ditA || grouped?.dita || {};
+      setDauAMessage(Object.keys(dauAMap).length > 0 ? buildGroupedLines(format.dauA, dauAMap) : '');
+      setDitAMessage(Object.keys(ditAMap).length > 0 ? buildGroupedLines(format.ditA, ditAMap) : '');
+    }
     setKepMessage(buildKepPerItemLines(format.kep, grouped?.kep));
     setBoMessage(buildBoLines(grouped?.bo));
     const { x2, x3, x4 } = buildXSplitMessages(xStats);
@@ -534,11 +549,14 @@ const AdminMessageExport = ({ user }) => {
           // Nếu rỗng thì hiển thị "(Không có dữ liệu)" ở UI, nhưng snapshot vẫn lưu rỗng
           setLotoMessage(m.loto || `${format.lo}: (Không có dữ liệu)`);
           setTwoSMessage(m.twoS || `${format.twoS}: (Không có dữ liệu)`);
+          setDeaAMessage(m.deaA || '');
           setThreeSMessage(m.threeS || `${format.threeS}: (Không có dữ liệu)`);
           setFourSMessage(m.fourS || `${format.fourS}: (Không có dữ liệu)`);
           setTongMessage(m.tong || `${format.tong} : (Không có dữ liệu)`);
           setDauMessage(m.dau || `${format.dau} : (Không có dữ liệu)`);
           setDitMessage(m.dit || `${format.dit} : (Không có dữ liệu)`);
+          setDauAMessage(m.dauA || '');
+          setDitAMessage(m.ditA || '');
           setKepMessage(m.kep || `${format.kep}: (Không có dữ liệu)`);
           setBoMessage(m.bo || 'Bo : (Không có dữ liệu)');
           setX2Message(m.xien2 || `${format.xien2}: (Không có dữ liệu)`);
@@ -563,11 +581,14 @@ const AdminMessageExport = ({ user }) => {
       const lines = [
         lotoMessage,
         twoSMessage,
+        deaAMessage,
         threeSMessage,
         fourSMessage,
         tongMessage,
         dauMessage,
         ditMessage,
+        dauAMessage,
+        ditAMessage,
         kepMessage,
         boMessage,
         x2Message,
@@ -591,11 +612,14 @@ const AdminMessageExport = ({ user }) => {
     const lines = [
       messages?.loto,
       messages?.twoS,
+      messages?.deaA,
       messages?.threeS,
       messages?.fourS,
       messages?.tong,
       messages?.dau,
+      messages?.dauA,
       messages?.dit,
+      messages?.ditA,
       messages?.kep,
       messages?.bo,
       messages?.xien2 || messages?.xien,
@@ -792,6 +816,9 @@ const AdminMessageExport = ({ user }) => {
         )}
         <div className="msg-block"><div className="msg-title">Lo</div><pre className="msg-line">{lotoMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">De</div><pre className="msg-line">{twoSMessage}</pre></div>
+        {deaAMessage && (
+          <div className="msg-block"><div className="msg-title">De A</div><pre className="msg-line">{deaAMessage}</pre></div>
+        )}
         <div className="msg-block"><div className="msg-title">Bc</div><pre className="msg-line">{threeSMessage}</pre></div>
         {/* Chỉ hiển thị 4 số nếu có dữ liệu thật */}
         {fourSMessage && (
@@ -799,7 +826,13 @@ const AdminMessageExport = ({ user }) => {
         )}
         <div className="msg-block"><div className="msg-title">De Tong</div><pre className="msg-line">{tongMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">De Dau</div><pre className="msg-line">{dauMessage}</pre></div>
+        {dauAMessage && (
+          <div className="msg-block"><div className="msg-title">De Dau A</div><pre className="msg-line">{dauAMessage}</pre></div>
+        )}
         <div className="msg-block"><div className="msg-title">De Dit</div><pre className="msg-line">{ditMessage}</pre></div>
+        {ditAMessage && (
+          <div className="msg-block"><div className="msg-title">De Dit A</div><pre className="msg-line">{ditAMessage}</pre></div>
+        )}
         <div className="msg-block"><div className="msg-title">Kep</div><pre className="msg-line">{kepMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">Bo</div><pre className="msg-line">{boMessage}</pre></div>
         <div className="msg-block"><div className="msg-title">Xien2</div><pre className="msg-line">{x2Message}</pre></div>
@@ -851,6 +884,7 @@ const AdminMessageExport = ({ user }) => {
                   </div>
                   <pre className="msg-line">{h.messages?.loto}</pre>
                   <pre className="msg-line">{h.messages?.twoS}</pre>
+                  {h.messages?.deaA && (<pre className="msg-line">{h.messages?.deaA}</pre>)}
                   <pre className="msg-line">{h.messages?.threeS}</pre>
                   {/* Chỉ hiển thị 4 số nếu có dữ liệu thật */}
                   {h.messages?.fourS && (
@@ -858,7 +892,9 @@ const AdminMessageExport = ({ user }) => {
                   )}
                   <pre className="msg-line">{h.messages?.tong}</pre>
                   <pre className="msg-line">{h.messages?.dau}</pre>
+                  {h.messages?.dauA && (<pre className="msg-line">{h.messages?.dauA}</pre>)}
                   <pre className="msg-line">{h.messages?.dit}</pre>
+                  {h.messages?.ditA && (<pre className="msg-line">{h.messages?.ditA}</pre>)}
                   <pre className="msg-line">{h.messages?.kep}</pre>
                   <pre className="msg-line">{h.messages?.bo}</pre>
                   <pre className="msg-line">{h.messages?.xien2 || h.messages?.xien}</pre>

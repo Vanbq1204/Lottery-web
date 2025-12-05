@@ -479,6 +479,7 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
     );
   };
 
+
   // Render Others Statistics
   const renderOthersStats = () => {
     const othersStats = statisticsData?.statistics?.others;

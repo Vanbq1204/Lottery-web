@@ -854,12 +854,15 @@ const AdminTotalStatistics = ({ user }) => {
           totalRevenue: rawStats.totalRevenue,
           lotoTotal: rawStats.lotoTotal || 0,
           '2sTotal': rawStats['2sTotal'] || 0,
+          deaATotal: rawStats.deaATotal || 0,
           '3sTotal': rawStats['3sTotal'] || 0,
           '4sTotal': rawStats['4sTotal'] || 0,
           tongTotal: rawStats.tongTotal || 0,
           kepTotal: rawStats.kepTotal || 0,
           dauTotal: rawStats.dauTotal || 0,
           ditTotal: rawStats.ditTotal || 0,
+          dauATotal: rawStats.dauATotal || 0,
+          ditATotal: rawStats.ditATotal || 0,
           boTotal: rawStats.boTotal || 0,
           tongKepDauDitBoTotal: rawStats.tongKepDauDitBoTotal || 0,
           xienTotal: rawStats.xienTotal || 0,
@@ -867,12 +870,15 @@ const AdminTotalStatistics = ({ user }) => {
 
           loto: rawStats.loto,
           '2s': rawStats['2s'],
+          deaA: rawStats.deaA || {},
           '3s': transformGroupedData(rawStats['3s']),
           '4s': transformGroupedData(rawStats['4s']),
           tong: transformSimpleGroupedData(rawStats.grouped?.tong),
           kep: transformSimpleGroupedData(rawStats.grouped?.kep),
           dau: transformSimpleGroupedData(rawStats.grouped?.dau),
           dit: transformSimpleGroupedData(rawStats.grouped?.dit),
+          dauA: transformSimpleGroupedData(rawStats.grouped?.daua),
+          ditA: transformSimpleGroupedData(rawStats.grouped?.dita),
           bo: transformSimpleGroupedData(rawStats.grouped?.bo),
           xien: transformXienData(rawStats.xien),
           xienquay: transformXienData(rawStats.xienquay),
@@ -971,6 +977,22 @@ const AdminTotalStatistics = ({ user }) => {
     return tableData;
   };
 
+  // Generate De A statistics table data
+  const generateDeATableData = () => {
+    const deAData = statisticsData?.deaA || {};
+    const tableData = [];
+    for (let row = 0; row < 20; row++) {
+      const rowData = [];
+      for (let col = 0; col < 5; col++) {
+        const number = (row + col * 20).toString().padStart(2, '0');
+        const amount = deAData[number] || 0;
+        rowData.push({ number, amount });
+      }
+      tableData.push(rowData);
+    }
+    return tableData;
+  };
+
   // Render combined bet table
   const renderCombinedBetTable = (betTypes, title) => {
     let groupTotal;
@@ -988,6 +1010,8 @@ const AdminTotalStatistics = ({ user }) => {
       'kep': 'Kép',
       'dau': 'Đầu',
       'dit': 'Đít',
+      'dauA': 'Đề Đầu A',
+      'ditA': 'Đề Đít A',
       'bo': 'Bộ',
       '3s': '3 Số',
       'xien': 'Xiên',
@@ -1306,14 +1330,14 @@ const AdminTotalStatistics = ({ user }) => {
     if (!statisticsData) return 0;
 
     let total = 0;
-    const betTypes = ['tong', 'kep', 'dau', 'dit', 'bo'];
+    const betTypes = ['tong', 'kep', 'dau', 'dit', 'dauA', 'ditA', 'bo'];
 
     betTypes.forEach(betType => {
       const betData = statisticsData[betType] || {};
       Object.entries(betData).forEach(([number, amount]) => {
         const adjustedAmount = adjustCombinedAmountForDisplay(amount);
         // Áp dụng hệ số tương ứng với từng loại cược
-        if (betType === 'tong' || betType === 'kep' || betType === 'dau' || betType === 'dit') {
+        if (betType === 'tong' || betType === 'kep' || betType === 'dau' || betType === 'dit' || betType === 'dauA' || betType === 'ditA') {
           total += parseFloat(adjustedAmount) * 10;
         } else if (betType === 'bo') {
           // Lấy số lượng số thực tế của bộ từ dữ liệu động (nếu có), fallback BO_DATA
@@ -1323,6 +1347,7 @@ const AdminTotalStatistics = ({ user }) => {
         }
       });
     });
+
     return total;
   };
 
@@ -1631,6 +1656,12 @@ const AdminTotalStatistics = ({ user }) => {
             <h4>2 số</h4>
             <span className="admin-stats-value">{formatThousand(statisticsData['2sTotal'])}</span>
           </div>
+          {statisticsData.deaATotal > 0 && (
+            <div className="admin-stats-card">
+              <h4>Đề A</h4>
+              <span className="admin-stats-value">{formatThousand(statisticsData.deaATotal)}</span>
+            </div>
+          )}
           <div className="admin-stats-card">
             <h4>3 số</h4>
             <span className="admin-stats-value">{formatThousand(statisticsData['3sTotal'])}</span>
@@ -1658,6 +1689,18 @@ const AdminTotalStatistics = ({ user }) => {
             <h4>Đít</h4>
             <span className="admin-stats-value">{formatThousand(statisticsData.ditTotal)}</span>
           </div>
+          {statisticsData.dauATotal > 0 && (
+            <div className="admin-stats-card">
+              <h4>Đề Đầu A</h4>
+              <span className="admin-stats-value">{formatThousand(statisticsData.dauATotal)}</span>
+            </div>
+          )}
+          {statisticsData.ditATotal > 0 && (
+            <div className="admin-stats-card">
+              <h4>Đề Đít A</h4>
+              <span className="admin-stats-value">{formatThousand(statisticsData.ditATotal)}</span>
+            </div>
+          )}
           <div className="admin-stats-card">
             <h4>Bộ</h4>
             <span className="admin-stats-value">{formatThousand(statisticsData.boTotal)}</span>
@@ -1686,6 +1729,9 @@ const AdminTotalStatistics = ({ user }) => {
     const tabs = [
       { id: 'loto', label: 'Lô tô' },
       { id: '2s', label: '2 số' },
+      ...(statisticsData.deaATotal > 0 ? [{ id: 'deaA', label: 'Đề A' }] : []),
+      ...(statisticsData.dauATotal > 0 ? [{ id: 'dauA', label: 'Đề Đầu A' }] : []),
+      ...(statisticsData.ditATotal > 0 ? [{ id: 'ditA', label: 'Đề Đít A' }] : []),
       { id: '3s', label: '3 số' },
       { id: 'combined-basic', label: 'Tổng, Kép, Đầu, Đít, Bộ' },
       { id: 'xien', label: 'Xiên' },
@@ -2094,13 +2140,99 @@ const AdminTotalStatistics = ({ user }) => {
             </div>
           );
 
+        case 'deaA':
+          const deaTableData = generateDeATableData();
+          return (
+            <div className="admin-stats-2s-table admin-filter-scope">
+              <div className="admin-stats-loto-total">
+                <h4>Tổng kết Đề A</h4>
+                <div>
+                  <span style={{ color: '#1976d2', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData.deaATotal || 0)}</span>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Đề A</th><th>Tiền (n)</th><th>Đề A</th><th>Tiền (n)</th><th>Đề A</th><th>Tiền (n)</th><th>Đề A</th><th>Tiền (n)</th><th>Đề A</th><th>Tiền (n)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deaTableData.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      {row.map((cell, colIndex) => (
+                        <>
+                          <td key={`dea-num-${rowIndex}-${colIndex}`} className={cell.amount > 0 ? 'admin-stats-2s-has-bet' : ''}>
+                            <div className="admin-stats-2s-cell">
+                              <div className="admin-stats-2s-number">{cell.number}</div>
+                            </div>
+                          </td>
+                          <td key={`dea-amount-${rowIndex}-${colIndex}`} className={cell.amount > 0 ? 'admin-stats-2s-has-bet' : ''}>
+                            <div className="admin-stats-2s-cell">
+                              {cell.amount > 0 && (
+                                <div className="admin-stats-2s-amount">{Math.round(cell.amount)}n</div>
+                              )}
+                            </div>
+                          </td>
+                        </>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+
+        case 'dauA':
+          return (
+            <div className="admin-stats-combined-table admin-filter-scope">
+              <div className="admin-stats-combined-total">
+                <h4>Đề Đầu A</h4>
+                <div>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData.dauATotal || 0)}</span>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>Số đầu</th><th>Tiền (n)</th></tr>
+                </thead>
+                <tbody>
+                  {Object.entries(statisticsData?.dauA || {}).sort(([a],[b]) => a.localeCompare(b)).map(([num, amt]) => (
+                    <tr key={`dauA-${num}`}><td>{num}</td><td>{amt}n</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+
+        case 'ditA':
+          return (
+            <div className="admin-stats-combined-table admin-filter-scope">
+              <div className="admin-stats-combined-total">
+                <h4>Đề Đít A</h4>
+                <div>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData.ditATotal || 0)}</span>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>Số đít</th><th>Tiền (n)</th></tr>
+                </thead>
+                <tbody>
+                  {Object.entries(statisticsData?.ditA || {}).sort(([a],[b]) => a.localeCompare(b)).map(([num, amt]) => (
+                    <tr key={`ditA-${num}`}><td>{num}</td><td>{amt}n</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+
         case 'combined-basic':
           return (
             <div className="admin-stats-combined-table admin-filter-scope">
               <div className="admin-stats-combined-total">
-                <h4>Tổng kết Tổng, Kép, Đầu, Đít, Bộ</h4>
+                <h4>Tổng kết Tổng, Kép, Đầu, Đít, Đầu A, Đít A, Bộ</h4>
                 <div>
-                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData.tongKepDauDitBoTotal || 0)}</span>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand((statisticsData.tongKepDauDitBoTotal || 0))}</span>
                   {(combinedFilterPercent) && (
                     <div style={{ marginTop: '5px' }}>
                       <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng tiền sau khi lọc: {calculateFilteredCombinedTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
@@ -2129,7 +2261,7 @@ const AdminTotalStatistics = ({ user }) => {
                 </div>
               )}
 
-              {renderCombinedBetTable(['tong', 'kep', 'dau', 'dit', 'bo'], '')}
+              {renderCombinedBetTable(['tong', 'kep', 'dau', 'dit', 'dauA', 'ditA', 'bo'], '')}
             </div>
           );
 

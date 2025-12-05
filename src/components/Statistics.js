@@ -98,6 +98,9 @@ const Statistics = () => {
       kepTotal: 0,
       dauTotal: 0,
       ditTotal: 0,
+      deaATotal: 0,
+      dauATotal: 0,
+      ditATotal: 0,
       boTotal: 0,
       xienTotal: 0,
       xienNhayTotal: 0,
@@ -128,6 +131,9 @@ const Statistics = () => {
       kepTotal: statisticsData.kepTotal || 0,
       dauTotal: statisticsData.dauTotal || 0,
       ditTotal: statisticsData.ditTotal || 0,
+      deaATotal: statisticsData.deaATotal || 0,
+      dauATotal: statisticsData.dauATotal || 0,
+      ditATotal: statisticsData.ditATotal || 0,
       boTotal: statisticsData.boTotal || 0,
       xienTotal: xienTotal,
       xienNhayTotal: xienNhayTotal,
@@ -196,16 +202,34 @@ const Statistics = () => {
                 <h4>Lô tô</h4>
                 <p className="amount">{formatMoney(totals.lotoTotal)}</p>
               </div>
-              <div className="summary-card">
-                <h4>2 số</h4>
-                <p className="amount">{formatMoney(totals['2sTotal'])}</p>
-              </div>
+          <div className="summary-card">
+            <h4>2 số</h4>
+            <p className="amount">{formatMoney(totals['2sTotal'])}</p>
+          </div>
+          {totals.deaATotal > 0 && (
+            <div className="summary-card">
+              <h4>Đề A</h4>
+              <p className="amount">{formatMoney(totals.deaATotal)}</p>
+            </div>
+          )}
+          {totals.dauATotal > 0 && (
+            <div className="summary-card">
+              <h4>Đầu A</h4>
+              <p className="amount">{formatMoney(totals.dauATotal)}</p>
+            </div>
+          )}
+          {totals.ditATotal > 0 && (
+            <div className="summary-card">
+              <h4>Đít A</h4>
+              <p className="amount">{formatMoney(totals.ditATotal)}</p>
+            </div>
+          )}
               <div className="summary-card">
                 <h4>3 số</h4>
                 <p className="amount">{formatMoney(totals['3sTotal'])}</p>
               </div>
               {/* Chỉ hiển thị khối 4 số khi có dữ liệu */}
-              {totals['4sTotal'] > 0 && (
+          {totals['4sTotal'] > 0 && (
                 <div className="summary-card">
                   <h4>4 số</h4>
                   <p className="amount">{formatMoney(totals['4sTotal'])}</p>
@@ -247,12 +271,36 @@ const Statistics = () => {
             >
               Lô tô
             </button>
+          <button 
+            className={`tab-btn ${activeTab === '2s' ? 'active' : ''}`}
+            onClick={() => setActiveTab('2s')}
+          >
+            2 số
+          </button>
+          {totals.deaATotal > 0 && (
             <button 
-              className={`tab-btn ${activeTab === '2s' ? 'active' : ''}`}
-              onClick={() => setActiveTab('2s')}
+              className={`tab-btn ${activeTab === 'deaA' ? 'active' : ''}`}
+              onClick={() => setActiveTab('deaA')}
             >
-              2 số
+              Đề A
             </button>
+          )}
+          {totals.dauATotal > 0 && (
+            <button 
+              className={`tab-btn ${activeTab === 'dauA' ? 'active' : ''}`}
+              onClick={() => setActiveTab('dauA')}
+            >
+              Đầu A
+            </button>
+          )}
+          {totals.ditATotal > 0 && (
+            <button 
+              className={`tab-btn ${activeTab === 'ditA' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ditA')}
+            >
+              Đít A
+            </button>
+          )}
             <button 
               className={`tab-btn ${activeTab === '3s' ? 'active' : ''}`}
               onClick={() => setActiveTab('3s')}
@@ -339,10 +387,10 @@ const Statistics = () => {
               </div>
             )}
 
-            {activeTab === '2s' && (
-              <div className="twos-stats">
-                <h3 style={{textAlign: 'center'}}>Tổng kết 2 số</h3>
-                <p className="twos-total">Tổng tiền đánh: <strong>{formatMoney(totals['2sTotal'])}</strong></p>
+          {activeTab === '2s' && (
+            <div className="twos-stats">
+              <h3 style={{textAlign: 'center'}}>Tổng kết 2 số</h3>
+              <p className="twos-total">Tổng tiền đánh: <strong>{formatMoney(totals['2sTotal'])}</strong></p>
                 
                 <div className="twos-table-container">
                   <table className="twos-table">
@@ -369,8 +417,92 @@ const Statistics = () => {
                     </tbody>
                   </table>
                 </div>
+            </div>
+          )}
+
+          {activeTab === 'deaA' && (
+            <div className="twos-stats">
+              <h3 style={{textAlign: 'center'}}>Tổng kết Đề A</h3>
+              <p className="twos-total">Tổng tiền đánh: <strong>{formatMoney(totals.deaATotal)}</strong></p>
+              <div className="twos-table-container">
+                <table className="twos-table">
+                  <thead>
+                    <tr>
+                      <th>Đề A</th><th>Tiền (n)</th><th>Đề A</th><th>Tiền (n)</th><th>Đề A</th><th>Tiền (n)</th><th>Đề A</th><th>Tiền (n)</th><th>Đề A</th><th>Tiền (n)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {generate2sTableData().map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, colIndex) => (
+                          <>
+                            <td key={`num-deaA-${rowIndex}-${colIndex}`} className="twos-number">
+                              {cell.number}
+                            </td>
+                            <td key={`amount-deaA-${rowIndex}-${colIndex}`} className={`twos-amount ${((statisticsData?.deaA || {})[cell.number] > 0) ? 'has-bet' : ''}`}>
+                              {((statisticsData?.deaA || {})[cell.number] > 0) ? `${(statisticsData.deaA || {})[cell.number]}n` : ''}
+                            </td>
+                          </>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            )}
+            </div>
+          )}
+
+          {activeTab === 'dauA' && (
+            <div className="twos-stats">
+              <h3 style={{textAlign: 'center'}}>Tổng kết Đầu A</h3>
+              <p className="twos-total">Tổng tiền đánh: <strong>{formatMoney(totals.dauATotal)}</strong></p>
+              <div className="threes-detail">
+                {statisticsData?.dauA && Object.keys(statisticsData.dauA).length > 0 ? (
+                  <div className="threes-list">
+                    <h4>Chi tiết cược Đầu A:</h4>
+                    <div className="bet-items">
+                      {Object.entries(statisticsData.dauA)
+                        .sort(([a],[b]) => a.localeCompare(b))
+                        .map(([number, amount]) => (
+                          <div key={number} className="bet-item">
+                            <span className="bet-number">Đầu A {number}:</span>
+                            <span className="bet-amount">{amount}n</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p>Chưa có dữ liệu cược Đầu A.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'ditA' && (
+            <div className="twos-stats">
+              <h3 style={{textAlign: 'center'}}>Tổng kết Đít A</h3>
+              <p className="twos-total">Tổng tiền đánh: <strong>{formatMoney(totals.ditATotal)}</strong></p>
+              <div className="threes-detail">
+                {statisticsData?.ditA && Object.keys(statisticsData.ditA).length > 0 ? (
+                  <div className="threes-list">
+                    <h4>Chi tiết cược Đít A:</h4>
+                    <div className="bet-items">
+                      {Object.entries(statisticsData.ditA)
+                        .sort(([a],[b]) => a.localeCompare(b))
+                        .map(([number, amount]) => (
+                          <div key={number} className="bet-item">
+                            <span className="bet-number">Đít A {number}:</span>
+                            <span className="bet-amount">{amount}n</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p>Chưa có dữ liệu cược Đít A.</p>
+                )}
+              </div>
+            </div>
+          )}
 
             {activeTab === '3s' && (
               <div className="threes-stats">
@@ -503,6 +635,8 @@ const Statistics = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Loại bỏ Đầu A/Đít A khỏi tab Khác vì đã có tab riêng */}
 
                 {/* Bộ */}
                 {statisticsData?.bo && Object.keys(statisticsData.bo).length > 0 && (

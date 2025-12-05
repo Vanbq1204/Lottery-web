@@ -32,6 +32,7 @@ const PrizeSettings = () => {
     'kep': 'Kép',
     'dau': 'Đầu',
     'dit': 'Đít',
+    'deaA': 'Đề A (chung cho Đề A/Đầu A/Đít A)',
     'bo': 'Bộ',
     'xien': 'Xiên',
     'xienquay': 'Xiên quay',

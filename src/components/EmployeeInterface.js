@@ -170,6 +170,12 @@ const EmployeeInterface = ({ user }) => {
     return saved === null ? true : saved === 'true'; // Mặc định là true
   });
 
+  // Hiển thị các ô Đề A (mặc định tắt)
+  const [showDeA, setShowDeA] = useState(() => {
+    const saved = localStorage.getItem('showDeA');
+    return saved === 'true';
+  });
+
   // Cài đặt gõ xiên nhanh (dấu gạch ngang) - lưu trong localStorage
   const [quickXienInput, setQuickXienInput] = useState(() => {
     const saved = localStorage.getItem('quickXienInput');
@@ -340,6 +346,18 @@ const EmployeeInterface = ({ user }) => {
       rows: [{ numbers: '', amount: '' }]
     },
     dit: {
+      quantity: 1,
+      rows: [{ numbers: '', amount: '' }]
+    },
+    deaA: {
+      quantity: 1,
+      rows: [{ numbers: '', amount: '' }]
+    },
+    dauA: {
+      quantity: 1,
+      rows: [{ numbers: '', amount: '' }]
+    },
+    ditA: {
       quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
@@ -700,6 +718,7 @@ const EmployeeInterface = ({ user }) => {
     switch (betType) {
       case 'loto':
       case '2s':
+      case 'deaA':
         // Validate 2-digit numbers (00-99) - luôn kiểm tra format
         for (let num of numbers) {
           // For blur validation, be strict. For real-time, be lenient
@@ -750,6 +769,26 @@ const EmployeeInterface = ({ user }) => {
               const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
               const uniqueDuplicates = [...new Set(duplicates)];
               return { isValid: false, message: `Tổng ${uniqueDuplicates.join(', ')} bị trùng lặp` };
+            }
+          }
+        }
+        break;
+      case 'dauA':
+      case 'ditA':
+        // Validate 1-digit numbers (0-9) - only on blur
+        if (isBlurValidation) {
+          for (let num of numbers) {
+            const cleanNum = num.toLowerCase().trim();
+            if (!/^[0-9]$/.test(cleanNum)) {
+              return { isValid: false, message: 'Chỉ được nhập số từ 0 đến 9' };
+            }
+          }
+          if (!allowMergeDuplicates) {
+            const uniqueNumbers = [...new Set(numbers)];
+            if (uniqueNumbers.length !== numbers.length) {
+              const duplicates = numbers.filter((num, index) => numbers.indexOf(num) !== index);
+              const uniqueDuplicates = [...new Set(duplicates)];
+              return { isValid: false, message: `Số ${uniqueDuplicates.join(', ')} bị trùng lặp` };
             }
           }
         }
@@ -1136,7 +1175,7 @@ const EmployeeInterface = ({ user }) => {
     }
 
     // Xử lý tự động thêm dấu cách cho lô, 2s, 3s, tổng, kép, đầu, đít, bộ
-    if (quickBetEnabled && field === 'numbers' && ['loto', '2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo'].includes(betType)) {
+    if (quickBetEnabled && field === 'numbers' && ['loto', '2s', '3s', 'tong', 'kep', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType)) {
       const oldValue = betData[betType].rows[rowIndex]?.numbers || '';
 
       // Chỉ xử lý khi đang nhập (độ dài tăng), không xử lý khi xóa
@@ -1208,7 +1247,7 @@ const EmployeeInterface = ({ user }) => {
       const errorKey = `${betType}-${rowIndex}`;
 
       // Check for duplicates within the input (real-time) - chỉ khi không cho phép gộp số trùng
-      if (value.trim() && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType))) {
+      if (value.trim() && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType))) {
         const numbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         const uniqueNumbers = [...new Set(numbers)];
 
@@ -1222,7 +1261,7 @@ const EmployeeInterface = ({ user }) => {
           }));
         } else {
           // Check for duplicates across rows (real-time) - chỉ khi không cho phép gộp số trùng
-          if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
+          if (!(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType)) && !checkDuplicatesAcrossRows(betType, rowIndex, value)) {
             // Find which numbers are duplicated
             const currentNumbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
             const bet = betData[betType];
@@ -1286,7 +1325,7 @@ const EmployeeInterface = ({ user }) => {
     });
 
     // Track thay đổi cho logic gộp số trùng
-    if (allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'bo'].includes(betType)) {
+    if (allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType)) {
       const changeKey = `${betType}-${rowIndex}-${field}`;
       const now = Date.now();
 
@@ -1655,7 +1694,7 @@ const EmployeeInterface = ({ user }) => {
     }
 
     // Khi blur ô points/amount của các loại hỗ trợ gộp, kích hoạt gộp ngay nếu đủ dữ liệu
-    if (allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'bo'].includes(betType) && field !== 'numbers') {
+    if (allowMergeDuplicates && ['loto', '2s', '3s', '4s', 'tong', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType) && field !== 'numbers') {
       const currentRow = betData[betType].rows[rowIndex];
       const hasNumbers = currentRow?.numbers && currentRow.numbers.toString().trim() !== '';
       const hasAmountOrPoints = (currentRow?.points && currentRow.points.toString().trim() !== '') ||
@@ -1693,6 +1732,9 @@ const EmployeeInterface = ({ user }) => {
       kep: 'Kép',
       dau: 'Đầu',
       dit: 'Đít',
+      deaA: 'Đề A',
+      dauA: 'Đề Đầu A',
+      ditA: 'Đề Đít A',
       bo: 'Bộ',
       xien: 'Xiên',
       xienquay: 'Xiên quay'
@@ -1733,7 +1775,7 @@ const EmployeeInterface = ({ user }) => {
             // Kép calculation
             totalAmount = calculateKepAmount(row.amount);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
-          } else if (betType === 'dau' || betType === 'dit') {
+          } else if (betType === 'dau' || betType === 'dit' || betType === 'dauA' || betType === 'ditA') {
             // Đầu/Đít calculation
             totalAmount = calculateDauDitAmount(row.numbers, row.amount);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
@@ -1750,6 +1792,10 @@ const EmployeeInterface = ({ user }) => {
             } else {
               displayNumbers = `Bộ (x${row.amount}n)`;
             }
+          } else if (betType === 'deaA') {
+            // Đề A tính như 2 số
+            totalAmount = calculate2SAmount(row.numbers, row.amount);
+            displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.amount}n)`;
           } else if (betType === 'xien') {
             // Xiên calculation
             totalAmount = calculateXienAmount(row.numbers, row.amount, row.isXienNhay);
@@ -3106,7 +3152,7 @@ const EmployeeInterface = ({ user }) => {
             amount: amount,
             totalAmount: item.totalAmount
           });
-        } else if (['tong', 'dau', 'dit'].includes(item.type)) {
+        } else if (['tong', 'dau', 'dit', 'dauA', 'ditA'].includes(item.type)) {
           // For tong, dau, dit: tách từng số thành item riêng biệt
           const numbersStr = item.displayNumbers.split(' (x')[0];
           const amountMatch = item.displayNumbers.match(/\(x(\d+\.?\d*)n\)/);
@@ -3231,6 +3277,18 @@ const EmployeeInterface = ({ user }) => {
             quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
+          deaA: {
+            quantity: 1,
+            rows: [{ numbers: '', amount: '' }]
+          },
+          dauA: {
+            quantity: 1,
+            rows: [{ numbers: '', amount: '' }]
+          },
+          ditA: {
+            quantity: 1,
+            rows: [{ numbers: '', amount: '' }]
+          },
           xien: {
             quantity: 1,
             rows: [{ numbers: '', amount: '' }]
@@ -3291,6 +3349,18 @@ const EmployeeInterface = ({ user }) => {
         rows: [{ numbers: '', amount: '' }]
       },
       dit: {
+        quantity: 1,
+        rows: [{ numbers: '', amount: '' }]
+      },
+      deaA: {
+        quantity: 1,
+        rows: [{ numbers: '', amount: '' }]
+      },
+      dauA: {
+        quantity: 1,
+        rows: [{ numbers: '', amount: '' }]
+      },
+      ditA: {
         quantity: 1,
         rows: [{ numbers: '', amount: '' }]
       },
@@ -3425,6 +3495,8 @@ const EmployeeInterface = ({ user }) => {
         return "VD: 12, 13, 23, 44, 22, 33";
       case '2s':
         return "VD: 12, 14, 16 (00-99)";
+      case 'deaA':
+        return "VD: 00 11 22 (2 chữ số)";
       case '3s':
         return "VD: 112, 430, 223 (000-999)";
       case 'tong':
@@ -3435,6 +3507,10 @@ const EmployeeInterface = ({ user }) => {
         return "VD: 3 hoặc đầu 3 (0-9)";
       case 'dit':
         return "VD: 3 hoặc đít 3 (0-9)";
+      case 'dauA':
+        return "VD: 1 2 3 (1 chữ số)";
+      case 'ditA':
+        return "VD: 1 2 3 (1 chữ số)";
       case 'xien':
         return "VD: 12-13, 14-23-45 (xiên 2,3,4)";
       case 'xienquay':
@@ -3471,6 +3547,10 @@ const EmployeeInterface = ({ user }) => {
         const count2s = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${count2s} con x ${row.amount} = ${calculate2SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         break;
+      case 'deaA':
+        const countDeA = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
+        preview = `${countDeA} con x ${row.amount} = ${calculate2SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        break;
       case '3s':
         const count3s = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${count3s} con x ${row.amount} = ${calculate3SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
@@ -3504,6 +3584,22 @@ const EmployeeInterface = ({ user }) => {
           preview = `Đít ${ditNumbers.join(',')} x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
         } else {
           preview = `Đít x ${row.amount} = 0 VNĐ`;
+        }
+        break;
+      case 'dauA':
+        const dauANumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
+        if (dauANumbers.length > 0) {
+          preview = `Đề Đầu A ${dauANumbers.join(',')} x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        } else {
+          preview = `Đề Đầu A x ${row.amount} = 0 VNĐ`;
+        }
+        break;
+      case 'ditA':
+        const ditANumbers = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0);
+        if (ditANumbers.length > 0) {
+          preview = `Đề Đít A ${ditANumbers.join(',')} x ${row.amount} = ${calculateDauDitAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
+        } else {
+          preview = `Đề Đít A x ${row.amount} = 0 VNĐ`;
         }
         break;
       case 'xien':
@@ -3743,9 +3839,9 @@ const EmployeeInterface = ({ user }) => {
               {renderBetTypeRows('loto')}
 
               {/* Other bet types */}
-              {['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s'].map(betType =>
-                renderBetTypeRows(betType)
-              )}
+              {(['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s']
+                .concat(showDeA ? ['deaA', 'dauA', 'ditA'] : []))
+                .map(betType => renderBetTypeRows(betType))}
             </tbody>
           </table>
         </div>
@@ -4756,6 +4852,41 @@ const EmployeeInterface = ({ user }) => {
                 }}>
                   <span style={{
                     position: 'absolute', content: '""', height: '20px', width: '20px', left: quickXienInput ? '26px' : '4px', bottom: '4px',
+                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
+                  }}></span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Toggle 3 - Hiển thị ô cược Đề A */}
+        <div className="settings-card" style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginTop: '20px' }}>
+          <div className="setting-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="setting-info" style={{ maxWidth: '80%' }}>
+              <label className="setting-label" style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Hiển thị Đề A</label>
+              <p className="setting-desc" style={{ color: '#666', margin: 0 }}>
+                Khi bật, hệ thống sẽ hiển thị thêm ba ô: Đề A, Đề Đầu A, Đề Đít A ở cuối bảng nhập cược.
+              </p>
+            </div>
+            <div className="setting-control">
+              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px' }}>
+                <input
+                  type="checkbox"
+                  checked={showDeA}
+                  onChange={(e) => {
+                    const newVal = e.target.checked;
+                    setShowDeA(newVal);
+                    localStorage.setItem('showDeA', String(newVal));
+                  }}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span className="slider round" style={{
+                  position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                  backgroundColor: showDeA ? '#2196F3' : '#ccc', transition: '.4s', borderRadius: '34px'
+                }}>
+                  <span style={{
+                    position: 'absolute', content: '""', height: '20px', width: '20px', left: showDeA ? '26px' : '4px', bottom: '4px',
                     backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
                   }}></span>
                 </span>

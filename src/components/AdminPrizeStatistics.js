@@ -616,6 +616,7 @@ const AdminPrizeStatistics = () => {
     );
   };
 
+
   return (
     <div className="admin-prize-statistics">
       <div className="admin-prize-statistics-header">
