@@ -98,7 +98,7 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
               {Object.entries(lotoStats.winningNumbers).map(([number, data]) => (
                 <tr key={number}>
                   <td className="admin-prize-number">{number}</td>
-                  <td>{data.hitCount || data.count}</td>
+                  <td>{data.hitCount ?? 0}</td>
                   <td style={{fontWeight: 'bold', color: '#2c5530'}}>{data.totalPoints}đ</td>
                   <td className="admin-prize-prize-amount" style={{textAlign: 'right'}}>{formatMoney(data.totalPrize)}</td>
                 </tr>
@@ -106,6 +106,55 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
               <tr className="admin-prize-total-row">
                 <td colSpan="3" style={{fontWeight: 'bold', textAlign: 'right'}}>Tổng tiền thưởng lô:</td>
                 <td className="admin-prize-prize-amount admin-prize-total-prize" style={{textAlign: 'right', fontWeight: 'bold'}}>{formatMoney(lotoStats.totalPrize)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  // Render Lo A Statistics
+  const renderLoAStats = () => {
+    const loAStats = statisticsData?.statistics?.loA;
+    if (!loAStats || loAStats.totalPrize === 0) {
+      return <div className="admin-prize-no-data">Không có dữ liệu Lô A trúng thưởng</div>;
+    }
+    return (
+      <div className="admin-prize-loto-stats">
+        <div className="admin-prize-stats-summary">
+          <div className="admin-prize-summary-card">
+            <h4>Tổng thưởng Lô A</h4>
+            <div className="admin-prize-amount">{formatMoney(loAStats.totalPrize)}</div>
+          </div>
+          <div className="admin-prize-summary-card">
+            <h4>Tổng số con trúng</h4>
+            <div className="admin-prize-count">{loAStats.totalWinningNumbers}</div>
+          </div>
+        </div>
+        <div className="admin-prize-loto-details">
+          <h4>Lô A: Chi tiết từng con</h4>
+          <table className="admin-prize-stats-table admin-prize-loto-table">
+            <thead>
+              <tr>
+                <th style={{width: '20%'}}>Số</th>
+                <th style={{width: '20%'}}>Số nháy</th>
+                <th style={{width: '25%'}}>Tổng điểm</th>
+                <th style={{width: '35%', textAlign: 'right'}}>Tổng thưởng</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(loAStats.winningNumbers).map(([number, data]) => (
+                <tr key={number}>
+                  <td className="admin-prize-number">{number}</td>
+                  <td>{data.hitCount || data.count}</td>
+                  <td style={{fontWeight: 'bold', color: '#2c5530'}}>{data.totalPoints}đ</td>
+                  <td className="admin-prize-prize-amount" style={{textAlign: 'right'}}>{formatMoney(data.totalPrize)}</td>
+                </tr>
+              ))}
+              <tr className="admin-prize-total-row">
+                <td colSpan="3" style={{fontWeight: 'bold', textAlign: 'right'}}>Tổng tiền thưởng Lô A:</td>
+                <td className="admin-prize-prize-amount admin-prize-total-prize" style={{textAlign: 'right', fontWeight: 'bold'}}>{formatMoney(loAStats.totalPrize)}</td>
               </tr>
             </tbody>
           </table>
@@ -616,6 +665,14 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
               >
                 🎯 Lô tô
               </button>
+              {statisticsData?.statistics?.loA && (
+                <button 
+                  className={`admin-prize-tab-button ${activeTab === 'loA' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('loA')}
+                >
+                  🎯 Lô A
+                </button>
+              )}
               <button 
                 className={`admin-prize-tab-button ${activeTab === '2s' ? 'active' : ''}`}
                 onClick={() => setActiveTab('2s')}
@@ -656,6 +713,7 @@ const AdminStoreDetailPrizeStats = ({ storeId, storeName, onBack }) => {
 
             <div className="admin-prize-tab-content">
               {activeTab === 'loto' && renderLotoStats()}
+              {activeTab === 'loA' && renderLoAStats()}
               {activeTab === '2s' && render2sStats()}
               {activeTab === '3s' && render3sStats()}
               {activeTab === '4s' && render4sStats()}

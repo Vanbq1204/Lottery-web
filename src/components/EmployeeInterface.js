@@ -325,6 +325,10 @@ const EmployeeInterface = ({ user }) => {
       quantity: 1,
       rows: [{ numbers: '', amount: '' }]
     },
+    loA: {
+      quantity: 1,
+      rows: [{ numbers: '', points: '' }]
+    },
     '3s': {
       quantity: 1,
       rows: [{ numbers: '', amount: '' }]
@@ -1175,7 +1179,7 @@ const EmployeeInterface = ({ user }) => {
     }
 
     // Xử lý tự động thêm dấu cách cho lô, 2s, 3s, tổng, kép, đầu, đít, bộ
-    if (quickBetEnabled && field === 'numbers' && ['loto', '2s', '3s', 'tong', 'kep', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType)) {
+    if (quickBetEnabled && field === 'numbers' && ['loto', 'loA', '2s', '3s', 'tong', 'kep', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType)) {
       const oldValue = betData[betType].rows[rowIndex]?.numbers || '';
 
       // Chỉ xử lý khi đang nhập (độ dài tăng), không xử lý khi xóa
@@ -1190,6 +1194,7 @@ const EmployeeInterface = ({ user }) => {
         switch (betType) {
           case 'loto':
           case '2s':
+          case 'loA':
           case 'deaA':
             // Thêm dấu cách sau 2 chữ số (00-99)
             if (/^\d{2}$/.test(lastPart)) {
@@ -1250,7 +1255,7 @@ const EmployeeInterface = ({ user }) => {
       const errorKey = `${betType}-${rowIndex}`;
 
       // Check for duplicates within the input (real-time) - chỉ khi không cho phép gộp số trùng
-      if (value.trim() && !(allowMergeDuplicates && ['loto', '2s', '3s', 'tong', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType))) {
+      if (value.trim() && !(allowMergeDuplicates && ['loto', 'loA', '2s', '3s', 'tong', 'dau', 'dit', 'deaA', 'dauA', 'ditA', 'bo'].includes(betType))) {
         const numbers = value.trim().split(/[\s,.]+/).filter(n => n.length > 0);
         const uniqueNumbers = [...new Set(numbers)];
 
@@ -1728,6 +1733,7 @@ const EmployeeInterface = ({ user }) => {
     const items = [];
     const betLabels = {
       loto: 'Lô tô',
+      loA: 'Lô A',
       '2s': '2 số',
       '3s': '3 số',
       '4s': '4 số',
@@ -1754,7 +1760,7 @@ const EmployeeInterface = ({ user }) => {
           let totalAmount = 0;
           let displayNumbers = '';
 
-          if (betType === 'loto') {
+          if (betType === 'loto' || betType === 'loA') {
             // Lô calculation
             totalAmount = calculateLoAmount(row.numbers, row.points);
             displayNumbers = `${formatNumbersForInvoice(row.numbers, betType)} (x${row.points}${lotoUnit})`;
@@ -2133,13 +2139,17 @@ const EmployeeInterface = ({ user }) => {
         // Convert invoice items back to betData format
         const newBetData = {
           loto: { quantity: 1, rows: [{ numbers: '', points: '' }] },
+          loA: { quantity: 1, rows: [{ numbers: '', points: '' }] },
           '2s': { quantity: 1, rows: [{ numbers: '', amount: '' }] },
+          deaA: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           '3s': { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           '4s': { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           tong: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           kep: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           dau: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           dit: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
+          dauA: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
+          ditA: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           xien: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           xienquay: { quantity: 1, rows: [{ numbers: '', amount: '' }] },
           bo: { quantity: 1, rows: [{ numbers: '', amount: '' }] }
@@ -2170,7 +2180,7 @@ const EmployeeInterface = ({ user }) => {
                 };
               })
             };
-          } else if (betType === 'loto') {
+          } else if (betType === 'loto' || betType === 'loA') {
             // Special handling for "loto" type
             newBetData[betType] = {
               quantity: items.length,
@@ -2260,7 +2270,7 @@ const EmployeeInterface = ({ user }) => {
               }
             });
           }
-        } else if (item.type === 'loto') {
+        } else if (item.type === 'loto' || item.type === 'loA') {
           // For loto type: "12, 13 (x20đ)" or with custom unit
           numbers = item.displayNumbers.split(' (x')[0];
           // Sử dụng regex động để khớp với đơn vị lô tùy chỉnh
@@ -3138,7 +3148,7 @@ const EmployeeInterface = ({ user }) => {
               }
             });
           }
-        } else if (item.type === 'loto') {
+        } else if (item.type === 'loto' || item.type === 'loA') {
           // For loto type: "12, 13 (x20đ)" or with custom unit
           numbers = item.displayNumbers.split(' (x')[0];
           // Sử dụng regex động để khớp với đơn vị lô tùy chỉnh
@@ -3256,6 +3266,14 @@ const EmployeeInterface = ({ user }) => {
             quantity: 1,
             rows: [{ numbers: '', amount: '' }]
           },
+          loA: {
+            quantity: 1,
+            rows: [{ numbers: '', points: '' }]
+          },
+          loA: {
+            quantity: 1,
+            rows: [{ numbers: '', points: '' }]
+          },
           '3s': {
             quantity: 1,
             rows: [{ numbers: '', amount: '' }]
@@ -3330,6 +3348,14 @@ const EmployeeInterface = ({ user }) => {
       '2s': {
         quantity: 1,
         rows: [{ numbers: '', amount: '' }]
+      },
+      loA: {
+        quantity: 1,
+        rows: [{ numbers: '', points: '' }]
+      },
+      loA: {
+        quantity: 1,
+        rows: [{ numbers: '', points: '' }]
       },
       '3s': {
         quantity: 1,
@@ -3495,9 +3521,12 @@ const EmployeeInterface = ({ user }) => {
   const getPlaceholderText = (betType) => {
     switch (betType) {
       case 'loto':
+      case 'loA':
         return "VD: 12, 13, 23, 44, 22, 33";
       case '2s':
         return "VD: 12, 14, 16 (00-99)";
+      case 'loA':
+        return "VD: 12, 13, 23, 44, 22, 33";
       case 'deaA':
         return "VD: 00 11 22 (2 chữ số)";
       case '3s':
@@ -3526,7 +3555,7 @@ const EmployeeInterface = ({ user }) => {
   };
 
   const getAmountPlaceholder = (betType) => {
-    if (betType === 'loto') {
+    if (betType === 'loto' || betType === 'loA') {
       return "Điểm (VD: 20)";
     }
     return "Tiền (VD: 30)";
@@ -3541,11 +3570,12 @@ const EmployeeInterface = ({ user }) => {
     }
 
     let preview = '';
-    switch (betType) {
-      case 'loto':
-        const loCount = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
-        preview = `${loCount} con x ${row.points} điểm x ${lotoMultiplier} = ${calculateLoAmount(row.numbers, row.points).toLocaleString()} VNĐ`;
-        break;
+  switch (betType) {
+    case 'loto':
+    case 'loA':
+      const loCount = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
+      preview = `${loCount} con x ${row.points} điểm x ${lotoMultiplier} = ${calculateLoAmount(row.numbers, row.points).toLocaleString()} VNĐ`;
+      break;
       case '2s':
         const count2s = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${count2s} con x ${row.amount} = ${calculate2SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
@@ -3658,7 +3688,7 @@ const EmployeeInterface = ({ user }) => {
 
   const renderBetTypeRows = (betType) => {
     const bet = betData[betType];
-    const isLoto = betType === 'loto';
+    const isLoto = betType === 'loto' || betType === 'loA';
     const isBo = betType === 'bo';
 
     // Safety check - if bet data doesn't exist, return null
@@ -3671,7 +3701,7 @@ const EmployeeInterface = ({ user }) => {
       <>
         {/* Header row with bet type name and quantity */}
         <tr>
-          <td className="bet-type-name">{betType === 'loto' ? 'Loto' : betType.toUpperCase()}</td>
+          <td className="bet-type-name">{betType === 'loto' ? 'Loto' : (betType === 'loA' ? 'Lô A' : betType.toUpperCase())}</td>
           <td className="quantity-cell">
             <QuantityControls
               value={bet.quantity}
@@ -3785,7 +3815,7 @@ const EmployeeInterface = ({ user }) => {
                 // Nếu bật checkbox, gộp chỉ loto, 2s, 3s, 4s, bo với delay (không gộp khi đang load hóa đơn)
                 if (checked && !isLoadingInvoice) {
                   setTimeout(() => {
-                    ['loto', '2s', '3s', '4s', 'bo'].forEach(betType => {
+                    ['loto', 'loA', '2s', '3s', '4s', 'bo'].forEach(betType => {
                       mergeDuplicateNumbers(betType);
                     });
                   }, 3000); // Đợi 1.5 giây để đồng bộ với các logic gộp khác
@@ -3842,9 +3872,9 @@ const EmployeeInterface = ({ user }) => {
               {renderBetTypeRows('loto')}
 
               {/* Other bet types */}
-              {(['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s']
-                .concat(showDeA ? ['deaA', 'dauA', 'ditA'] : []))
-                .map(betType => renderBetTypeRows(betType))}
+          {(['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s']
+            .concat(showDeA ? ['deaA', 'dauA', 'ditA', 'loA'] : []))
+            .map(betType => renderBetTypeRows(betType))}
             </tbody>
           </table>
         </div>

@@ -91,7 +91,7 @@ const PrizeStatistics = () => {
               {Object.entries(lotoStats.winningNumbers).map(([number, data]) => (
                 <tr key={number}>
                   <td className="number">{number}</td>
-                  <td>{data.hitCount || data.count}</td>
+                  <td>{data.hitCount ?? 0}</td>
                   <td style={{fontWeight: 'bold', color: '#2c5530'}}>{data.totalPoints}đ</td>
                   <td className="prize-amount" style={{textAlign: 'right'}}>{formatMoney(data.totalPrize)}</td>
                 </tr>
@@ -99,6 +99,56 @@ const PrizeStatistics = () => {
               <tr className="total-row">
                 <td colSpan="3" style={{fontWeight: 'bold', textAlign: 'right'}}>Tổng tiền thưởng lô:</td>
                 <td className="prize-amount total-prize" style={{textAlign: 'right', fontWeight: 'bold'}}>{formatMoney(lotoStats.totalPrize)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  // Render Lo A Statistics
+  const renderLoAStats = () => {
+    const loAStats = statisticsData?.statistics?.loA;
+    if (!loAStats || loAStats.totalPrize === 0) {
+      return <div className="no-data">Không có dữ liệu Lô A trúng thưởng</div>;
+    }
+    return (
+      <div className="loto-stats">
+        <div className="stats-summary">
+          <div className="summary-card">
+            <h4>Tổng thưởng Lô A</h4>
+            <div className="amount">{formatMoney(loAStats.totalPrize)}</div>
+          </div>
+          <div className="summary-card">
+            <h4>Tổng số con trúng</h4>
+            <div className="count">{loAStats.totalWinningNumbers}</div>
+          </div>
+        </div>
+
+        <div className="loto-details">
+          <h4>Chi tiết từng con Lô A</h4>
+          <table className="stats-table loto-table">
+            <thead>
+              <tr>
+                <th style={{width: '20%'}}>Số</th>
+                <th style={{width: '20%'}}>Số nháy</th>
+                <th style={{width: '25%'}}>Tổng điểm</th>
+                <th style={{width: '35%', textAlign: 'right'}}>Tổng thưởng</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(loAStats.winningNumbers).map(([number, data]) => (
+                <tr key={number}>
+                  <td className="number">{number}</td>
+                  <td>{data.hitCount ?? 0}</td>
+                  <td style={{fontWeight: 'bold', color: '#2c5530'}}>{data.totalPoints}đ</td>
+                  <td className="prize-amount" style={{textAlign: 'right'}}>{formatMoney(data.totalPrize)}</td>
+                </tr>
+              ))}
+              <tr className="total-row">
+                <td colSpan="3" style={{fontWeight: 'bold', textAlign: 'right'}}>Tổng tiền thưởng Lô A:</td>
+                <td className="prize-amount total-prize" style={{textAlign: 'right', fontWeight: 'bold'}}>{formatMoney(loAStats.totalPrize)}</td>
               </tr>
             </tbody>
           </table>
@@ -570,14 +620,22 @@ const PrizeStatistics = () => {
             </div>
           </div>
 
-          <div className="statistics-tabs">
-            <div className="tab-buttons">
-              <button 
-                className={`tab-button ${activeTab === 'loto' ? 'active' : ''}`}
-                onClick={() => setActiveTab('loto')}
-              >
-                🎯 Lô tô
-              </button>
+            <div className="statistics-tabs">
+              <div className="tab-buttons">
+                <button 
+                  className={`tab-button ${activeTab === 'loto' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('loto')}
+                >
+                  🎯 Lô tô
+                </button>
+                {statisticsData?.statistics?.loA && (
+                  <button 
+                    className={`tab-button ${activeTab === 'loA' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('loA')}
+                  >
+                    🎯 Lô A
+                  </button>
+                )}
               <button 
                 className={`tab-button ${activeTab === '2s' ? 'active' : ''}`}
                 onClick={() => setActiveTab('2s')}
@@ -616,9 +674,10 @@ const PrizeStatistics = () => {
               </button>
             </div>
 
-            <div className="tab-content">
-              {activeTab === 'loto' && renderLotoStats()}
-              {activeTab === '2s' && render2sStats()}
+              <div className="tab-content">
+                {activeTab === 'loto' && renderLotoStats()}
+                {activeTab === 'loA' && renderLoAStats()}
+                {activeTab === '2s' && render2sStats()}
               {activeTab === '3s' && render3sStats()}
               {activeTab === '4s' && render4sStats()}
               {activeTab === 'xien' && renderXienStats()}

@@ -16,6 +16,7 @@ const AdminMessageExport = ({ user }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [lotoMessage, setLotoMessage] = useState('');
   const [twoSMessage, setTwoSMessage] = useState('');
+  const [loAMessage, setLoAMessage] = useState('');
   const [deaAMessage, setDeaAMessage] = useState('');
   const [threeSMessage, setThreeSMessage] = useState('');
   const [fourSMessage, setFourSMessage] = useState('');
@@ -59,7 +60,7 @@ const AdminMessageExport = ({ user }) => {
 
   const [sendFactor, setSendFactor] = useState(() => getInitialFactor(user)); // Hệ số gửi đi, mặc định 1.0 (tối thiểu 1)
   const [baseStats, setBaseStats] = useState(null); // Lưu thống kê thô để tính lại nhanh
-  const defaultFormat = { lo: 'Lo', twoS: 'De', deaA: 'De A', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', dauA: 'De Dau A', ditA: 'De Dit A', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
+  const defaultFormat = { lo: 'Lo', loA: 'Lo A', twoS: 'De', deaA: 'De A', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', dauA: 'De Dau A', ditA: 'De Dit A', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
   const resolveFormatKey = (u) => { const id = u?._id || u?.id; return id ? `msgExportFormat:${id}` : 'msgExportFormat'; };
   const getInitialFormat = (u) => { try { const raw = localStorage.getItem(resolveFormatKey(u)); if (!raw) return defaultFormat; const parsed = JSON.parse(raw); return { ...defaultFormat, ...(parsed || {}) }; } catch (_) { return defaultFormat; } };
   const [format, setFormat] = useState(() => getInitialFormat(user));
@@ -87,6 +88,7 @@ const AdminMessageExport = ({ user }) => {
     if (!stats) return;
     const lotoStats = stats?.loto || {};
     const twoSStats = stats?.['2s'] || {};
+    const loAStats = stats?.loA || {};
     const deAStats = stats?.['deaA'] || {};
     const threeSStats = stats?.['3s'] || {};
     const fourSStats = stats?.['4s'] || {};
@@ -95,6 +97,7 @@ const AdminMessageExport = ({ user }) => {
     const xqStats = stats?.xienquay || {};
 
     setLotoMessage(buildLotoMessage(lotoStats)); // Lô không nhân hệ số
+    setLoAMessage(buildLoAMessage(loAStats));
     setTwoSMessage(buildTwoSMessage(twoSStats));
     {
       const hasDeA = deAStats && Object.keys(deAStats).length > 0;
@@ -157,6 +160,24 @@ const AdminMessageExport = ({ user }) => {
     }
 
     return `${format.lo}: ${segments.join(', ')}`;
+  };
+
+  const buildLoAMessage = (loAStats) => {
+    if (!loAStats || Object.keys(loAStats).length === 0) {
+      return `${format.loA}: (Không có dữ liệu)`;
+    }
+    const groups = new Map();
+    for (const [number, points] of Object.entries(loAStats)) {
+      const p = parseInt(points) || 0;
+      if (!groups.has(p)) groups.set(p, []);
+      groups.get(p).push(String(number).padStart(2, '0'));
+    }
+    const sortedPoints = Array.from(groups.keys()).sort((a, b) => b - a);
+    const segments = sortedPoints.map(p => {
+      const nums = groups.get(p).sort((a, b) => parseInt(a) - parseInt(b));
+      return `${nums.join(',')}x${p}đ`;
+    });
+    return `${format.loA}: ${segments.join(', ')}`;
   };
 
   const buildTwoSMessage = (twoSStats) => {
@@ -549,6 +570,7 @@ const AdminMessageExport = ({ user }) => {
           // Nếu rỗng thì hiển thị "(Không có dữ liệu)" ở UI, nhưng snapshot vẫn lưu rỗng
           setLotoMessage(m.loto || `${format.lo}: (Không có dữ liệu)`);
           setTwoSMessage(m.twoS || `${format.twoS}: (Không có dữ liệu)`);
+          setLoAMessage(m.loA || `${format.loA}: (Không có dữ liệu)`);
           setDeaAMessage(m.deaA || '');
           setThreeSMessage(m.threeS || `${format.threeS}: (Không có dữ liệu)`);
           setFourSMessage(m.fourS || `${format.fourS}: (Không có dữ liệu)`);
@@ -581,6 +603,7 @@ const AdminMessageExport = ({ user }) => {
       const lines = [
         lotoMessage,
         twoSMessage,
+        loAMessage,
         deaAMessage,
         threeSMessage,
         fourSMessage,
@@ -612,6 +635,7 @@ const AdminMessageExport = ({ user }) => {
     const lines = [
       messages?.loto,
       messages?.twoS,
+      messages?.loA,
       messages?.deaA,
       messages?.threeS,
       messages?.fourS,
@@ -819,6 +843,9 @@ const AdminMessageExport = ({ user }) => {
         {deaAMessage && (
           <div className="msg-block"><div className="msg-title">De A</div><pre className="msg-line">{deaAMessage}</pre></div>
         )}
+        {loAMessage && (
+          <div className="msg-block"><div className="msg-title">Lo A</div><pre className="msg-line">{loAMessage}</pre></div>
+        )}
         <div className="msg-block"><div className="msg-title">Bc</div><pre className="msg-line">{threeSMessage}</pre></div>
         {/* Chỉ hiển thị 4 số nếu có dữ liệu thật */}
         {fourSMessage && (
@@ -884,6 +911,7 @@ const AdminMessageExport = ({ user }) => {
                   </div>
                   <pre className="msg-line">{h.messages?.loto}</pre>
                   <pre className="msg-line">{h.messages?.twoS}</pre>
+                  {h.messages?.loA && (<pre className="msg-line">{h.messages?.loA}</pre>)}
                   {h.messages?.deaA && (<pre className="msg-line">{h.messages?.deaA}</pre>)}
                   <pre className="msg-line">{h.messages?.threeS}</pre>
                   {/* Chỉ hiển thị 4 số nếu có dữ liệu thật */}

@@ -92,6 +92,7 @@ const Statistics = () => {
       totalRevenue: 0,
       lotoTotal: 0,
       '2sTotal': 0,
+      loATotal: 0,
       '3sTotal': 0,
       '4sTotal': 0,
       tongTotal: 0,
@@ -125,6 +126,7 @@ const Statistics = () => {
       totalRevenue: statisticsData.totalRevenue || 0,
       lotoTotal: statisticsData.lotoTotal || 0,
       '2sTotal': statisticsData['2sTotal'] || 0,
+      loATotal: statisticsData.loATotal || 0,
       '3sTotal': statisticsData['3sTotal'] || 0,
       '4sTotal': statisticsData['4sTotal'] || 0,
       tongTotal: statisticsData.tongTotal || 0,
@@ -212,6 +214,12 @@ const Statistics = () => {
               <p className="amount">{formatMoney(totals.deaATotal)}</p>
             </div>
           )}
+          {totals.loATotal > 0 && (
+            <div className="summary-card">
+              <h4>Lô A</h4>
+              <p className="amount">{formatMoney(totals.loATotal)}</p>
+            </div>
+          )}
           {totals.dauATotal > 0 && (
             <div className="summary-card">
               <h4>Đầu A</h4>
@@ -285,6 +293,14 @@ const Statistics = () => {
               Đề A
             </button>
           )}
+          {totals.loATotal > 0 && (
+            <button 
+              className={`tab-btn ${activeTab === 'loA' ? 'active' : ''}`}
+              onClick={() => setActiveTab('loA')}
+            >
+              Lô A
+            </button>
+          )}
           {totals.dauATotal > 0 && (
             <button 
               className={`tab-btn ${activeTab === 'dauA' ? 'active' : ''}`}
@@ -347,7 +363,7 @@ const Statistics = () => {
             {activeTab === 'loto' && (
                               <div className="loto-stats">
                 <h3>Tổng kết lô tô</h3>
-                <p className="loto-total">Tổng tiền đánh: <strong>{formatMoney(totals.lotoTotal)}</strong></p>
+              <p className="loto-total">Tổng tiền đánh: <strong>{formatMoney(totals.lotoTotal)}</strong></p>
                 <p className="loto-points-total">Tổng điểm: <strong>{calculateLotoTotalPoints()}đ</strong></p>
                 
                 <div className="loto-table-container">
@@ -386,6 +402,47 @@ const Statistics = () => {
                 </div>
               </div>
             )}
+
+          {activeTab === 'loA' && (
+            <div className="loto-stats">
+              <h3>Tổng kết Lô A</h3>
+              <p className="loto-total">Tổng tiền đánh: <strong>{formatMoney(totals.loATotal)}</strong></p>
+              <div className="loto-table-container">
+                <table className="loto-table">
+                  <thead>
+                    <tr>
+                      <th>Lô A</th>
+                      <th>Điểm (đ)</th>
+                      <th>Lô A</th>
+                      <th>Điểm (đ)</th>
+                      <th>Lô A</th>
+                      <th>Điểm (đ)</th>
+                      <th>Lô A</th>
+                      <th>Điểm (đ)</th>
+                      <th>Lô A</th>
+                      <th>Điểm (đ)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {generateLotoTableData().map((row, rowIndex) => (
+                      <tr key={`loa-row-${rowIndex}`}>
+                        {row.map((cell, colIndex) => (
+                          <>
+                            <td key={`loa-num-${rowIndex}-${colIndex}`} className="loto-number">
+                              {cell.number}
+                            </td>
+                            <td key={`loa-points-${rowIndex}-${colIndex}`} className={`loto-points ${((statisticsData?.loA || {})[cell.number] > 0) ? 'has-bet' : ''}`}>
+                              {((statisticsData?.loA || {})[cell.number] > 0) ? `${(statisticsData.loA || {})[cell.number]}đ` : ''}
+                            </td>
+                          </>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {activeTab === '2s' && (
             <div className="twos-stats">

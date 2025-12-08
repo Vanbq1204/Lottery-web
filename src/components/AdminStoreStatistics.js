@@ -1178,6 +1178,12 @@ const AdminStoreStatistics = ({ store, user }) => {
             <h4>2 số</h4>
             <span className="admin-stats-value">{formatThousand(statisticsData['2sTotal'])}</span>
           </div>
+          {statisticsData.loATotal > 0 && (
+            <div className="admin-stats-card">
+              <h4>Lô A</h4>
+              <span className="admin-stats-value">{formatThousand(statisticsData.loATotal)}</span>
+            </div>
+          )}
           {statisticsData.deaATotal > 0 && (
             <div className="admin-stats-card">
               <h4>Đề A</h4>
@@ -1251,6 +1257,7 @@ const AdminStoreStatistics = ({ store, user }) => {
     const tabs = [
       { id: 'loto', label: 'Lô tô' },
       { id: '2s', label: '2 số' },
+      ...(statisticsData.loATotal > 0 ? [{ id: 'loA', label: 'Lô A' }] : []),
       ...(statisticsData.deaATotal > 0 ? [{ id: 'deaA', label: 'Đề A' }] : []),
       ...(statisticsData.dauATotal > 0 ? [{ id: 'dauA', label: 'Đề Đầu A' }] : []),
       ...(statisticsData.ditATotal > 0 ? [{ id: 'ditA', label: 'Đề Đít A' }] : []),
@@ -1461,6 +1468,41 @@ const AdminStoreStatistics = ({ store, user }) => {
                           </>
                         );
                       })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+
+        case 'loA':
+          return (
+            <div className="admin-stats-loto-table">
+              <div className="admin-stats-loto-total">
+                <h4>Tổng kết Lô A</h4>
+                <div>
+                  <span style={{ color: '#1976d2', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(statisticsData.loATotal || 0)}</span>
+                  <br />
+                  <span className="admin-stats-loto-total-value">Tổng điểm: {Object.values(statisticsData.loA || {}).reduce((sum, p) => sum + p, 0)}đ</span>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Lô A</th><th>Điểm (đ)</th><th>Lô A</th><th>Điểm (đ)</th><th>Lô A</th><th>Điểm (đ)</th><th>Lô A</th><th>Điểm (đ)</th><th>Lô A</th><th>Điểm (đ)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {generateLotoTableData().map((row, rowIndex) => (
+                    <tr key={`loa-row-${rowIndex}`}>
+                      {row.map((cell, colIndex) => (
+                        <>
+                          <td key={`loa-num-${rowIndex}-${colIndex}`} className="admin-stats-loto-number">{cell.number}</td>
+                          <td key={`loa-pts-${rowIndex}-${colIndex}`} className={`admin-stats-loto-points ${((statisticsData?.loA || {})[cell.number] > 0) ? 'admin-stats-2s-has-bet' : ''}`}>
+                            {((statisticsData?.loA || {})[cell.number] > 0) ? `${(statisticsData.loA || {})[cell.number]}đ` : ''}
+                          </td>
+                        </>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
@@ -1789,7 +1831,7 @@ const AdminStoreStatistics = ({ store, user }) => {
         case 'combined-basic':
           // Tính tổng sau khi lọc cho tổng kép đầu đít bộ
           const calculateFilteredCombinedTotal = () => {
-            const betTypes = ['tong', 'kep', 'dau', 'dit', 'dauA', 'ditA', 'bo'];
+            const betTypes = ['tong', 'kep', 'dau', 'dit', 'bo'];
             return betTypes.reduce((sum, betType) => {
               const totalField = `${betType}Total`;
               const rawTotal = statisticsData[totalField] || 0;
@@ -1800,9 +1842,9 @@ const AdminStoreStatistics = ({ store, user }) => {
           return (
             <div className="admin-stats-combined-table admin-filter-scope">
               <div className="admin-stats-combined-total">
-                <h4>Tổng kết: Tổng, Kép, Đầu, Đít, Đầu A, Đít A, Bộ</h4>
+                <h4>Tổng kết: Tổng, Kép, Đầu, Đít, Bộ</h4>
                 <div>
-                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(['tong', 'kep', 'dau', 'dit', 'dauA', 'ditA', 'bo'].reduce((sum, betType) => sum + (statisticsData[`${betType}Total`] || 0), 0))}</span>
+                  <span style={{ color: '#333', fontWeight: 600, fontSize: '14px' }}>Tổng tiền đánh: {formatThousand(['tong', 'kep', 'dau', 'dit', 'bo'].reduce((sum, betType) => sum + (statisticsData[`${betType}Total`] || 0), 0))}</span>
                   {combinedFilterPercent && (
                     <div style={{ marginTop: '5px' }}>
                       <span style={{ color: '#388e3c', fontWeight: 600, fontSize: '14px' }}>Tổng tiền sau khi lọc: {calculateFilteredCombinedTotal().toLocaleString('vi-VN').replace(/,/g, '.') + 'n'}</span>
@@ -1834,7 +1876,7 @@ const AdminStoreStatistics = ({ store, user }) => {
                 </div>
               )}
 
-              {renderCombinedBetTable(['tong', 'kep', 'dau', 'dit', 'dauA', 'ditA', 'bo'], '')}
+              {renderCombinedBetTable(['tong', 'kep', 'dau', 'dit', 'bo'], '')}
             </div>
           );
 

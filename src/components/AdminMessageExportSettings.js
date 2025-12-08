@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const defaultFormat = { lo: 'Lo', twoS: 'De', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
+const defaultFormat = { lo: 'Lo', loA: 'Lo A', twoS: 'De', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
 
 const AdminMessageExportSettings = ({ user }) => {
   const resolveFormatKey = (u) => { const id = u?._id || u?.id; return id ? `msgExportFormat:${id}` : 'msgExportFormat'; };
@@ -26,6 +26,7 @@ const AdminMessageExportSettings = ({ user }) => {
           <div className="msg-title">Cài đặt định dạng</div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(2, minmax(260px, 1fr))', gap:10 }}>
             <input placeholder="Lo" value={format.lo} onChange={(e)=>setFormat({ ...format, lo: e.target.value })} />
+            <input placeholder="Lo A" value={format.loA} onChange={(e)=>setFormat({ ...format, loA: e.target.value })} />
             <input placeholder="De" value={format.twoS} onChange={(e)=>setFormat({ ...format, twoS: e.target.value })} />
             <input placeholder="Bc" value={format.threeS} onChange={(e)=>setFormat({ ...format, threeS: e.target.value })} />
             <input placeholder="4s" value={format.fourS} onChange={(e)=>setFormat({ ...format, fourS: e.target.value })} />
