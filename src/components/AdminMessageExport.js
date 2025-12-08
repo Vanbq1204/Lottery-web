@@ -164,7 +164,7 @@ const AdminMessageExport = ({ user }) => {
 
   const buildLoAMessage = (loAStats) => {
     if (!loAStats || Object.keys(loAStats).length === 0) {
-      return `${format.loA}: (Không có dữ liệu)`;
+      return '';
     }
     const groups = new Map();
     for (const [number, points] of Object.entries(loAStats)) {
@@ -570,7 +570,7 @@ const AdminMessageExport = ({ user }) => {
           // Nếu rỗng thì hiển thị "(Không có dữ liệu)" ở UI, nhưng snapshot vẫn lưu rỗng
           setLotoMessage(m.loto || `${format.lo}: (Không có dữ liệu)`);
           setTwoSMessage(m.twoS || `${format.twoS}: (Không có dữ liệu)`);
-          setLoAMessage(m.loA || `${format.loA}: (Không có dữ liệu)`);
+          setLoAMessage(m.loA || '');
           setDeaAMessage(m.deaA || '');
           setThreeSMessage(m.threeS || `${format.threeS}: (Không có dữ liệu)`);
           setFourSMessage(m.fourS || `${format.fourS}: (Không có dữ liệu)`);
