@@ -390,7 +390,8 @@
   .super-admin-main {
     margin-left: 0;
     padding-top: 60px; /* chừa chỗ cho topbar */
-    overflow: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
   .super-admin-content { padding-top: 0; }
 
