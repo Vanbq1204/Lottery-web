@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import './AdminMessageExportSettings.css';
 
-const defaultFormat = { lo: 'Lo', loA: 'Lo A', twoS: 'De', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
+const defaultFormat = { lo: 'Lo', loA: 'Lo A', twoS: 'De', deaA: 'De A', dauA: 'De Dau A', ditA: 'De Dit A', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
 
 const AdminMessageExportSettings = ({ user }) => {
   const resolveFormatKey = (u) => { const id = u?._id || u?.id; return id ? `msgExportFormat:${id}` : 'msgExportFormat'; };
@@ -24,12 +25,10 @@ const AdminMessageExportSettings = ({ user }) => {
       <div className="msg-export-content">
         <div className="msg-block">
           <div className="msg-title">Cài đặt định dạng</div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(2, minmax(260px, 1fr))', gap:10 }}>
+          <div className="msg-format-row">
             <input placeholder="Lo" value={format.lo} onChange={(e)=>setFormat({ ...format, lo: e.target.value })} />
-            <input placeholder="Lo A" value={format.loA} onChange={(e)=>setFormat({ ...format, loA: e.target.value })} />
             <input placeholder="De" value={format.twoS} onChange={(e)=>setFormat({ ...format, twoS: e.target.value })} />
             <input placeholder="Bc" value={format.threeS} onChange={(e)=>setFormat({ ...format, threeS: e.target.value })} />
-            <input placeholder="4s" value={format.fourS} onChange={(e)=>setFormat({ ...format, fourS: e.target.value })} />
             <input placeholder="De Tong" value={format.tong} onChange={(e)=>setFormat({ ...format, tong: e.target.value })} />
             <input placeholder="De Dau" value={format.dau} onChange={(e)=>setFormat({ ...format, dau: e.target.value })} />
             <input placeholder="De Dit" value={format.dit} onChange={(e)=>setFormat({ ...format, dit: e.target.value })} />
@@ -40,7 +39,12 @@ const AdminMessageExportSettings = ({ user }) => {
             <input placeholder="Xien4" value={format.xien4} onChange={(e)=>setFormat({ ...format, xien4: e.target.value })} />
             <input placeholder="xq3" value={format.xq3} onChange={(e)=>setFormat({ ...format, xq3: e.target.value })} />
             <input placeholder="xq4" value={format.xq4} onChange={(e)=>setFormat({ ...format, xq4: e.target.value })} />
-            <input placeholder="Xiennhay" value={format.xiennhay} onChange={(e)=>setFormat({ ...format, xiennhay: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="Xiennhay" value={format.xiennhay} onChange={(e)=>setFormat({ ...format, xiennhay: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="4s" value={format.fourS} onChange={(e)=>setFormat({ ...format, fourS: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="Lo A" value={format.loA} onChange={(e)=>setFormat({ ...format, loA: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De A" value={format.deaA} onChange={(e)=>setFormat({ ...format, deaA: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De Dau A" value={format.dauA} onChange={(e)=>setFormat({ ...format, dauA: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De Dit A" value={format.ditA} onChange={(e)=>setFormat({ ...format, ditA: e.target.value })} />
           </div>
           <div style={{ marginTop: 12 }}>
             <button className="msg-refresh-btn" onClick={resetDefault}>Khôi phục mặc định</button>
