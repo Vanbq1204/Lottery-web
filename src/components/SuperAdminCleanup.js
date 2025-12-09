@@ -111,7 +111,7 @@ const SuperAdminCleanup = () => {
       });
 
       if (resp.data?.success) {
-        alert(`Đã xóa thành công:\n- ${resp.data.deletedInvoices} hóa đơn cược\n- ${resp.data.deletedWinningInvoices} hóa đơn thưởng\n- ${resp.data.deletedSnapshots || 0} bản ghi xuất tin nhắn`);
+        alert(`Đã xóa thành công:\n- ${resp.data.deletedInvoices} hóa đơn cược\n- ${resp.data.deletedWinningInvoices} hóa đơn thưởng\n- ${resp.data.deletedDailyReports || 0} báo cáo ngày\n- ${resp.data.deletedSnapshots || 0} bản ghi xuất tin nhắn`);
         // Refresh stats
         checkStats();
       } else setError(resp.data?.message || 'Không thể xóa');
@@ -193,6 +193,7 @@ const SuperAdminCleanup = () => {
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Admin</th>
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Cửa hàng</th>
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Hóa đơn trúng (Đã trả / Tổng)</th>
+                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Báo cáo ngày</th>
                 </tr>
               </thead>
               <tbody>
@@ -225,6 +226,11 @@ const SuperAdminCleanup = () => {
                                   ({admin.totalSnapshots} bản ghi tin nhắn)
                                 </div>
                               )}
+                              {admin.totalDailyReports > 0 && (
+                                <div style={{ fontSize: '12px', color: '#388e3c', marginTop: '5px' }}>
+                                  ({admin.totalDailyReports} báo cáo ngày)
+                                </div>
+                              )}
                             </td>
                           )}
                           <td style={{ padding: '12px', border: '1px solid #ddd' }}>{store.storeName}</td>
@@ -233,20 +239,26 @@ const SuperAdminCleanup = () => {
                             <span style={{ margin: '0 5px' }}>/</span>
                             <span>{store.totalWinningInvoices}</span>
                           </td>
+                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                            {store.hasDailyReport ? 
+                              <span style={{ color: '#2e7d32', fontWeight: 600 }}>Có</span> :
+                              <span style={{ color: '#777' }}>-</span>
+                            }
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr key={admin.adminId}>
                         <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
                         <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{admin.adminName}</td>
-                        <td colSpan="2" style={{ padding: '12px', border: '1px solid #ddd', fontStyle: 'italic', color: '#888' }}>Không có cửa hàng</td>
+                        <td colSpan="3" style={{ padding: '12px', border: '1px solid #ddd', fontStyle: 'italic', color: '#888' }}>Không có cửa hàng</td>
                       </tr>
                     )}
                   </React.Fragment>
                 ))}
                 {statsData.length === 0 && (
                   <tr>
-                    <td colSpan="4" style={{ padding: '20px', textAlign: 'center' }}>Không có dữ liệu admin nào.</td>
+                    <td colSpan="5" style={{ padding: '20px', textAlign: 'center' }}>Không có dữ liệu admin nào.</td>
                   </tr>
                 )}
               </tbody>

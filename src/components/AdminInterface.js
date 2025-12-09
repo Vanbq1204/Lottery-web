@@ -12,6 +12,7 @@ import AdminMessageExport from './AdminMessageExport';
 import AdminMessageExportSettings from './AdminMessageExportSettings';
 import AdminChangePassword from './AdminChangePassword';
 import AdminStoreTimeSettings from './AdminStoreTimeSettings';
+import AdminDailyReport from './AdminDailyReport';
 import NotificationBell from './NotificationBell';
 import NotificationModal from './NotificationModal';
 import StoreExpirationBar from './StoreExpirationBar';
@@ -29,6 +30,8 @@ const AdminInterface = ({ user, onLogout }) => {
     { id: 'reports', label: 'Báo cáo tổng hợp', icon: '📊' },
     ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }] : []),
     { id: 'prize-stats', label: 'Thống kê thưởng tổng hợp', icon: '🏆' },
+    { id: 'daily-report', label: 'Báo cáo cuối ngày', icon: '📑' },
+    { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' },
     {
       id: 'settings',
       label: 'Cài đặt',
@@ -41,7 +44,6 @@ const AdminInterface = ({ user, onLogout }) => {
       ]
     },
     ...(user?.allowChangePassword ? [{ id: 'change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : []),
-    { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' }
   ];
 
   // Load stores when component mounts
@@ -177,6 +179,12 @@ const AdminInterface = ({ user, onLogout }) => {
         return (
           <div className="admin-content-section">
             <AdminTotalStatistics user={user} />
+          </div>
+        );
+      case 'daily-report':
+        return (
+          <div className="admin-content-section">
+            <AdminDailyReport user={user} />
           </div>
         );
       case 'prize-stats':

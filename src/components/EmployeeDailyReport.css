@@ -1,0 +1,135 @@
+.daily-report-container {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.daily-report-container h2 {
+  color: #2c5530;
+  margin-bottom: 20px;
+}
+
+.date-selector {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-selector input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+}
+
+.report-table th, .report-table td {
+  border: 1px solid #ddd;
+  padding: 15px;
+  vertical-align: top;
+}
+
+.report-table th {
+  background-color: #f8f9fa;
+  text-align: center;
+  font-weight: bold;
+}
+
+.amount-cell {
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.revenue { color: #2196F3; }
+.payout { color: #F44336; }
+.total { color: #4CAF50; font-size: 20px; text-align: right; }
+
+.expense-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.expense-name {
+  flex: 2;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.expense-amount {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.btn-remove {
+  background: #ffc107;
+  border: none;
+  color: #333;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-add {
+  background: #e9ecef;
+  border: 1px dashed #adb5bd;
+  color: #495057;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.btn-add:hover {
+  background: #dee2e6;
+}
+
+.total-row {
+  background-color: #f8f9fa;
+}
+
+.report-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-save-report {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn-save-report:hover {
+  background: #218838;
+}
+
+.btn-save-report:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.save-message {
+  color: #28a745;
+  font-weight: 500;
+}

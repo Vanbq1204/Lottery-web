@@ -14,6 +14,7 @@ import QuantityControls from './QuantityControls';
 import QuickLotteryResults from './QuickLotteryResults';
 import NotificationBell from './NotificationBell';
 import NotificationModal from './NotificationModal';
+import EmployeeDailyReport from './EmployeeDailyReport';
 import { getCurrentAddress, getGeolocationPermission } from '../utils/geolocationUtils';
 
 
@@ -3485,6 +3486,7 @@ const EmployeeInterface = ({ user }) => {
     { id: 'lottery', label: 'Kết quả xổ số', icon: '🎯' },
     { id: 'prizes', label: 'Tính thưởng', icon: '🏆' },
     { id: 'prize-statistics', label: 'Thống kê thưởng', icon: '💰' },
+    { id: 'daily-report', label: 'Báo cáo cuối ngày', icon: '📅' },
     { id: 'invoices', label: 'Danh sách hóa đơn', icon: '📋' },
     { id: 'history', label: 'Lịch sử sửa đổi', icon: '📚' },
     {
@@ -4943,6 +4945,8 @@ const EmployeeInterface = ({ user }) => {
         return <PrizeInterface onCalculatingChange={setIsCalculatingPrize} />;
       case 'prize-statistics':
         return <PrizeStatistics />;
+      case 'daily-report':
+        return <EmployeeDailyReport />;
       case 'prize-settings':
         return <PrizeSettings />;
       case 'loto-multiplier':
