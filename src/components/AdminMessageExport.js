@@ -7,9 +7,11 @@ import './AdminMessageExport.css';
 const AdminMessageExport = ({ user }) => {
   // Lấy ngày hiện tại theo múi giờ Việt Nam (UTC+7)
   const getCurrentVietnamDate = () => {
-    const now = new Date();
-    const vietnamTime = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-    return vietnamTime.toISOString().split('T')[0];
+    const vietnamTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+    const yyyy = vietnamTime.getFullYear();
+    const mm = String(vietnamTime.getMonth() + 1).padStart(2, '0');
+    const dd = String(vietnamTime.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   };
 
   const [selectedDate, setSelectedDate] = useState(getCurrentVietnamDate());
@@ -52,13 +54,14 @@ const AdminMessageExport = ({ user }) => {
       const rawGlobal = localStorage.getItem('msgSendFactor');
       const raw = rawUser != null ? rawUser : rawGlobal;
       const v = parseFloat(raw);
-      return !isNaN(v) ? Math.max(1, v) : 1.0;
+      return !isNaN(v) ? Math.max(0.1, v) : 1.0;
     } catch (_) {
       return 1.0;
     }
   };
 
-  const [sendFactor, setSendFactor] = useState(() => getInitialFactor(user)); // Hệ số gửi đi, mặc định 1.0 (tối thiểu 1)
+  const [sendFactor, setSendFactor] = useState(() => getInitialFactor(user));
+  const [sendFactorInput, setSendFactorInput] = useState(() => String(getInitialFactor(user)));
   const [baseStats, setBaseStats] = useState(null); // Lưu thống kê thô để tính lại nhanh
   const defaultFormat = { lo: 'Lo', loA: 'Lo A', twoS: 'De', deaA: 'De A', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', dauA: 'De Dau A', ditA: 'De Dit A', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
   const resolveFormatKey = (u) => { const id = u?._id || u?.id; return id ? `msgExportFormat:${id}` : 'msgExportFormat'; };
@@ -66,12 +69,24 @@ const AdminMessageExport = ({ user }) => {
   const [format, setFormat] = useState(() => getInitialFormat(user));
   useEffect(() => { try { localStorage.setItem(resolveFormatKey(user), JSON.stringify(format)); } catch (_) { } }, [format, user]);
 
+  const resolveScopeKey = (u) => { const id = u?._id || u?.id; return id ? `msgFactorScope:${id}` : 'msgFactorScope'; };
+  const getInitialScope = (u) => { try { const raw = localStorage.getItem(resolveScopeKey(u)); if (!raw) return { mode: 'exceptLo', types: [] }; const parsed = JSON.parse(raw); return { mode: parsed?.mode || 'exceptLo', types: Array.isArray(parsed?.types) ? parsed.types : [] }; } catch (_) { return { mode: 'exceptLo', types: [] }; } };
+  const initialScope = getInitialScope(user);
+  const [applyMode, setApplyMode] = useState(initialScope.mode);
+  const [applyCustomTypes, setApplyCustomTypes] = useState(initialScope.types);
+  const [scopeModalOpen, setScopeModalOpen] = useState(false);
+
   // Scroll position preservation
   const scrollPositionRef = React.useRef(0);
 
   // Khi đổi admin, tải lại hệ số theo admin đó
   useEffect(() => {
-    setSendFactor(getInitialFactor(user));
+    const init = getInitialFactor(user);
+    setSendFactor(init);
+    setSendFactorInput(String(init));
+    const scope = getInitialScope(user);
+    setApplyMode(scope.mode);
+    setApplyCustomTypes(scope.types);
   }, [user]);
 
   // Lưu lại hệ số mỗi khi thay đổi (ghi cả key theo admin và key chung để dự phòng)
@@ -83,7 +98,22 @@ const AdminMessageExport = ({ user }) => {
     } catch (_) { /* ignore */ }
   }, [sendFactor, user]);
 
-  // Tính lại tất cả chuỗi tin nhắn từ stats hiện có
+  useEffect(() => {
+    setSendFactorInput(String(sendFactor));
+  }, [sendFactor]);
+
+  useEffect(() => {
+    try { localStorage.setItem(resolveScopeKey(user), JSON.stringify({ mode: applyMode, types: applyCustomTypes })); } catch (_) {}
+  }, [applyMode, applyCustomTypes, user]);
+
+  const shouldApply = (type) => {
+    if (!type) return applyMode !== 'exceptLo';
+    if (applyMode === 'all') return true;
+    if (applyMode === 'exceptLo') return type !== 'loto';
+    if (applyMode === 'custom') return Array.isArray(applyCustomTypes) && applyCustomTypes.includes(type);
+    return false;
+  };
+
   const recomputeMessagesFromStats = (stats) => {
     if (!stats) return;
     const lotoStats = stats?.loto || {};
@@ -98,22 +128,22 @@ const AdminMessageExport = ({ user }) => {
 
     setLotoMessage(buildLotoMessage(lotoStats)); // Lô không nhân hệ số
     setLoAMessage(buildLoAMessage(loAStats));
-    setTwoSMessage(buildTwoSMessage(twoSStats));
+    setTwoSMessage(buildTwoSMessage(twoSStats, format.twoS, 'twoS'));
     {
       const hasDeA = deAStats && Object.keys(deAStats).length > 0;
-      const msg = buildTwoSMessage(deAStats).replace(/^De:/, `${format.deaA}:`);
+      const msg = buildTwoSMessage(deAStats, format.deaA, 'deaA');
       setDeaAMessage(hasDeA ? msg : '');
     }
     setThreeSMessage(buildThreeSMessage(threeSStats));
     setFourSMessage(buildFourSMessage(fourSStats));
-    setTongMessage(buildGroupedLines(format.tong, grouped?.tong));
-    setDauMessage(buildGroupedLines(format.dau, grouped?.dau));
-    setDitMessage(buildGroupedLines(format.dit, grouped?.dit));
+    setTongMessage(buildGroupedLines(format.tong, grouped?.tong, 'tong'));
+    setDauMessage(buildGroupedLines(format.dau, grouped?.dau, 'dau'));
+    setDitMessage(buildGroupedLines(format.dit, grouped?.dit, 'dit'));
     {
       const dauAMap = grouped?.dauA || grouped?.daua || {};
       const ditAMap = grouped?.ditA || grouped?.dita || {};
-      setDauAMessage(Object.keys(dauAMap).length > 0 ? buildGroupedLines(format.dauA, dauAMap) : '');
-      setDitAMessage(Object.keys(ditAMap).length > 0 ? buildGroupedLines(format.ditA, ditAMap) : '');
+      setDauAMessage(Object.keys(dauAMap).length > 0 ? buildGroupedLines(format.dauA, dauAMap, 'dauA') : '');
+      setDitAMessage(Object.keys(ditAMap).length > 0 ? buildGroupedLines(format.ditA, ditAMap, 'ditA') : '');
     }
     setKepMessage(buildKepPerItemLines(format.kep, grouped?.kep));
     setBoMessage(buildBoLines(grouped?.bo));
@@ -131,7 +161,7 @@ const AdminMessageExport = ({ user }) => {
     if (baseStats) {
       recomputeMessagesFromStats(baseStats);
     }
-  }, [sendFactor, baseStats]);
+  }, [sendFactor, baseStats, applyMode, applyCustomTypes]);
 
   // Gom nhóm theo cùng số điểm và tạo chuỗi tin cho Lô
   const buildLotoMessage = (lotoStats) => {
@@ -141,7 +171,8 @@ const AdminMessageExport = ({ user }) => {
 
     const groups = new Map(); // key: points, value: array of numbers
     for (const [number, points] of Object.entries(lotoStats)) {
-      const p = parseInt(points) || 0;
+      const p0 = parseInt(points) || 0;
+      const p = shouldApply('loto') ? Math.max(1, Math.round(p0 * sendFactor)) : p0;
       if (!groups.has(p)) groups.set(p, []);
       groups.get(p).push(number.padStart(2, '0'));
     }
@@ -168,7 +199,8 @@ const AdminMessageExport = ({ user }) => {
     }
     const groups = new Map();
     for (const [number, points] of Object.entries(loAStats)) {
-      const p = parseInt(points) || 0;
+      const p0 = parseInt(points) || 0;
+      const p = shouldApply('loA') ? Math.max(1, Math.round(p0 * sendFactor)) : p0;
       if (!groups.has(p)) groups.set(p, []);
       groups.get(p).push(String(number).padStart(2, '0'));
     }
@@ -180,12 +212,12 @@ const AdminMessageExport = ({ user }) => {
     return `${format.loA}: ${segments.join(', ')}`;
   };
 
-  const buildTwoSMessage = (twoSStats) => {
-    if (!twoSStats || Object.keys(twoSStats).length === 0) return `${format.twoS}: (Không có dữ liệu)`;
+  const buildTwoSMessage = (twoSStats, label, typeKey = 'twoS') => {
+    if (!twoSStats || Object.keys(twoSStats).length === 0) return `${label}: (Không có dữ liệu)`;
     const groups = new Map();
     for (const [number, amountN] of Object.entries(twoSStats)) {
       const a = parseInt(amountN) || 0;
-      const scaled = Math.max(1, Math.round(a * sendFactor));
+      const scaled = shouldApply(typeKey) ? Math.max(1, Math.round(a * sendFactor)) : a;
       if (!groups.has(scaled)) groups.set(scaled, []);
       groups.get(scaled).push(number.padStart(2, '0'));
     }
@@ -194,7 +226,7 @@ const AdminMessageExport = ({ user }) => {
       const nums = groups.get(a).sort((x, y) => parseInt(x) - parseInt(y));
       return `${nums.join(',')} x ${a}n`;
     });
-    return `${format.twoS}: ${segments.join(', ')}`;
+    return `${label}: ${segments.join(', ')}`;
   };
 
   const aggregateAmountNFromNested = (nested) => {
@@ -226,7 +258,7 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [num, n] of Object.entries(agg)) {
       const amount = parseInt(n) || 0;
-      const scaled = Math.max(1, Math.round(amount * sendFactor));
+      const scaled = shouldApply('threeS') ? Math.max(1, Math.round(amount * sendFactor)) : amount;
       if (!groups.has(scaled)) groups.set(scaled, []);
       groups.get(scaled).push(num.padStart(3, '0'));
     }
@@ -244,7 +276,7 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [num, n] of Object.entries(agg)) {
       const amount = parseInt(n) || 0;
-      const scaled = Math.max(1, Math.round(amount * sendFactor));
+      const scaled = shouldApply('fourS') ? Math.max(1, Math.round(amount * sendFactor)) : amount;
       if (!groups.has(scaled)) groups.set(scaled, []);
       groups.get(scaled).push(num.padStart(4, '0'));
     }
@@ -256,7 +288,7 @@ const AdminMessageExport = ({ user }) => {
     return `${format.fourS}: ${segments.join(', ')}`;
   };
 
-  const buildGroupedLine = (label, groupedMap) => {
+  const buildGroupedLine = (label, groupedMap, typeKey) => {
     const simple = {};
     Object.entries(groupedMap || {}).forEach(([key, val]) => {
       const amt = parseInt(val?.totalAmount || 0) || 0;
@@ -266,7 +298,7 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [key, n] of Object.entries(simple)) {
       const a = parseInt(n) || 0;
-      const scaled = Math.max(1, Math.round(a * sendFactor));
+      const scaled = shouldApply(typeKey) ? Math.max(1, Math.round(a * sendFactor)) : a;
       if (!groups.has(scaled)) groups.set(scaled, []);
       groups.get(scaled).push(key);
     }
@@ -278,7 +310,7 @@ const AdminMessageExport = ({ user }) => {
     return `${label}: ${segments.join(', ')}`;
   };
 
-  const buildGroupedLines = (label, groupedMap) => {
+  const buildGroupedLines = (label, groupedMap, typeKey) => {
     const simple = {};
     Object.entries(groupedMap || {}).forEach(([key, val]) => {
       const amt = parseInt(val?.totalAmount || 0) || 0;
@@ -288,7 +320,7 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [key, n] of Object.entries(simple)) {
       const a = parseInt(n) || 0;
-      const scaled = Math.max(1, Math.round(a * sendFactor));
+      const scaled = shouldApply(typeKey) ? Math.max(1, Math.round(a * sendFactor)) : a;
       if (!groups.has(scaled)) groups.set(scaled, []);
       groups.get(scaled).push(key);
     }
@@ -327,7 +359,8 @@ const AdminMessageExport = ({ user }) => {
     const special = [];
     Object.entries(map).forEach(([key, val]) => {
       const alias = getAlias(key);
-      const amt = Math.max(1, Math.round((parseInt(val?.totalAmount || val || 0) || 0) * sendFactor));
+      const baseAmt = parseInt(val?.totalAmount || val || 0) || 0;
+      const amt = shouldApply('bo') ? Math.max(1, Math.round(baseAmt * sendFactor)) : baseAmt;
       if (!amt) return;
       const isNumericTwo = /^\d{2}$/.test(String(key));
       if (alias) special.push(`${alias} x ${amt}n`);
@@ -367,7 +400,7 @@ const AdminMessageExport = ({ user }) => {
     const groups = new Map();
     for (const [key, n] of Object.entries(simple)) {
       const a = parseInt(n) || 0;
-      const scaled = Math.max(1, Math.round(a * sendFactor));
+      const scaled = shouldApply(label.toLowerCase().includes('kep') ? 'kep' : undefined) ? Math.max(1, Math.round(a * sendFactor)) : a;
       if (!groups.has(scaled)) groups.set(scaled, []);
       groups.get(scaled).push(removeAccents(key));
     }
@@ -383,7 +416,8 @@ const AdminMessageExport = ({ user }) => {
     const map = groupedMap || {};
     const totals = new Map();
     Object.entries(map).forEach(([key, val]) => {
-      const amt = Math.max(1, Math.round((parseInt(val?.totalAmount || val || 0) || 0) * sendFactor));
+      const baseAmt = parseInt(val?.totalAmount || val || 0) || 0;
+      const amt = shouldApply('kep') ? Math.max(1, Math.round(baseAmt * sendFactor)) : baseAmt;
       if (!amt) return;
       const item = removeAccents(String(key)).toLowerCase().trim();
       totals.set(item, (totals.get(item) || 0) + amt);
@@ -427,12 +461,12 @@ const AdminMessageExport = ({ user }) => {
       const len = parts.length;
       if (byLen[len]) byLen[len][combo] = n;
     });
-    const buildLabel = (label, map) => {
+    const buildLabel = (label, map, typeKey) => {
       if (Object.keys(map).length === 0) return `${label}: (Không có dữ liệu)`;
       const groups = new Map();
       for (const [combo, n] of Object.entries(map)) {
         const a = parseInt(n) || 0;
-        const scaled = Math.max(1, Math.round(a * sendFactor));
+        const scaled = shouldApply(typeKey) ? Math.max(1, Math.round(a * sendFactor)) : a;
         if (!groups.has(scaled)) groups.set(scaled, []);
         groups.get(scaled).push(combo);
       }
@@ -444,9 +478,9 @@ const AdminMessageExport = ({ user }) => {
       return `${label}: ${segments.join(', ')}`;
     };
     return {
-      x2: buildLabel('Xien2', byLen[2]),
-      x3: buildLabel('Xien3', byLen[3]),
-      x4: buildLabel('Xien4', byLen[4])
+      x2: buildLabel('Xien2', byLen[2], 'xien2'),
+      x3: buildLabel('Xien3', byLen[3], 'xien3'),
+      x4: buildLabel('Xien4', byLen[4], 'xien4')
     };
   };
 
@@ -458,12 +492,12 @@ const AdminMessageExport = ({ user }) => {
       const len = parts.length;
       if (byLen[len]) byLen[len][combo] = n;
     });
-    const buildLabel = (label, map) => {
+    const buildLabel = (label, map, typeKey) => {
       if (Object.keys(map).length === 0) return `${label}: (Không có dữ liệu)`;
       const groups = new Map();
       for (const [combo, n] of Object.entries(map)) {
         const a = parseInt(n) || 0;
-        const scaled = Math.max(1, Math.round(a * sendFactor));
+        const scaled = shouldApply(typeKey) ? Math.max(1, Math.round(a * sendFactor)) : a;
         if (!groups.has(scaled)) groups.set(scaled, []);
         groups.get(scaled).push(combo);
       }
@@ -475,8 +509,8 @@ const AdminMessageExport = ({ user }) => {
       return `${label}: ${segments.join(', ')}`;
     };
     return {
-      xq3: buildLabel('xq3', byLen[3]),
-      xq4: buildLabel('xq4', byLen[4])
+      xq3: buildLabel('xq3', byLen[3], 'xq3'),
+      xq4: buildLabel('xq4', byLen[4], 'xq4')
     };
   };
 
@@ -542,7 +576,7 @@ const AdminMessageExport = ({ user }) => {
       setExporting(true);
       const token = localStorage.getItem('token');
       const resp = await axios.post(getApiUrl('/admin/message-exports/export'),
-        { date: selectedDate, multiplier: sendFactor, format },
+        { date: selectedDate, multiplier: sendFactor, format, applyScope: { mode: applyMode, types: applyCustomTypes } },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (resp.data?.success) {
@@ -765,6 +799,62 @@ const AdminMessageExport = ({ user }) => {
           </button>
         </div>
       </div>
+      {scopeModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div style={{ fontWeight: 600, marginBottom: 10 }}>Cài đặt phạm vi áp dụng hệ số</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <label><input type="radio" name="applyMode" checked={applyMode==='exceptLo'} onChange={() => setApplyMode('exceptLo')} /> Áp dụng tất cả trừ lô</label>
+              <label><input type="radio" name="applyMode" checked={applyMode==='all'} onChange={() => setApplyMode('all')} /> Áp dụng tất cả</label>
+              <label><input type="radio" name="applyMode" checked={applyMode==='custom'} onChange={() => setApplyMode('custom')} /> Lựa chọn</label>
+            </div>
+            {applyMode === 'custom' && (
+              <div style={{ marginTop: 10 }}>
+                {[
+                  { key: 'loto', label: format.lo },
+                  { key: 'loA', label: format.loA },
+                  { key: 'twoS', label: format.twoS },
+                  { key: 'deaA', label: format.deaA },
+                  { key: 'threeS', label: format.threeS },
+                  { key: 'fourS', label: format.fourS },
+                  { key: 'tong', label: format.tong },
+                  { key: 'dau', label: format.dau },
+                  { key: 'dit', label: format.dit },
+                  { key: 'dauA', label: format.dauA },
+                  { key: 'ditA', label: format.ditA },
+                  { key: 'kep', label: format.kep },
+                  { key: 'bo', label: format.boPrefix },
+                  { key: 'xien2', label: format.xien2 },
+                  { key: 'xien3', label: format.xien3 },
+                  { key: 'xien4', label: format.xien4 },
+                  { key: 'xq3', label: format.xq3 },
+                  { key: 'xq4', label: format.xq4 },
+                  { key: 'xiennhay', label: format.xiennhay }
+                ].map(opt => (
+                  <label key={opt.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginRight: 10, marginBottom: 6 }}>
+                    <input
+                      type="checkbox"
+                      checked={applyCustomTypes.includes(opt.key)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setApplyCustomTypes(prev => {
+                          const set = new Set(prev);
+                          if (checked) set.add(opt.key); else set.delete(opt.key);
+                          return Array.from(set);
+                        });
+                      }}
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="modal-actions">
+              <button className="msg-refresh-btn" onClick={() => setScopeModalOpen(false)}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {changeRequests?.length > 0 && (
         <div className="msg-alert-bar">
@@ -785,17 +875,33 @@ const AdminMessageExport = ({ user }) => {
         <div className="msg-control-group">
           <label>Hệ số gửi đi:</label>
           <input
-            type="number"
-            min={1}
-            step={0.1}
-            value={sendFactor}
+            type="text"
+            inputMode="decimal"
+            value={sendFactorInput}
             onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              const clamped = isNaN(val) ? 1.0 : Math.max(1, val);
+              const raw = e.target.value;
+              setSendFactorInput(raw);
+              const v = parseFloat(raw);
+              if (!isNaN(v)) {
+                const clamped = Math.max(0.1, v);
+                setSendFactor(clamped);
+              }
+            }}
+            onBlur={() => {
+              const val = parseFloat(sendFactorInput);
+              if (isNaN(val)) {
+                setSendFactorInput(String(sendFactor));
+                return;
+              }
+              const clamped = Math.max(0.1, val);
               setSendFactor(clamped);
-              // Không gọi API; chuỗi sẽ tự tính lại từ baseStats
+              setSendFactorInput(String(clamped));
             }}
           />
+        </div>
+        <div className="msg-control-group">
+          <label>Phạm vi hệ số:</label>
+          <button className="msg-refresh-btn" onClick={() => setScopeModalOpen(true)}>Chọn phạm vi</button>
         </div>
         <div className="msg-control-actions">
           <button className="msg-refresh-btn" onClick={() => loadStatistics(selectedDate)} disabled={isLoading}>
@@ -876,7 +982,11 @@ const AdminMessageExport = ({ user }) => {
             <div>
               {history.map(h => (
                 <div key={h._id || h.sequence} className="msg-snapshot">
-                  <div style={{ fontWeight: 600 }}>Lần {h.sequence} • {new Date(h.startTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })} → {new Date(h.endTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</div>
+                  <div style={{ fontWeight: 600 }}>Lần {h.sequence} • {new Date(h.startTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })} → {new Date(h.endTime).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })} {' '}
+                    {typeof h.multiplier === 'number' && (
+                      <span className="msg-badge">{h.multiplier}</span>
+                    )}
+                  </div>
                   <div className="msg-snapshot-actions">
                     <button
                       className={`msg-copy-btn snapshot-copy-btn ${copiedMap[h.sequence] ? 'copied' : ''}`}
@@ -891,7 +1001,7 @@ const AdminMessageExport = ({ user }) => {
                           const token = localStorage.getItem('token');
                           const resp = await axios.put(
                             getApiUrl(`/admin/message-exports/reexport/${h._id}`),
-                            { multiplier: sendFactor, format },
+                            { multiplier: sendFactor, format, applyScope: { mode: applyMode, types: applyCustomTypes } },
                             { headers: { Authorization: `Bearer ${token}` } }
                           );
                           if (resp.data?.success) {
