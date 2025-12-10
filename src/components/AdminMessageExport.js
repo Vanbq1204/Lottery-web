@@ -802,14 +802,17 @@ const AdminMessageExport = ({ user }) => {
       {scopeModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <div style={{ fontWeight: 600, marginBottom: 10 }}>Cài đặt phạm vi áp dụng hệ số</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="modal-header">
+              <div className="modal-title">Phạm vi áp dụng hệ số</div>
+              <button className="modal-close" onClick={() => setScopeModalOpen(false)}>×</button>
+            </div>
+            <div className="modal-radio-group">
               <label><input type="radio" name="applyMode" checked={applyMode==='exceptLo'} onChange={() => setApplyMode('exceptLo')} /> Áp dụng tất cả trừ lô</label>
               <label><input type="radio" name="applyMode" checked={applyMode==='all'} onChange={() => setApplyMode('all')} /> Áp dụng tất cả</label>
               <label><input type="radio" name="applyMode" checked={applyMode==='custom'} onChange={() => setApplyMode('custom')} /> Lựa chọn</label>
             </div>
             {applyMode === 'custom' && (
-              <div style={{ marginTop: 10 }}>
+              <div className="modal-checkbox-grid">
                 {[
                   { key: 'loto', label: format.lo },
                   { key: 'loA', label: format.loA },
@@ -831,7 +834,7 @@ const AdminMessageExport = ({ user }) => {
                   { key: 'xq4', label: format.xq4 },
                   { key: 'xiennhay', label: format.xiennhay }
                 ].map(opt => (
-                  <label key={opt.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginRight: 10, marginBottom: 6 }}>
+                  <label key={opt.key} className="modal-checkbox-item" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <input
                       type="checkbox"
                       checked={applyCustomTypes.includes(opt.key)}
@@ -850,6 +853,7 @@ const AdminMessageExport = ({ user }) => {
               </div>
             )}
             <div className="modal-actions">
+              <button className="msg-copy-btn" onClick={() => setScopeModalOpen(false)}>Lưu</button>
               <button className="msg-refresh-btn" onClick={() => setScopeModalOpen(false)}>Đóng</button>
             </div>
           </div>
@@ -874,34 +878,57 @@ const AdminMessageExport = ({ user }) => {
         </div>
         <div className="msg-control-group">
           <label>Hệ số gửi đi:</label>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={sendFactorInput}
-            onChange={(e) => {
-              const raw = e.target.value;
-              setSendFactorInput(raw);
-              const v = parseFloat(raw);
-              if (!isNaN(v)) {
-                const clamped = Math.max(0.1, v);
+          <div className="msg-factor-group">
+            <input
+              className="msg-factor-input"
+              placeholder="Ví dụ 0.5"
+              type="text"
+              inputMode="decimal"
+              value={sendFactorInput}
+              onChange={(e) => {
+                const raw = e.target.value;
+                setSendFactorInput(raw);
+                const v = parseFloat(raw);
+                if (!isNaN(v)) {
+                  const clamped = Math.max(0.1, v);
+                  setSendFactor(clamped);
+                }
+              }}
+              onBlur={() => {
+                const val = parseFloat(sendFactorInput);
+                if (isNaN(val)) {
+                  setSendFactorInput(String(sendFactor));
+                  return;
+                }
+                const clamped = Math.max(0.1, val);
                 setSendFactor(clamped);
-              }
-            }}
-            onBlur={() => {
-              const val = parseFloat(sendFactorInput);
-              if (isNaN(val)) {
-                setSendFactorInput(String(sendFactor));
-                return;
-              }
-              const clamped = Math.max(0.1, val);
-              setSendFactor(clamped);
-              setSendFactorInput(String(clamped));
-            }}
-          />
+                setSendFactorInput(String(clamped));
+              }}
+            />
+            <div className="msg-factor-stepper">
+              <button className="msg-factor-btn" onClick={() => {
+                const v = parseFloat(sendFactorInput);
+                const base = isNaN(v) ? sendFactor : v;
+                const next = Math.max(0.1, Math.round((base - 0.1) * 10) / 10);
+                setSendFactor(next);
+                setSendFactorInput(String(next));
+              }}>-</button>
+              <button className="msg-factor-btn" onClick={() => {
+                const v = parseFloat(sendFactorInput);
+                const base = isNaN(v) ? sendFactor : v;
+                const next = Math.max(0.1, Math.round((base + 0.1) * 10) / 10);
+                setSendFactor(next);
+                setSendFactorInput(String(next));
+              }}>+</button>
+            </div>
+          </div>
         </div>
+
         <div className="msg-control-group">
           <label>Phạm vi hệ số:</label>
-          <button className="msg-refresh-btn" onClick={() => setScopeModalOpen(true)}>Chọn phạm vi</button>
+          <button className={`msg-scope-chip ${applyMode==='all' ? 'chip-all' : applyMode==='exceptLo' ? 'chip-except-lo' : 'chip-custom'}`} onClick={() => setScopeModalOpen(true)}>
+            {applyMode === 'all' ? 'Tất cả' : applyMode === 'exceptLo' ? 'Tất cả trừ Lô' : `Lựa chọn (${applyCustomTypes.length})`}
+          </button>
         </div>
         <div className="msg-control-actions">
           <button className="msg-refresh-btn" onClick={() => loadStatistics(selectedDate)} disabled={isLoading}>
