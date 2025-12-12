@@ -31,7 +31,7 @@ const AdminInterface = ({ user, onLogout }) => {
     ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }] : []),
     { id: 'prize-stats', label: 'Thống kê thưởng tổng hợp', icon: '🏆' },
     { id: 'daily-report', label: 'Báo cáo cuối ngày', icon: '📑' },
-    { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' },
+    // { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' },
     {
       id: 'settings',
       label: 'Cài đặt',
