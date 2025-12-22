@@ -768,6 +768,11 @@ const AdminMessageExport = ({ user }) => {
           });
         }).catch(() => { });
       });
+
+      socket.on('invoice_change_request', (data) => {
+        console.log('Real-time update (Message Export): New change request', data);
+        loadChangeRequests();
+      });
     }
 
     return () => {

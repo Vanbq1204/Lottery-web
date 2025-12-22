@@ -2498,8 +2498,11 @@ const EmployeeInterface = ({ user }) => {
       } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
         // Lỗi thời gian sửa/xóa đã hết
         alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
-      } else if (errorData?.code === 'INVOICE_LOCKED_BY_MESSAGE_EXPORT' || (error.response?.status === 403 && (errorData?.message || '').includes('xuất tin nhắn'))) {
-        const reasonReq = prompt('Hóa đơn đã được xuất tin nhắn, không thể xóa. Nhập lý do gửi yêu cầu tới admin để xin xóa:');
+      } else if (errorData?.code === 'INVOICE_LOCKED_BY_MESSAGE_EXPORT' || errorData?.code === 'INVOICE_DELETE_REQUIRES_APPROVAL' || (error.response?.status === 403 && (errorData?.message || '').includes('xuất tin nhắn'))) {
+        const promptMsg = errorData?.code === 'INVOICE_DELETE_REQUIRES_APPROVAL'
+          ? 'Bạn phải xin ý kiến admin trước khi xóa. Nhập lý do gửi yêu cầu tới admin để xin xóa:'
+          : 'Hóa đơn đã được xuất tin nhắn, không thể xóa. Nhập lý do gửi yêu cầu tới admin để xin xóa:';
+        const reasonReq = prompt(promptMsg);
         if (reasonReq !== null) {
           try {
             const token = localStorage.getItem('token');

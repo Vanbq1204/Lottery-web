@@ -18,7 +18,8 @@ const AdminManagement = () => {
     allowChangePassword: true,
     allowMessageExport: true,
     allowChangePassword: true,
-    allowMessageExport: true
+    allowMessageExport: true,
+    enforceDeleteApproval: false
   });
   const [showEditForm, setShowEditForm] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -26,7 +27,8 @@ const AdminManagement = () => {
     email: '',
     password: '',
     allowChangePassword: true,
-    allowMessageExport: true
+    allowMessageExport: true,
+    enforceDeleteApproval: false
   });
   const [openDropdown, setOpenDropdown] = useState(null);
   const [showCreatePwd, setShowCreatePwd] = useState(false);
@@ -115,7 +117,7 @@ const AdminManagement = () => {
       if (data.success) {
         alert('Tạo admin thành công');
         setShowCreateForm(false);
-        setFormData({ username: '', password: '', name: '', email: '', storeId: '' });
+        setFormData({ username: '', password: '', name: '', email: '', storeId: '', enforceDeleteApproval: false });
         loadAdmins();
         loadAvailableStores();
       } else {
@@ -203,7 +205,8 @@ const AdminManagement = () => {
       allowChangePassword: admin.allowChangePassword ?? true,
       allowMessageExport: admin.allowMessageExport ?? true,
       allowChangePassword: admin.allowChangePassword ?? true,
-      allowMessageExport: admin.allowMessageExport ?? true
+      allowMessageExport: admin.allowMessageExport ?? true,
+      enforceDeleteApproval: !!admin.enforceDeleteApproval
     });
     setShowEditForm(true);
     setOpenDropdown(null); // Close dropdown
@@ -224,7 +227,8 @@ const AdminManagement = () => {
       allowChangePassword: !!editFormData.allowChangePassword,
       allowMessageExport: !!editFormData.allowMessageExport,
       allowChangePassword: !!editFormData.allowChangePassword,
-      allowMessageExport: !!editFormData.allowMessageExport
+      allowMessageExport: !!editFormData.allowMessageExport,
+      enforceDeleteApproval: !!editFormData.enforceDeleteApproval
     };
 
     if (editFormData.password) {
@@ -308,6 +312,12 @@ const AdminManagement = () => {
                 <label>
                   <input type="checkbox" checked={editFormData.allowMessageExport} onChange={(e) => setEditFormData({ ...editFormData, allowMessageExport: e.target.checked })} />
                   Cho phép sử dụng Xuất tin nhắn
+                </label>
+              </div>
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={editFormData.enforceDeleteApproval} onChange={(e) => setEditFormData({ ...editFormData, enforceDeleteApproval: e.target.checked })} />
+                  Yêu cầu admin duyệt để xóa hóa đơn (mọi thời điểm)
                 </label>
               </div>
 
@@ -396,6 +406,12 @@ const AdminManagement = () => {
                 <label>
                   <input type="checkbox" checked={formData.allowMessageExport} onChange={(e) => setFormData({ ...formData, allowMessageExport: e.target.checked })} />
                   Cho phép sử dụng Xuất tin nhắn
+                </label>
+              </div>
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={formData.enforceDeleteApproval} onChange={(e) => setFormData({ ...formData, enforceDeleteApproval: e.target.checked })} />
+                  Bật yêu cầu admin duyệt để xóa hóa đơn (mặc định tắt)
                 </label>
               </div>
 
