@@ -3079,3 +3079,35 @@
     font-size: 11px;
   }
 }
+.toast-container {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 9999;
+}
+
+.toast-message {
+  background: #ffffff;
+  border: 2px solid #c7d2fe;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+  color: #0f172a;
+  padding: 14px 18px;
+  border-radius: 12px;
+  min-width: 300px;
+  max-width: 420px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.toast-success { border-color: #34d399; background: #ecfdf5; }
+.toast-error { border-color: #f87171; background: #fef2f2; }
+
+.toast-invoice-id {
+  font-weight: 800;
+  color: #1a73e8;
+}
+
+@media (max-width: 600px) {
+  .toast-container { right: 12px; top: 12px; }
+  .toast-message { min-width: 240px; max-width: 320px; }
+}

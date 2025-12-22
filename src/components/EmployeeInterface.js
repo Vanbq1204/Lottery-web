@@ -158,6 +158,7 @@ const EmployeeInterface = ({ user }) => {
 
   // Settings dropdown state
   const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
+  const [toast, setToast] = useState({ visible: false, text: '', kind: 'success' });
 
   // Đơn vị lô tùy chỉnh - lưu trong localStorage
   const [lotoUnit, setLotoUnit] = useState(() => {
@@ -182,6 +183,26 @@ const EmployeeInterface = ({ user }) => {
     const saved = localStorage.getItem('quickXienInput');
     return saved === null ? true : saved === 'true'; // Mặc định là true
   });
+
+  useEffect(() => {
+    const { io } = require('socket.io-client');
+    const baseUrl = getApiUrl('').replace('/api', '');
+    const socket = io(baseUrl);
+    if (user?.id) {
+      socket.emit('join_user', user.id);
+      socket.on('invoice_change_request_decided', (data) => {
+        try {
+          const { invoiceId, requestType, status } = data || {};
+          if (!invoiceId || !status) return;
+          const approved = status === 'approved';
+          const actionLabel = requestType === 'edit' ? 'sửa' : 'xóa';
+          setToast({ visible: true, invoiceId, actionLabel, kind: approved ? 'success' : 'error' });
+          setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 8000);
+        } catch (_) {}
+      });
+    }
+    return () => { socket.disconnect(); };
+  }, [user?.id]);
 
   // Thêm state để track thời gian thay đổi cho logic gộp số trùng
   const [mergeTimeouts, setMergeTimeouts] = useState({});
@@ -4973,6 +4994,21 @@ const EmployeeInterface = ({ user }) => {
 
   return (
     <div className="employee-interface">
+      {toast.visible && (
+        <div className="toast-container">
+          <div className={`toast-message ${toast.kind === 'success' ? 'toast-success' : 'toast-error'}`}>
+            {toast.kind === 'success' ? (
+              <>
+                Hóa đơn <span className="toast-invoice-id">{toast.invoiceId}</span> đã được chấp nhận để {toast.actionLabel}. Vui lòng thao tác lại.
+              </>
+            ) : (
+              <>
+                Hóa đơn <span className="toast-invoice-id">{toast.invoiceId}</span> bị từ chối {toast.actionLabel}.
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <NotificationBell />
       <NotificationModal />
       {/* Mobile Menu Toggle Button */}
