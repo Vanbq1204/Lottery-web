@@ -111,7 +111,7 @@ const SuperAdminCleanup = () => {
       });
 
       if (resp.data?.success) {
-        alert(`Đã xóa thành công:\n- ${resp.data.deletedInvoices} hóa đơn cược\n- ${resp.data.deletedWinningInvoices} hóa đơn thưởng\n- ${resp.data.deletedDailyReports || 0} báo cáo ngày\n- ${resp.data.deletedSnapshots || 0} bản ghi xuất tin nhắn`);
+        alert(`Đã xóa thành công:\n- ${resp.data.deletedInvoices} hóa đơn cược\n- ${resp.data.deletedWinningInvoices} hóa đơn thưởng\n- ${resp.data.deletedDailyReports || 0} báo cáo ngày\n- ${resp.data.deletedSnapshots || 0} bản ghi xuất tin nhắn\n- ${resp.data.deletedInvoiceHistory || 0} lịch sử sửa đổi`);
         // Refresh stats
         checkStats();
       } else setError(resp.data?.message || 'Không thể xóa');
@@ -194,6 +194,7 @@ const SuperAdminCleanup = () => {
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Cửa hàng</th>
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Hóa đơn trúng (Đã trả / Tổng)</th>
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Báo cáo ngày</th>
+                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Lịch sử sửa đổi</th>
                 </tr>
               </thead>
               <tbody>
@@ -240,10 +241,17 @@ const SuperAdminCleanup = () => {
                             <span>{store.totalWinningInvoices}</span>
                           </td>
                           <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                            {store.hasDailyReport ? 
+                            {store.hasDailyReport ?
                               <span style={{ color: '#2e7d32', fontWeight: 600 }}>Có</span> :
                               <span style={{ color: '#777' }}>-</span>
                             }
+                          </td>
+                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                            {store.totalInvoiceHistory > 0 ? (
+                              <span style={{ fontWeight: 600, color: '#1976d2' }}>{store.totalInvoiceHistory}</span>
+                            ) : (
+                              <span style={{ color: '#777' }}>-</span>
+                            )}
                           </td>
                         </tr>
                       ))
@@ -251,14 +259,14 @@ const SuperAdminCleanup = () => {
                       <tr key={admin.adminId}>
                         <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
                         <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{admin.adminName}</td>
-                        <td colSpan="3" style={{ padding: '12px', border: '1px solid #ddd', fontStyle: 'italic', color: '#888' }}>Không có cửa hàng</td>
+                        <td colSpan="4" style={{ padding: '12px', border: '1px solid #ddd', fontStyle: 'italic', color: '#888' }}>Không có cửa hàng</td>
                       </tr>
                     )}
                   </React.Fragment>
                 ))}
                 {statsData.length === 0 && (
                   <tr>
-                    <td colSpan="5" style={{ padding: '20px', textAlign: 'center' }}>Không có dữ liệu admin nào.</td>
+                    <td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Không có dữ liệu admin nào.</td>
                   </tr>
                 )}
               </tbody>

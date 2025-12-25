@@ -13,6 +13,7 @@ import AdminMessageExportSettings from './AdminMessageExportSettings';
 import AdminChangePassword from './AdminChangePassword';
 import AdminStoreTimeSettings from './AdminStoreTimeSettings';
 import AdminDailyReport from './AdminDailyReport';
+import AdminInvoiceHistory from './AdminInvoiceHistory';
 import NotificationBell from './NotificationBell';
 import NotificationModal from './NotificationModal';
 import StoreExpirationBar from './StoreExpirationBar';
@@ -31,6 +32,7 @@ const AdminInterface = ({ user, onLogout }) => {
     ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }] : []),
     { id: 'prize-stats', label: 'Thống kê thưởng tổng hợp', icon: '🏆' },
     { id: 'daily-report', label: 'Báo cáo cuối ngày', icon: '📑' },
+    { id: 'invoice-history', label: 'Lịch sử hoạt động', icon: '📚' },
     // { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' },
     {
       id: 'settings',
@@ -40,10 +42,10 @@ const AdminInterface = ({ user, onLogout }) => {
       subItems: [
         ...(user?.allowMessageExport ? [{ id: 'message-export-settings', label: 'Cài đặt định dạng xuất', icon: '📝' }] : []),
         { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' },
-        { id: 'store-time-settings', label: 'Quản lý thời gian theo cửa hàng', icon: '🏪' }
+        { id: 'store-time-settings', label: 'Quản lý thời gian theo cửa hàng', icon: '🏪' },
+        ...(user?.allowChangePassword ? [{ id: 'change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : []),
       ]
     },
-    ...(user?.allowChangePassword ? [{ id: 'change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : []),
   ];
 
   // Load stores when component mounts
@@ -244,6 +246,12 @@ const AdminInterface = ({ user, onLogout }) => {
         return (
           <div className="admin-content-section">
             <DataCleanup user={user} />
+          </div>
+        );
+      case 'invoice-history':
+        return (
+          <div className="admin-content-section">
+            <AdminInvoiceHistory user={user} />
           </div>
         );
       default:

@@ -198,7 +198,7 @@ const EmployeeInterface = ({ user }) => {
           const actionLabel = requestType === 'edit' ? 'sửa' : 'xóa';
           setToast({ visible: true, invoiceId, actionLabel, kind: approved ? 'success' : 'error' });
           setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 8000);
-        } catch (_) {}
+        } catch (_) { }
       });
     }
     return () => { socket.disconnect(); };
@@ -3458,14 +3458,8 @@ const EmployeeInterface = ({ user }) => {
       case 'changeAmount':
         return `Tiền thừa: ${change.from?.toLocaleString()} → ${change.to?.toLocaleString()} VNĐ`;
       case 'items':
-        const fromCount = Array.isArray(change.from) ? change.from.length : 0;
-        const toCount = Array.isArray(change.to) ? change.to.length : 0;
-
-        // Show summary of bet types changed
-        const fromSummary = formatItemsSummary(change.from);
-        const toSummary = formatItemsSummary(change.to);
-
-        return `Cược: ${fromSummary} → ${toSummary}`;
+        // Hiển thị chi tiết thay đổi cược
+        return formatItemsDetailedChange(change.from, change.to);
       default:
         // For other fields, try to show a simplified version
         if (typeof change.from === 'object' || typeof change.to === 'object') {
@@ -3473,6 +3467,167 @@ const EmployeeInterface = ({ user }) => {
         }
         return `${field}: "${change.from}" → "${change.to}"`;
     }
+  };
+
+  // Định dạng chi tiết thay đổi cược
+  const formatItemsDetailedChange = (fromItems, toItems) => {
+    const fromArr = Array.isArray(fromItems) ? fromItems : [];
+    const toArr = Array.isArray(toItems) ? toItems : [];
+
+    if (fromArr.length === 0 && toArr.length === 0) {
+      return 'Không có thay đổi';
+    }
+
+    // Nếu xóa hết (delete)
+    if (toArr.length === 0) {
+      return (
+        <div>
+          <div style={{ color: '#e74c3c', fontWeight: 'bold', marginBottom: 4 }}>❌ Đã xóa toàn bộ:</div>
+          {formatItemsDetailed(fromArr)}
+        </div>
+      );
+    }
+
+    // Nếu from rỗng (không xảy ra trong edit, chỉ có trong create)
+    if (fromArr.length === 0) {
+      return (
+        <div>
+          <div style={{ color: '#27ae60', fontWeight: 'bold', marginBottom: 4 }}>✅ Đã thêm:</div>
+          {formatItemsDetailed(toArr)}
+        </div>
+      );
+    }
+
+    // Tìm items bị xóa, thêm, và thay đổi
+    const { removed, added, modified } = compareItems(fromArr, toArr);
+
+    return (
+      <div>
+        {removed.length > 0 && (
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ color: '#e74c3c', fontWeight: 'bold', marginBottom: 4 }}>❌ Đã xóa:</div>
+            {formatItemsDetailed(removed)}
+          </div>
+        )}
+        {added.length > 0 && (
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ color: '#27ae60', fontWeight: 'bold', marginBottom: 4 }}>✅ Đã thêm:</div>
+            {formatItemsDetailed(added)}
+          </div>
+        )}
+        {modified.length > 0 && (
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ color: '#f39c12', fontWeight: 'bold', marginBottom: 4 }}>✏️ Đã sửa:</div>
+            {modified.map((mod, idx) => (
+              <div key={idx} style={{ marginLeft: 12, marginBottom: 4 }}>
+                <div style={{ color: '#7f8c8d' }}>{mod.label}:</div>
+                <div style={{ marginLeft: 8 }}>
+                  <div style={{ color: '#e74c3c' }}>Cũ: {formatSingleItem(mod.from)}</div>
+                  <div style={{ color: '#27ae60' }}>Mới: {formatSingleItem(mod.to)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // So sánh 2 mảng items để tìm thay đổi
+  const compareItems = (fromArr, toArr) => {
+    const removed = [];
+    const added = [];
+    const modified = [];
+
+    // Tạo map để so sánh dễ hơn
+    const toMap = new Map();
+    toArr.forEach((item, idx) => {
+      const key = `${item.betType}_${item.numbers}`;
+      toMap.set(key, { item, idx });
+    });
+
+    const fromMap = new Map();
+    fromArr.forEach((item, idx) => {
+      const key = `${item.betType}_${item.numbers}`;
+      fromMap.set(key, { item, idx });
+
+      if (!toMap.has(key)) {
+        // Item bị xóa
+        removed.push(item);
+      } else {
+        // Kiểm tra xem có thay đổi amount/points không
+        const toItem = toMap.get(key).item;
+        const fromAmount = item.amount || item.points || 0;
+        const toAmount = toItem.amount || toItem.points || 0;
+        const fromTotal = item.totalAmount || 0;
+        const toTotal = toItem.totalAmount || 0;
+
+        if (fromAmount !== toAmount || fromTotal !== toTotal) {
+          modified.push({
+            label: item.betTypeLabel || item.betType,
+            from: item,
+            to: toItem
+          });
+        }
+      }
+    });
+
+    toArr.forEach(item => {
+      const key = `${item.betType}_${item.numbers}`;
+      if (!fromMap.has(key)) {
+        // Item mới thêm
+        added.push(item);
+      }
+    });
+
+    return { removed, added, modified };
+  };
+
+  // Định dạng danh sách items chi tiết
+  const formatItemsDetailed = (items) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return <div style={{ marginLeft: 12, color: '#95a5a6' }}>Không có cược</div>;
+    }
+
+    // Nhóm theo betType
+    const grouped = {};
+    items.forEach(item => {
+      const type = item.betTypeLabel || item.betType || 'Khác';
+      if (!grouped[type]) {
+        grouped[type] = [];
+      }
+      grouped[type].push(item);
+    });
+
+    return (
+      <div style={{ marginLeft: 12 }}>
+        {Object.entries(grouped).map(([type, itemsList]) => (
+          <div key={type} style={{ marginBottom: 6 }}>
+            <div style={{ fontWeight: 600, color: '#2c3e50' }}>{type}:</div>
+            {itemsList.map((item, idx) => (
+              <div key={idx} style={{ marginLeft: 16, color: '#34495e' }}>
+                {formatSingleItem(item)}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Định dạng một item cược
+  const formatSingleItem = (item) => {
+    const numbers = item.numbers || item.displayNumbers || '';
+    const isLoto = item.betType === 'loto' || item.betType === 'loA';
+    const amount = item.amount || item.points || 0;
+    const total = item.totalAmount || 0;
+    const unit = isLoto ? 'đ' : 'n';
+
+    if (item.betType === 'xien' && item.isXienNhay) {
+      return `${numbers} x ${amount}${unit} (xiên nháy) = ${total.toLocaleString()}n`;
+    }
+
+    return `${numbers} x ${amount}${unit} = ${total.toLocaleString()}n`;
   };
 
   // Format items summary for history
@@ -3596,12 +3751,12 @@ const EmployeeInterface = ({ user }) => {
     }
 
     let preview = '';
-  switch (betType) {
-    case 'loto':
-    case 'loA':
-      const loCount = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
-      preview = `${loCount} con x ${row.points} điểm x ${lotoMultiplier} = ${calculateLoAmount(row.numbers, row.points).toLocaleString()} VNĐ`;
-      break;
+    switch (betType) {
+      case 'loto':
+      case 'loA':
+        const loCount = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
+        preview = `${loCount} con x ${row.points} điểm x ${lotoMultiplier} = ${calculateLoAmount(row.numbers, row.points).toLocaleString()} VNĐ`;
+        break;
       case '2s':
         const count2s = row.numbers.trim().split(/[\s,.]+/).filter(n => n.length > 0).length;
         preview = `${count2s} con x ${row.amount} = ${calculate2SAmount(row.numbers, row.amount).toLocaleString()} VNĐ`;
@@ -3898,9 +4053,9 @@ const EmployeeInterface = ({ user }) => {
               {renderBetTypeRows('loto')}
 
               {/* Other bet types */}
-          {(['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s']
-            .concat(showDeA ? ['deaA', 'dauA', 'ditA', 'loA'] : []))
-            .map(betType => renderBetTypeRows(betType))}
+              {(['2s', '3s', 'tong', 'kep', 'dau', 'dit', 'bo', 'xien', 'xienquay', '4s']
+                .concat(showDeA ? ['deaA', 'dauA', 'ditA', 'loA'] : []))
+                .map(betType => renderBetTypeRows(betType))}
             </tbody>
           </table>
         </div>
@@ -4099,6 +4254,7 @@ const EmployeeInterface = ({ user }) => {
                     </div>
                   )}
 
+                  {/* Hiển thị chi tiết thay đổi cho cả edit và delete */}
                   {history.action === 'edit' && Object.keys(history.changes).length > 0 && (
                     <div className="history-changes">
                       <strong>Thay đổi:</strong>
@@ -4109,6 +4265,25 @@ const EmployeeInterface = ({ user }) => {
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  )}
+
+                  {/* Hiển thị nội dung đã xóa cho action delete */}
+                  {history.action === 'delete' && history.oldData && (
+                    <div className="history-changes">
+                      <strong>Nội dung đã xóa:</strong>
+                      <div style={{ marginTop: 8 }}>
+                        {history.oldData.items && history.oldData.items.length > 0 ? (
+                          formatItemsDetailed(history.oldData.items)
+                        ) : (
+                          <div style={{ marginLeft: 12, color: '#95a5a6' }}>Không có dữ liệu cược</div>
+                        )}
+                        {history.oldData.totalAmount && (
+                          <div style={{ marginTop: 8, marginLeft: 12, fontWeight: 'bold', color: '#e74c3c' }}>
+                            Tổng tiền: {history.oldData.totalAmount.toLocaleString()} VNĐ
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
