@@ -5,11 +5,19 @@ const defaultFormat = { lo: 'Lo', loA: 'Lo A', twoS: 'De', deaA: 'De A', dauA: '
 
 const AdminMessageExportSettings = ({ user }) => {
   const resolveFormatKey = (u) => { const id = u?._id || u?.id; return id ? `msgExportFormat:${id}` : 'msgExportFormat'; };
+  const resolveSeparateExportKey = (u) => { const id = u?._id || u?.id; return id ? `msgSeparateExport:${id}` : 'msgSeparateExport'; };
+
   const [format, setFormat] = useState(() => {
-    try { const raw = localStorage.getItem(resolveFormatKey(user)); if (!raw) return defaultFormat; const parsed = JSON.parse(raw); return { ...defaultFormat, ...(parsed||{}) }; } catch (_) { return defaultFormat; }
+    try { const raw = localStorage.getItem(resolveFormatKey(user)); if (!raw) return defaultFormat; const parsed = JSON.parse(raw); return { ...defaultFormat, ...(parsed || {}) }; } catch (_) { return defaultFormat; }
   });
 
-  useEffect(() => { try { localStorage.setItem(resolveFormatKey(user), JSON.stringify(format)); } catch (_) {} }, [format, user]);
+  const [separateExport, setSeparateExport] = useState(() => {
+    try { const raw = localStorage.getItem(resolveSeparateExportKey(user)); return raw === 'true'; } catch (_) { return false; }
+  });
+
+  useEffect(() => { try { localStorage.setItem(resolveFormatKey(user), JSON.stringify(format)); } catch (_) { } }, [format, user]);
+
+  useEffect(() => { try { localStorage.setItem(resolveSeparateExportKey(user), separateExport ? 'true' : 'false'); } catch (_) { } }, [separateExport, user]);
 
   const resetDefault = () => setFormat(defaultFormat);
 
@@ -26,25 +34,39 @@ const AdminMessageExportSettings = ({ user }) => {
         <div className="msg-block">
           <div className="msg-title">Cài đặt định dạng</div>
           <div className="msg-format-row">
-            <input placeholder="Lo" value={format.lo} onChange={(e)=>setFormat({ ...format, lo: e.target.value })} />
-            <input placeholder="De" value={format.twoS} onChange={(e)=>setFormat({ ...format, twoS: e.target.value })} />
-            <input placeholder="Bc" value={format.threeS} onChange={(e)=>setFormat({ ...format, threeS: e.target.value })} />
-            <input placeholder="De Tong" value={format.tong} onChange={(e)=>setFormat({ ...format, tong: e.target.value })} />
-            <input placeholder="De Dau" value={format.dau} onChange={(e)=>setFormat({ ...format, dau: e.target.value })} />
-            <input placeholder="De Dit" value={format.dit} onChange={(e)=>setFormat({ ...format, dit: e.target.value })} />
-            <input placeholder="Kep" value={format.kep} onChange={(e)=>setFormat({ ...format, kep: e.target.value })} />
-            <input placeholder="Bo" value={format.boPrefix} onChange={(e)=>setFormat({ ...format, boPrefix: e.target.value })} />
-            <input placeholder="Xien2" value={format.xien2} onChange={(e)=>setFormat({ ...format, xien2: e.target.value })} />
-            <input placeholder="Xien3" value={format.xien3} onChange={(e)=>setFormat({ ...format, xien3: e.target.value })} />
-            <input placeholder="Xien4" value={format.xien4} onChange={(e)=>setFormat({ ...format, xien4: e.target.value })} />
-            <input placeholder="xq3" value={format.xq3} onChange={(e)=>setFormat({ ...format, xq3: e.target.value })} />
-            <input placeholder="xq4" value={format.xq4} onChange={(e)=>setFormat({ ...format, xq4: e.target.value })} />
-            <input style={{ backgroundColor: '#2b87432d' }} placeholder="Xiennhay" value={format.xiennhay} onChange={(e)=>setFormat({ ...format, xiennhay: e.target.value })} />
-            <input style={{ backgroundColor: '#2b87432d' }} placeholder="4s" value={format.fourS} onChange={(e)=>setFormat({ ...format, fourS: e.target.value })} />
-            <input style={{ backgroundColor: '#2b87432d' }} placeholder="Lo A" value={format.loA} onChange={(e)=>setFormat({ ...format, loA: e.target.value })} />
-            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De A" value={format.deaA} onChange={(e)=>setFormat({ ...format, deaA: e.target.value })} />
-            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De Dau A" value={format.dauA} onChange={(e)=>setFormat({ ...format, dauA: e.target.value })} />
-            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De Dit A" value={format.ditA} onChange={(e)=>setFormat({ ...format, ditA: e.target.value })} />
+            <input placeholder="Lo" value={format.lo} onChange={(e) => setFormat({ ...format, lo: e.target.value })} />
+            <input placeholder="De" value={format.twoS} onChange={(e) => setFormat({ ...format, twoS: e.target.value })} />
+            <input placeholder="Bc" value={format.threeS} onChange={(e) => setFormat({ ...format, threeS: e.target.value })} />
+            <input placeholder="De Tong" value={format.tong} onChange={(e) => setFormat({ ...format, tong: e.target.value })} />
+            <input placeholder="De Dau" value={format.dau} onChange={(e) => setFormat({ ...format, dau: e.target.value })} />
+            <input placeholder="De Dit" value={format.dit} onChange={(e) => setFormat({ ...format, dit: e.target.value })} />
+            <input placeholder="Kep" value={format.kep} onChange={(e) => setFormat({ ...format, kep: e.target.value })} />
+            <input placeholder="Bo" value={format.boPrefix} onChange={(e) => setFormat({ ...format, boPrefix: e.target.value })} />
+            <input placeholder="Xien2" value={format.xien2} onChange={(e) => setFormat({ ...format, xien2: e.target.value })} />
+            <input placeholder="Xien3" value={format.xien3} onChange={(e) => setFormat({ ...format, xien3: e.target.value })} />
+            <input placeholder="Xien4" value={format.xien4} onChange={(e) => setFormat({ ...format, xien4: e.target.value })} />
+            <input placeholder="xq3" value={format.xq3} onChange={(e) => setFormat({ ...format, xq3: e.target.value })} />
+            <input placeholder="xq4" value={format.xq4} onChange={(e) => setFormat({ ...format, xq4: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="Xiennhay" value={format.xiennhay} onChange={(e) => setFormat({ ...format, xiennhay: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="4s" value={format.fourS} onChange={(e) => setFormat({ ...format, fourS: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="Lo A" value={format.loA} onChange={(e) => setFormat({ ...format, loA: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De A" value={format.deaA} onChange={(e) => setFormat({ ...format, deaA: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De Dau A" value={format.dauA} onChange={(e) => setFormat({ ...format, dauA: e.target.value })} />
+            <input style={{ backgroundColor: '#2b87432d' }} placeholder="De Dit A" value={format.ditA} onChange={(e) => setFormat({ ...format, ditA: e.target.value })} />
+          </div>
+          <div className="msg-block" style={{ marginTop: 16 }}>
+            <div className="msg-title">Tùy chọn xuất tin nhắn</div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={separateExport}
+                onChange={(e) => setSeparateExport(e.target.checked)}
+              />
+              <span>Xuất riêng theo từng cửa hàng (trong lịch sử)</span>
+            </label>
+            <div className="msg-note" style={{ marginTop: 8 }}>
+              Khi bật: Lịch sử xuất tin sẽ hiển thị riêng từng cửa hàng. Khi tắt: Gộp tất cả cửa hàng như bình thường.
+            </div>
           </div>
           <div style={{ marginTop: 12 }}>
             <button className="msg-refresh-btn" onClick={resetDefault}>Khôi phục mặc định</button>

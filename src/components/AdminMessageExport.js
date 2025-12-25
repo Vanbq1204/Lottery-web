@@ -76,6 +76,11 @@ const AdminMessageExport = ({ user }) => {
   const [applyCustomTypes, setApplyCustomTypes] = useState(initialScope.types);
   const [scopeModalOpen, setScopeModalOpen] = useState(false);
 
+  // Separate export setting
+  const resolveSeparateExportKey = (u) => { const id = u?._id || u?.id; return id ? `msgSeparateExport:${id}` : 'msgSeparateExport'; };
+  const getInitialSeparateExport = (u) => { try { const raw = localStorage.getItem(resolveSeparateExportKey(u)); return raw === 'true'; } catch (_) { return false; } };
+  const [separateExport, setSeparateExport] = useState(() => getInitialSeparateExport(user));
+
   // Scroll position preservation
   const scrollPositionRef = React.useRef(0);
 
@@ -87,6 +92,8 @@ const AdminMessageExport = ({ user }) => {
     const scope = getInitialScope(user);
     setApplyMode(scope.mode);
     setApplyCustomTypes(scope.types);
+    const sepExport = getInitialSeparateExport(user);
+    setSeparateExport(sepExport);
   }, [user]);
 
   // Lưu lại hệ số mỗi khi thay đổi (ghi cả key theo admin và key chung để dự phòng)
@@ -103,7 +110,7 @@ const AdminMessageExport = ({ user }) => {
   }, [sendFactor]);
 
   useEffect(() => {
-    try { localStorage.setItem(resolveScopeKey(user), JSON.stringify({ mode: applyMode, types: applyCustomTypes })); } catch (_) {}
+    try { localStorage.setItem(resolveScopeKey(user), JSON.stringify({ mode: applyMode, types: applyCustomTypes })); } catch (_) { }
   }, [applyMode, applyCustomTypes, user]);
 
   const shouldApply = (type) => {
@@ -576,7 +583,13 @@ const AdminMessageExport = ({ user }) => {
       setExporting(true);
       const token = localStorage.getItem('token');
       const resp = await axios.post(getApiUrl('/admin/message-exports/export'),
-        { date: selectedDate, multiplier: sendFactor, format, applyScope: { mode: applyMode, types: applyCustomTypes } },
+        {
+          date: selectedDate,
+          multiplier: sendFactor,
+          format,
+          applyScope: { mode: applyMode, types: applyCustomTypes },
+          separateExport: separateExport
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (resp.data?.success) {
@@ -704,6 +717,22 @@ const AdminMessageExport = ({ user }) => {
     }
   };
 
+  // Copy individual store snapshot
+  const copyStoreSnapshot = async (storeMessages, storeName, sequence, storeId) => {
+    try {
+      const text = buildSnapshotText(storeMessages || {});
+      await navigator.clipboard.writeText(text);
+      setCopyStatus(`Đã sao chép ${storeName}`);
+      const key = `${sequence}_${storeId}`;
+      setCopiedMap(prev => ({ ...prev, [key]: true }));
+      setTimeout(() => setCopyStatus(''), 2000);
+      setTimeout(() => setCopiedMap(prev => ({ ...prev, [key]: false })), 1500);
+    } catch (e) {
+      setCopyStatus('Sao chép thất bại');
+      setTimeout(() => setCopyStatus(''), 2000);
+    }
+  };
+
   useEffect(() => {
     loadStatistics(selectedDate);
     loadHistory(selectedDate);
@@ -812,9 +841,9 @@ const AdminMessageExport = ({ user }) => {
               <button className="modal-close" onClick={() => setScopeModalOpen(false)}>×</button>
             </div>
             <div className="modal-radio-group">
-              <label><input type="radio" name="applyMode" checked={applyMode==='exceptLo'} onChange={() => setApplyMode('exceptLo')} /> Áp dụng tất cả trừ lô</label>
-              <label><input type="radio" name="applyMode" checked={applyMode==='all'} onChange={() => setApplyMode('all')} /> Áp dụng tất cả</label>
-              <label><input type="radio" name="applyMode" checked={applyMode==='custom'} onChange={() => setApplyMode('custom')} /> Lựa chọn</label>
+              <label><input type="radio" name="applyMode" checked={applyMode === 'exceptLo'} onChange={() => setApplyMode('exceptLo')} /> Áp dụng tất cả trừ lô</label>
+              <label><input type="radio" name="applyMode" checked={applyMode === 'all'} onChange={() => setApplyMode('all')} /> Áp dụng tất cả</label>
+              <label><input type="radio" name="applyMode" checked={applyMode === 'custom'} onChange={() => setApplyMode('custom')} /> Lựa chọn</label>
             </div>
             {applyMode === 'custom' && (
               <div className="modal-checkbox-grid">
@@ -931,7 +960,7 @@ const AdminMessageExport = ({ user }) => {
 
         <div className="msg-control-group">
           <label>Phạm vi hệ số:</label>
-          <button className={`msg-scope-chip ${applyMode==='all' ? 'chip-all' : applyMode==='exceptLo' ? 'chip-except-lo' : 'chip-custom'}`} onClick={() => setScopeModalOpen(true)}>
+          <button className={`msg-scope-chip ${applyMode === 'all' ? 'chip-all' : applyMode === 'exceptLo' ? 'chip-except-lo' : 'chip-custom'}`} onClick={() => setScopeModalOpen(true)}>
             {applyMode === 'all' ? 'Tất cả' : applyMode === 'exceptLo' ? 'Tất cả trừ Lô' : `Lựa chọn (${applyCustomTypes.length})`}
           </button>
         </div>
@@ -1018,6 +1047,9 @@ const AdminMessageExport = ({ user }) => {
                     {typeof h.multiplier === 'number' && (
                       <span className="msg-badge">{h.multiplier}</span>
                     )}
+                    {h.separateExport && (
+                      <span className="msg-badge" style={{ backgroundColor: '#2b8743', marginLeft: 4 }}>Xuất riêng</span>
+                    )}
                   </div>
                   <div className="msg-snapshot-actions">
                     <button
@@ -1033,7 +1065,12 @@ const AdminMessageExport = ({ user }) => {
                           const token = localStorage.getItem('token');
                           const resp = await axios.put(
                             getApiUrl(`/admin/message-exports/reexport/${h._id}`),
-                            { multiplier: sendFactor, format, applyScope: { mode: applyMode, types: applyCustomTypes } },
+                            {
+                              multiplier: sendFactor,
+                              format,
+                              applyScope: { mode: applyMode, types: applyCustomTypes },
+                              separateExport: separateExport
+                            },
                             { headers: { Authorization: `Bearer ${token}` } }
                           );
                           if (resp.data?.success) {
@@ -1051,29 +1088,96 @@ const AdminMessageExport = ({ user }) => {
                       {`Xuất lại lần ${h.sequence}`}
                     </button>
                   </div>
-                  <pre className="msg-line">{h.messages?.loto}</pre>
-                  <pre className="msg-line">{h.messages?.twoS}</pre>
-                  {h.messages?.loA && (<pre className="msg-line">{h.messages?.loA}</pre>)}
-                  {h.messages?.deaA && (<pre className="msg-line">{h.messages?.deaA}</pre>)}
-                  <pre className="msg-line">{h.messages?.threeS}</pre>
-                  {/* Chỉ hiển thị 4 số nếu có dữ liệu thật */}
-                  {h.messages?.fourS && (
-                    <pre className="msg-line">{h.messages?.fourS}</pre>
-                  )}
-                  <pre className="msg-line">{h.messages?.tong}</pre>
-                  <pre className="msg-line">{h.messages?.dau}</pre>
-                  {h.messages?.dauA && (<pre className="msg-line">{h.messages?.dauA}</pre>)}
-                  <pre className="msg-line">{h.messages?.dit}</pre>
-                  {h.messages?.ditA && (<pre className="msg-line">{h.messages?.ditA}</pre>)}
-                  <pre className="msg-line">{h.messages?.kep}</pre>
-                  <pre className="msg-line">{h.messages?.bo}</pre>
-                  <pre className="msg-line">{h.messages?.xien2 || h.messages?.xien}</pre>
-                  <pre className="msg-line">{h.messages?.xien3 || h.messages?.xien}</pre>
-                  <pre className="msg-line">{h.messages?.xien4 || h.messages?.xien}</pre>
-                  <pre className="msg-line">{h.messages?.xienq3 || h.messages?.xienquay}</pre>
-                  <pre className="msg-line">{h.messages?.xienq4 || h.messages?.xienquay}</pre>
-                  {h.messages?.xiennhay && (
-                    <pre className="msg-line">{h.messages?.xiennhay}</pre>
+
+                  {/* Nếu separateExport được bật và có storeMessages, hiển thị theo từng cửa hàng */}
+                  {h.separateExport && h.storeMessages && h.storeMessages.length > 0 ? (
+                    <div style={{ marginTop: 16 }}>
+                      {h.storeMessages.map((store, idx) => (
+                        <div key={store.storeId || idx} style={{
+                          border: '2px solid #e0e0e0',
+                          borderRadius: 8,
+                          padding: 12,
+                          marginBottom: 12,
+                          backgroundColor: '#f9f9f9'
+                        }}>
+                          <div style={{
+                            fontWeight: 700,
+                            fontSize: 16,
+                            marginBottom: 8,
+                            color: '#2b8743',
+                            borderBottom: '2px solid #2b8743',
+                            paddingBottom: 4,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}>
+                            <span>📍 {store.storeName}</span>
+                            <button
+                              className={`msg-copy-btn ${copiedMap[`${h.sequence}_${store.storeId}`] ? 'copied' : ''}`}
+                              style={{
+                                fontSize: 13,
+                                padding: '4px 10px',
+                                backgroundColor: copiedMap[`${h.sequence}_${store.storeId}`] ? '#2b8743' : undefined
+                              }}
+                              onClick={() => copyStoreSnapshot(store.messages, store.storeName, h.sequence, store.storeId)}
+                            >
+                              {copiedMap[`${h.sequence}_${store.storeId}`] ? '✓ Đã sao chép' : '📋 Sao chép'}
+                            </button>
+                          </div>
+                          <pre className="msg-line">{store.messages?.loto}</pre>
+                          <pre className="msg-line">{store.messages?.twoS}</pre>
+                          {store.messages?.loA && (<pre className="msg-line">{store.messages?.loA}</pre>)}
+                          {store.messages?.deaA && (<pre className="msg-line">{store.messages?.deaA}</pre>)}
+                          <pre className="msg-line">{store.messages?.threeS}</pre>
+                          {store.messages?.fourS && (
+                            <pre className="msg-line">{store.messages?.fourS}</pre>
+                          )}
+                          <pre className="msg-line">{store.messages?.tong}</pre>
+                          <pre className="msg-line">{store.messages?.dau}</pre>
+                          {store.messages?.dauA && (<pre className="msg-line">{store.messages?.dauA}</pre>)}
+                          <pre className="msg-line">{store.messages?.dit}</pre>
+                          {store.messages?.ditA && (<pre className="msg-line">{store.messages?.ditA}</pre>)}
+                          <pre className="msg-line">{store.messages?.kep}</pre>
+                          <pre className="msg-line">{store.messages?.bo}</pre>
+                          <pre className="msg-line">{store.messages?.xien2 || store.messages?.xien}</pre>
+                          <pre className="msg-line">{store.messages?.xien3 || store.messages?.xien}</pre>
+                          <pre className="msg-line">{store.messages?.xien4 || store.messages?.xien}</pre>
+                          <pre className="msg-line">{store.messages?.xienq3 || store.messages?.xienquay}</pre>
+                          <pre className="msg-line">{store.messages?.xienq4 || store.messages?.xienquay}</pre>
+                          {store.messages?.xiennhay && (
+                            <pre className="msg-line">{store.messages?.xiennhay}</pre>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* Hiển thị gộp như bình thường khi không bật separateExport */
+                    <>
+                      <pre className="msg-line">{h.messages?.loto}</pre>
+                      <pre className="msg-line">{h.messages?.twoS}</pre>
+                      {h.messages?.loA && (<pre className="msg-line">{h.messages?.loA}</pre>)}
+                      {h.messages?.deaA && (<pre className="msg-line">{h.messages?.deaA}</pre>)}
+                      <pre className="msg-line">{h.messages?.threeS}</pre>
+                      {/* Chỉ hiển thị 4 số nếu có dữ liệu thật */}
+                      {h.messages?.fourS && (
+                        <pre className="msg-line">{h.messages?.fourS}</pre>
+                      )}
+                      <pre className="msg-line">{h.messages?.tong}</pre>
+                      <pre className="msg-line">{h.messages?.dau}</pre>
+                      {h.messages?.dauA && (<pre className="msg-line">{h.messages?.dauA}</pre>)}
+                      <pre className="msg-line">{h.messages?.dit}</pre>
+                      {h.messages?.ditA && (<pre className="msg-line">{h.messages?.ditA}</pre>)}
+                      <pre className="msg-line">{h.messages?.kep}</pre>
+                      <pre className="msg-line">{h.messages?.bo}</pre>
+                      <pre className="msg-line">{h.messages?.xien2 || h.messages?.xien}</pre>
+                      <pre className="msg-line">{h.messages?.xien3 || h.messages?.xien}</pre>
+                      <pre className="msg-line">{h.messages?.xien4 || h.messages?.xien}</pre>
+                      <pre className="msg-line">{h.messages?.xienq3 || h.messages?.xienquay}</pre>
+                      <pre className="msg-line">{h.messages?.xienq4 || h.messages?.xienquay}</pre>
+                      {h.messages?.xiennhay && (
+                        <pre className="msg-line">{h.messages?.xiennhay}</pre>
+                      )}
+                    </>
                   )}
                 </div>
               ))}
