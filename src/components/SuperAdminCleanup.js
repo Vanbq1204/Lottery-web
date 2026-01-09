@@ -10,6 +10,8 @@ const SuperAdminCleanup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedStoreIds, setSelectedStoreIds] = useState(new Set());
+  const [keepWinningInvoicesMap, setKeepWinningInvoicesMap] = useState(new Map()); // Map<storeId, boolean>
+  const [allowRecentDates, setAllowRecentDates] = useState(false); // Allow deletion of today and yesterday
 
   const getCurrentVNDateStr = () => {
     const now = new Date();
@@ -27,6 +29,11 @@ const SuperAdminCleanup = () => {
 
   const isDateAllowed = (dStr) => {
     if (!dStr) return false;
+
+    // Nếu allowRecentDates = true, cho phép xóa mọi ngày
+    if (allowRecentDates) return true;
+
+    // Nếu không, áp dụng rule cũ: không được xóa hôm nay và hôm qua
     const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
     const todayStr = getCurrentVNDateStr();
     const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
@@ -42,13 +49,17 @@ const SuperAdminCleanup = () => {
     setLoading(true);
     setStatsData(null);
     setSelectedStoreIds(new Set());
+    setKeepWinningInvoicesMap(new Map());
 
     try {
       if (!date) { setError('Vui lòng chọn ngày'); setLoading(false); return; }
       if (!isDateAllowed(date)) { setError('Chỉ được xóa các ngày trước 2 ngày gần nhất (Hôm nay và Hôm qua)'); setLoading(false); return; }
 
       const token = localStorage.getItem('token');
-      const resp = await axios.get(getApiUrl(`/superadmin/cleanup/stats?date=${date}`), { headers: { Authorization: `Bearer ${token}` } });
+      const resp = await axios.get(
+        getApiUrl(`/superadmin/cleanup/stats?date=${date}&allowRecentDates=${allowRecentDates}`),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       if (resp.data?.success) {
         const data = resp.data.data || [];
@@ -91,27 +102,83 @@ const SuperAdminCleanup = () => {
     setSelectedStoreIds(newSelected);
   };
 
+  const handleKeepWinningInvoicesChange = (storeId) => {
+    const newMap = new Map(keepWinningInvoicesMap);
+    if (newMap.has(storeId)) {
+      newMap.delete(storeId);
+    } else {
+      newMap.set(storeId, true);
+    }
+    setKeepWinningInvoicesMap(newMap);
+  };
+
   const performCleanup = async () => {
     if (selectedStoreIds.size === 0) {
       setError('Vui lòng chọn ít nhất một cửa hàng để xóa dữ liệu.');
       return;
     }
 
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa dữ liệu ngày ${date} cho ${selectedStoreIds.size} cửa hàng đã chọn không?\n\nLƯU Ý: Hành động này sẽ xóa cả LỊCH SỬ XUẤT TIN NHẮN của các Admin liên quan.\n\nHành động này không thể hoàn tác!`)) {
+    // Tạo summary thông tin các cửa hàng và chế độ
+    const storesWithKeep = Array.from(selectedStoreIds).filter(id => keepWinningInvoicesMap.has(id));
+    const storesWithoutKeep = Array.from(selectedStoreIds).filter(id => !keepWinningInvoicesMap.has(id));
+
+    let deleteMessage = `Bạn có chắc chắn muốn xóa dữ liệu ngày ${date} cho ${selectedStoreIds.size} cửa hàng đã chọn không?\n\n`;
+
+    // Cảnh báo đặc biệt nếu đang xóa ngày gần đây
+    const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+    const todayStr = getCurrentVNDateStr();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+    if (date === todayStr || date === yesterdayStr) {
+      deleteMessage += `⚠️⚠️⚠️ CẢNH BÁO: BẠN ĐANG XÓA DỮ LIỆU NGÀY GẦN ĐÂY!\n`;
+      deleteMessage += `Ngày: ${date === todayStr ? 'HÔM NAY' : 'HÔM QUA'}\n`;
+      deleteMessage += `Đây là thao tác NGUY HIỂM và chỉ nên thực hiện khi thật sự cần thiết!\n\n`;
+    }
+
+    if (storesWithKeep.length > 0) {
+      deleteMessage += `📋 ${storesWithKeep.length} cửa hàng: CHẾ ĐỘ GIỮ LẠI HOÁ ĐƠN THƯỞNG\n`;
+    }
+    if (storesWithoutKeep.length > 0) {
+      deleteMessage += `📋 ${storesWithoutKeep.length} cửa hàng: XÓA TẤT CẢ (bao gồm hoá đơn thưởng)\n`;
+    }
+
+    deleteMessage += `\nLƯU Ý: Hành động này sẽ xóa LỊCH SỬ XUẤT TIN NHẮN của các Admin liên quan.\n\nHành động này không thể hoàn tác!`;
+
+    if (!window.confirm(deleteMessage)) {
       return;
     }
 
     setError(''); setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      // Send selected storeIds in body
+
+      // Tạo mảng stores với cấu hình riêng cho từng cửa hàng
+      const stores = Array.from(selectedStoreIds).map(storeId => ({
+        storeId,
+        keepWinningInvoices: keepWinningInvoicesMap.has(storeId)
+      }));
+
       const resp = await axios.delete(getApiUrl(`/superadmin/cleanup`), {
         headers: { Authorization: `Bearer ${token}` },
-        data: { date, storeIds: Array.from(selectedStoreIds) }
+        data: { date, stores, allowRecentDates }
       });
 
       if (resp.data?.success) {
-        alert(`Đã xóa thành công:\n- ${resp.data.deletedInvoices} hóa đơn cược\n- ${resp.data.deletedWinningInvoices} hóa đơn thưởng\n- ${resp.data.deletedDailyReports || 0} báo cáo ngày\n- ${resp.data.deletedSnapshots || 0} bản ghi xuất tin nhắn\n- ${resp.data.deletedInvoiceHistory || 0} lịch sử sửa đổi`);
+        let message = `Đã xóa thành công:\n- ${resp.data.deletedInvoices} hóa đơn cược\n`;
+        if (resp.data.deletedWinningInvoices > 0) {
+          message += `- ${resp.data.deletedWinningInvoices} hóa đơn thưởng\n`;
+        }
+        message += `- ${resp.data.deletedDailyReports || 0} báo cáo ngày\n`;
+        message += `- ${resp.data.deletedSnapshots || 0} bản ghi xuất tin nhắn\n`;
+        message += `- ${resp.data.deletedInvoiceHistory || 0} lịch sử sửa đổi`;
+
+        if (resp.data.keptWinningInvoices > 0) {
+          message += `\n\n✅ Đã giữ lại ${resp.data.keptWinningInvoices} hóa đơn thưởng`;
+        }
+
+        alert(message);
         // Refresh stats
         checkStats();
       } else setError(resp.data?.message || 'Không thể xóa');
@@ -141,7 +208,7 @@ const SuperAdminCleanup = () => {
     <div className="super-admin-content">
       <div className="super-admin-header">
         <h2>Làm sạch dữ liệu theo ngày</h2>
-        <p>Chọn ngày để xem thống kê và xóa dữ liệu cũ (chỉ cho phép xóa trước 2 ngày gần nhất).</p>
+        <p>Chọn ngày để xem thống kê và xóa dữ liệu cũ. Mặc định chỉ cho phép xóa các ngày trước hôm qua, trừ khi bật chế độ cho phép xóa ngày gần đây.</p>
       </div>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', background: '#f5f5f5', padding: '15px', borderRadius: '8px' }}>
@@ -170,6 +237,40 @@ const SuperAdminCleanup = () => {
         </button>
       </div>
 
+      <div style={{
+        display: 'flex',
+        gap: 10,
+        alignItems: 'center',
+        marginBottom: 20,
+        padding: '12px',
+        background: allowRecentDates ? '#ffebee' : '#f5f5f5',
+        borderRadius: '8px',
+        border: allowRecentDates ? '2px solid #d32f2f' : '1px solid #ddd',
+        transition: 'all 0.3s ease'
+      }}>
+        <input
+          type="checkbox"
+          id="allowRecentDates"
+          checked={allowRecentDates}
+          onChange={(e) => setAllowRecentDates(e.target.checked)}
+          style={{ transform: 'scale(1.5)', cursor: 'pointer' }}
+        />
+        <label
+          htmlFor="allowRecentDates"
+          style={{
+            fontWeight: 'bold',
+            color: allowRecentDates ? '#d32f2f' : '#666',
+            cursor: 'pointer',
+            userSelect: 'none',
+            flex: 1
+          }}
+        >
+          {allowRecentDates ? '⚠️ CHẾ ĐỘ NGUY HIỂM: ' : '🔒 '}
+          Cho phép xóa dữ liệu HÔM NAY và HÔM QUA
+          {allowRecentDates && ' (ĐANG BẬT)'}
+        </label>
+      </div>
+
       {error && <div style={{ color: '#d32f2f', fontWeight: 600, marginBottom: 15, padding: '10px', background: '#ffebee', borderRadius: '4px' }}>{error}</div>}
 
       {statsData && (
@@ -190,6 +291,9 @@ const SuperAdminCleanup = () => {
               <thead>
                 <tr style={{ background: '#f5f5f5' }}>
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '50px' }}>Chọn</th>
+                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '80px' }}>
+                    <div style={{ fontSize: '11px', lineHeight: '1.2' }}>Giữ lại<br />HĐ Thưởng</div>
+                  </th>
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Admin</th>
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Cửa hàng</th>
                   <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Hóa đơn trúng (Đã trả / Tổng)</th>
@@ -202,13 +306,29 @@ const SuperAdminCleanup = () => {
                   <React.Fragment key={admin.adminId}>
                     {admin.stores.length > 0 ? (
                       admin.stores.map((store, index) => (
-                        <tr key={store.storeId} style={{ background: selectedStoreIds.has(store.storeId) ? '#e8f5e9' : 'white' }}>
+                        <tr
+                          key={store.storeId}
+                          style={{
+                            background: keepWinningInvoicesMap.has(store.storeId)
+                              ? '#fff3e0'
+                              : (selectedStoreIds.has(store.storeId) ? '#e8f5e9' : 'white')
+                          }}
+                        >
                           <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
                             <input
                               type="checkbox"
                               checked={selectedStoreIds.has(store.storeId)}
                               onChange={() => handleCheckboxChange(store.storeId)}
                               style={{ transform: 'scale(1.5)', cursor: 'pointer' }}
+                            />
+                          </td>
+                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                            <input
+                              type="checkbox"
+                              checked={keepWinningInvoicesMap.has(store.storeId)}
+                              onChange={() => handleKeepWinningInvoicesChange(store.storeId)}
+                              style={{ transform: 'scale(1.3)', cursor: 'pointer' }}
+                              title="Chỉ giữ lại hoá đơn thưởng khi xóa"
                             />
                           </td>
                           {index === 0 && (
@@ -258,6 +378,7 @@ const SuperAdminCleanup = () => {
                     ) : (
                       <tr key={admin.adminId}>
                         <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                        <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
                         <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{admin.adminName}</td>
                         <td colSpan="4" style={{ padding: '12px', border: '1px solid #ddd', fontStyle: 'italic', color: '#888' }}>Không có cửa hàng</td>
                       </tr>
@@ -266,7 +387,7 @@ const SuperAdminCleanup = () => {
                 ))}
                 {statsData.length === 0 && (
                   <tr>
-                    <td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Không có dữ liệu admin nào.</td>
+                    <td colSpan="7" style={{ padding: '20px', textAlign: 'center' }}>Không có dữ liệu admin nào.</td>
                   </tr>
                 )}
               </tbody>

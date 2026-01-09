@@ -235,6 +235,7 @@
 }
 
 @media (max-width: 768px) {
+
   .system-stats-table th,
   .system-stats-table td {
     padding: 8px;
@@ -278,61 +279,68 @@
   .super-admin-interface {
     flex-direction: column;
   }
-  
+
   .super-admin-sidebar {
     width: 100%;
     height: auto;
     border-right: none;
     border-bottom: 2px solid black;
   }
-  
+
   .super-admin-nav {
     display: flex;
     overflow-x: auto;
     padding: 0;
   }
-  
+
   .super-admin-nav-item {
     min-width: 200px;
     border-bottom: none;
     border-right: 1px solid #eee;
     white-space: nowrap;
   }
-  
+
   .super-admin-nav-item:last-child {
     border-right: none;
   }
-  
+
   .super-admin-logout {
     display: none;
   }
-  
+
   .super-admin-content {
     padding: 20px;
   }
-  
+
   .super-admin-header h2 {
     font-size: 24px;
   }
-  
+
   .placeholder-box {
     padding: 32px 24px;
   }
-  
-.placeholder-box h3 {
-  font-size: 20px;
-}
+
+  .placeholder-box h3 {
+    font-size: 20px;
+  }
 }
 
 /* Mobile top bar & sidebar slide-in (áp dụng riêng mobile, không ảnh hưởng desktop) */
-.super-admin-mobile-topbar { display: none; }
-.super-admin-overlay { display: none; }
+.super-admin-mobile-topbar {
+  display: none;
+}
+
+.super-admin-overlay {
+  display: none;
+}
 
 @media (max-width: 992px) {
   .super-admin-mobile-topbar {
     display: flex;
     position: fixed;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 50px;
     background: #ffffff;
     border-bottom: 2px solid #000;
@@ -341,6 +349,7 @@
     padding: 0 12px;
     z-index: 1001;
   }
+
   .super-admin-mobile-menu-button {
     border: 1px solid #000;
     background: #fff;
@@ -350,6 +359,7 @@
     cursor: pointer;
     font-size: 14px;
   }
+
   .super-admin-mobile-topbar-title {
     flex: 1;
     text-align: center;
@@ -357,6 +367,7 @@
     color: #000;
     font-size: 16px;
   }
+
   .super-admin-mobile-logout-button {
     border: 1px solid #dc3545;
     background: #dc3545;
@@ -372,28 +383,41 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     z-index: 1000;
   }
 
   .super-admin-sidebar {
     position: fixed;
-    left: 0; top: 0; height: 100vh;
+    left: 0;
+    top: 0;
+    height: 100vh;
     width: 240px;
     transform: translateX(-110%);
     transition: transform 0.25s ease;
     z-index: 1002;
   }
-  .super-admin-sidebar.super-admin-sidebar--open { transform: translateX(0); }
-  .super-admin-sidebar.super-admin-sidebar--closed { transform: translateX(-110%); }
+
+  .super-admin-sidebar.super-admin-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .super-admin-sidebar.super-admin-sidebar--closed {
+    transform: translateX(-110%);
+  }
 
   .super-admin-main {
     margin-left: 0;
-    padding-top: 60px; /* chừa chỗ cho topbar */
+    padding-top: 60px;
+    /* chừa chỗ cho topbar */
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
   }
-  .super-admin-content { padding-top: 0; }
+
+  .super-admin-content {
+    padding-top: 0;
+  }
 
   /* Menu trong sidebar hiển thị dọc (không ngang và scroll) */
   .super-admin-nav {
@@ -401,6 +425,7 @@
     overflow-x: visible;
     padding: 16px 0;
   }
+
   .super-admin-nav-item {
     min-width: auto;
     white-space: normal;
