@@ -787,7 +787,7 @@ const AdminTotalStatistics = ({ user }) => {
     }
   }, [selectedDate, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  
+
 
   // Restore scroll position after data loads
   useEffect(() => {
@@ -1671,7 +1671,7 @@ const AdminTotalStatistics = ({ user }) => {
             </div>
           )}
 
-        
+
           <div className="admin-stats-card">
             <h4>3 số</h4>
             <span className="admin-stats-value">{formatThousand(statisticsData['3sTotal'])}</span>
@@ -2244,7 +2244,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <tr><th>Số đầu</th><th>Tiền (n)</th></tr>
                 </thead>
                 <tbody>
-                  {Object.entries(statisticsData?.dauA || {}).sort(([a],[b]) => a.localeCompare(b)).map(([num, amt]) => (
+                  {Object.entries(statisticsData?.dauA || {}).sort(([a], [b]) => a.localeCompare(b)).map(([num, amt]) => (
                     <tr key={`dauA-${num}`}><td>{num}</td><td>{amt}n</td></tr>
                   ))}
                 </tbody>
@@ -2266,7 +2266,7 @@ const AdminTotalStatistics = ({ user }) => {
                   <tr><th>Số đít</th><th>Tiền (n)</th></tr>
                 </thead>
                 <tbody>
-                  {Object.entries(statisticsData?.ditA || {}).sort(([a],[b]) => a.localeCompare(b)).map(([num, amt]) => (
+                  {Object.entries(statisticsData?.ditA || {}).sort(([a], [b]) => a.localeCompare(b)).map(([num, amt]) => (
                     <tr key={`ditA-${num}`}><td>{num}</td><td>{amt}n</td></tr>
                   ))}
                 </tbody>
