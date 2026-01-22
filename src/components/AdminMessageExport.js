@@ -1,6 +1,6 @@
 import { getApiUrl } from '../config/api';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import './AdminMessageExport.css';
 
@@ -82,7 +82,8 @@ const AdminMessageExport = ({ user }) => {
   const [separateExport, setSeparateExport] = useState(() => getInitialSeparateExport(user));
 
   // Scroll position preservation
-  const scrollPositionRef = React.useRef(0);
+  const scrollPositionRef = useRef(0);
+  const historyContainerRef = useRef(null);
 
   // Khi đổi admin, tải lại hệ số theo admin đó
   useEffect(() => {
@@ -637,6 +638,16 @@ const AdminMessageExport = ({ user }) => {
         }
       }
       await loadHistory(selectedDate);
+
+      // Scroll to history after export
+      setTimeout(() => {
+        if (historyContainerRef.current) {
+          historyContainerRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }, 100);
     } catch (error) {
       alert('Lỗi xuất tin nhắn: ' + (error.response?.data?.message || error.message));
     } finally {
@@ -1037,7 +1048,7 @@ const AdminMessageExport = ({ user }) => {
         {xNhayMessage && (
           <div className="msg-block"><div className="msg-title">Xiennhay</div><pre className="msg-line">{xNhayMessage}</pre></div>
         )}
-        <div className="msg-block">
+        <div className="msg-block" ref={historyContainerRef}>
           <div className="msg-title">Lịch sử xuất trong ngày</div>
           {history && history.length > 0 ? (
             <div>
