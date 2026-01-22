@@ -744,6 +744,16 @@ const AdminMessageExport = ({ user }) => {
     }
   };
 
+  // Scroll to history section manually
+  const scrollToHistory = () => {
+    if (historyContainerRef.current) {
+      historyContainerRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   useEffect(() => {
     loadStatistics(selectedDate);
     loadHistory(selectedDate);
@@ -988,6 +998,25 @@ const AdminMessageExport = ({ user }) => {
           {copyStatus && <span className="msg-copy-status">{copyStatus}</span>}
         </div>
         <div className="msg-note">"Tải lại toàn bộ" chỉ cập nhật dữ liệu hiển thị, KHÔNG ảnh hưởng đến lần xuất tiếp theo.</div>
+        {history && history.length > 0 && (
+          <div style={{ textAlign: 'center', marginTop: '12px' }}>
+            <button
+              className="msg-copy-btn"
+              onClick={scrollToHistory}
+              style={{
+                backgroundColor: '#1976d2',
+                borderColor: '#1976d2',
+                color: 'white',
+                padding: '8px 20px',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              ⬇ Cuộn xuống xem Lịch sử xuất
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="msg-export-content">
