@@ -32,9 +32,18 @@ const Login = ({ onLogin }) => {
 
   const handleTermsChange = (e) => {
     const isChecked = e.target.checked;
+
+    // If checking the box, show modal first
+    if (isChecked && !termsAccepted) {
+      setShowTermsModal(true);
+    }
+
     setTermsAccepted(isChecked);
     if (isChecked) {
       localStorage.setItem('termsAccepted', 'true');
+    } else {
+      // If unchecking, remove from storage
+      localStorage.removeItem('termsAccepted');
     }
   };
 
@@ -83,15 +92,15 @@ const Login = ({ onLogin }) => {
             <div className="terms-modal-body">
               <p><strong>Bằng việc truy cập, đăng nhập và sử dụng Phần mềm Quản lý Bán hàng này, Người dùng xác nhận đã đọc, hiểu và đồng ý tuân thủ toàn bộ các điều khoản dưới đây:</strong></p>
 
-              <p>Người dùng cam kết sử dụng Phần mềm đúng mục đích, đúng chức năng và tuân thủ đầy đủ các quy định của pháp luật Việt Nam hiện hành.</p>
+              <p>* Người dùng cam kết sử dụng Phần mềm đúng mục đích, đúng chức năng và tuân thủ đầy đủ các quy định của pháp luật Việt Nam hiện hành.</p>
 
-              <p>Người dùng không được sử dụng Phần mềm cho bất kỳ mục đích nào trái pháp luật, bao gồm nhưng không giới hạn ở các hành vi gian lận, trốn thuế, che giấu doanh thu, làm giả dữ liệu, xâm phạm quyền và lợi ích hợp pháp của tổ chức, cá nhân khác.</p>
+              <p>* Người dùng không được sử dụng Phần mềm cho bất kỳ mục đích nào trái pháp luật, bao gồm nhưng không giới hạn ở các hành vi gian lận, trốn thuế, che giấu doanh thu, làm giả dữ liệu, xâm phạm quyền và lợi ích hợp pháp của tổ chức, cá nhân khác.</p>
 
-              <p>Người dùng tự chịu hoàn toàn trách nhiệm trước pháp luật đối với mọi hành vi sử dụng Phần mềm, cũng như đối với toàn bộ dữ liệu, thông tin, giao dịch được tạo lập, lưu trữ hoặc xử lý thông qua Phần mềm.</p>
+              <p>* Người dùng tự chịu hoàn toàn trách nhiệm trước pháp luật đối với mọi hành vi sử dụng Phần mềm, cũng như đối với toàn bộ dữ liệu, thông tin, giao dịch được tạo lập, lưu trữ hoặc xử lý thông qua Phần mềm.</p>
 
-              <p>Nhà cung cấp Phần mềm không chịu trách nhiệm đối với bất kỳ thiệt hại, rủi ro, tranh chấp hoặc nghĩa vụ pháp lý nào phát sinh từ việc Người dùng sử dụng Phần mềm trái quy định pháp luật hoặc vi phạm điều khoản này.</p>
+              <p>* Nhà cung cấp Phần mềm không chịu trách nhiệm đối với bất kỳ thiệt hại, rủi ro, tranh chấp hoặc nghĩa vụ pháp lý nào phát sinh từ việc Người dùng sử dụng Phần mềm trái quy định pháp luật hoặc vi phạm điều khoản này.</p>
 
-              <p>Nhà cung cấp Phần mềm có quyền tạm ngừng hoặc chấm dứt quyền truy cập của Người dùng nếu phát hiện hoặc có căn cứ cho rằng Người dùng vi phạm pháp luật hoặc các điều khoản sử dụng, mà không cần báo trước và không phải bồi thường.</p>
+              <p>* Nhà cung cấp Phần mềm có quyền tạm ngừng hoặc chấm dứt quyền truy cập của Người dùng nếu phát hiện hoặc có căn cứ cho rằng Người dùng vi phạm pháp luật hoặc các điều khoản sử dụng, mà không cần báo trước và không phải bồi thường.</p>
 
               <p className="terms-highlight">👉 Việc Người dùng tích chọn "Tôi đồng ý với Điều khoản sử dụng" và tiếp tục đăng nhập được xem là sự chấp thuận ràng buộc pháp lý đối với các điều khoản nêu trên.</p>
             </div>
