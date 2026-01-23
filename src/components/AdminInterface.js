@@ -30,7 +30,7 @@ const AdminInterface = ({ user, onLogout }) => {
     { id: 'my-store', label: 'Cửa hàng của tôi', icon: '🏪' },
     { id: 'reports', label: 'Báo cáo tổng hợp', icon: '📊' },
     ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }] : []),
-    { id: 'prize-stats', label: 'Thống kê thưởng tổng hợp', icon: '🏆' },
+    { id: 'prize-stats', label: 'Thống kê tổng hợp', icon: '🏆' },
     { id: 'daily-report', label: 'Báo cáo cuối ngày', icon: '📑' },
     { id: 'invoice-history', label: 'Lịch sử hoạt động', icon: '📚' },
     // { id: 'data-cleanup', label: 'Làm sạch dữ liệu', icon: '🗑️' },
@@ -41,7 +41,7 @@ const AdminInterface = ({ user, onLogout }) => {
       hasDropdown: true,
       subItems: [
         ...(user?.allowMessageExport ? [{ id: 'message-export-settings', label: 'Cài đặt định dạng xuất', icon: '📝' }] : []),
-        { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập cược', icon: '⏰' },
+        { id: 'time-settings', label: 'Tinh chỉnh thời gian nhập ', icon: '⏰' },
         { id: 'store-time-settings', label: 'Quản lý thời gian theo cửa hàng', icon: '🏪' },
         ...(user?.allowChangePassword ? [{ id: 'change-password', label: 'Đổi mật khẩu', icon: '🔒' }] : []),
       ]

@@ -2406,7 +2406,7 @@ const EmployeeInterface = ({ user }) => {
 
       // Xử lý lỗi thời gian đặc biệt
       if (errorData?.code === 'BETTING_TIME_EXPIRED') {
-        alert(`⏰ THỜI GIAN NHẬP CƯỢC ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+        alert(`⏰ THỜI GIAN NHẬP ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
       } else if (errorData?.code === 'SPECIAL_BETS_TIME_EXPIRED') {
         alert(`⏰ THỜI GIAN NHẬP LÔ, XIÊN, XIÊN QUAY ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
       } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
@@ -3586,7 +3586,7 @@ const EmployeeInterface = ({ user }) => {
   // Định dạng danh sách items chi tiết
   const formatItemsDetailed = (items) => {
     if (!Array.isArray(items) || items.length === 0) {
-      return <div style={{ marginLeft: 12, color: '#95a5a6' }}>Không có cược</div>;
+      return <div style={{ marginLeft: 12, color: '#95a5a6' }}>Không có </div>;
     }
 
     // Nhóm theo betType
@@ -3633,7 +3633,7 @@ const EmployeeInterface = ({ user }) => {
   // Format items summary for history
   const formatItemsSummary = (items) => {
     if (!Array.isArray(items) || items.length === 0) {
-      return 'Không có cược';
+      return 'Không có ';
     }
 
     const betTypes = {};
@@ -3650,7 +3650,7 @@ const EmployeeInterface = ({ user }) => {
       .map(([type, data]) => `${type}(${data.count})`)
       .join(', ');
 
-    return summary || 'Không có cược';
+    return summary || 'Không có ';
   };
 
   const logout = () => {
@@ -3660,13 +3660,13 @@ const EmployeeInterface = ({ user }) => {
   };
 
   const baseMenuItems = [
-    { id: 'betting', label: 'Nhập cược', icon: '📝' },
-    { id: 'statistics', label: 'Thống kê cược', icon: '📊' },
-    { id: 'lottery', label: 'Kết quả xổ số', icon: '🎯' },
-    { id: 'prizes', label: 'Tính thưởng', icon: '🏆' },
-    { id: 'prize-statistics', label: 'Thống kê thưởng', icon: '💰' },
+    { id: 'betting', label: 'Nhập hoá đơn', icon: '📝' },
+    { id: 'statistics', label: 'Thống kê bán hàng', icon: '📊' },
+    { id: 'lottery', label: 'Kết quả', icon: '🎯' },
+    { id: 'prizes', label: 'Tính toán', icon: '🏆' },
+    { id: 'prize-statistics', label: 'Thống kê ', icon: '💰' },
     { id: 'daily-report', label: 'Báo cáo cuối ngày', icon: '📅' },
-    { id: 'invoices', label: 'Danh sách hóa đơn', icon: '📋' },
+    { id: 'invoices', label: 'Danh sách hóa đơn bán hàng', icon: '📋' },
     { id: 'history', label: 'Lịch sử sửa đổi', icon: '📚' },
     {
       id: 'settings',
@@ -4067,7 +4067,6 @@ const EmployeeInterface = ({ user }) => {
           <div className="store-name">{storeInfo?.name || user.storeName}</div>
           <div className="invoice-details">
             <div><strong>Mã hóa đơn:</strong> {currentInvoiceId}</div>
-            <div><strong>Chi tiết cược</strong></div>
             {isEditMode && hasUnsavedChanges && (
               <div style={{ color: '#e74c3c', fontSize: '12px', marginTop: '4px' }}>
                 ⚠️ Có thay đổi chưa lưu
@@ -4081,8 +4080,8 @@ const EmployeeInterface = ({ user }) => {
             <table className="invoice-table">
               <thead>
                 <tr>
-                  <th>Loại cược</th>
-                  <th>Số đã đánh</th>
+                  <th>Sản phẩm</th>
+                  <th>Chi tiết</th>
                   <th>Tổng tiền</th>
                 </tr>
               </thead>
@@ -4120,7 +4119,7 @@ const EmployeeInterface = ({ user }) => {
                 {invoiceItems.length === 0 && (
                   <tr>
                     <td colSpan="3" className="empty-invoice-message">
-                      Chưa có cược nào
+                      Chưa có sản phẩm nào
                     </td>
                   </tr>
                 )}
@@ -4410,7 +4409,7 @@ const EmployeeInterface = ({ user }) => {
                       <tr>
                         <th style={{ width: '10%' }}>Mã HĐ</th>
                         <th style={{ width: '12%' }}>Khách hàng</th>
-                        <th style={{ width: '46%' }}>Chi tiết cược</th>
+                        <th style={{ width: '46%' }}>Chi tiết </th>
                         <th style={{ width: '12%' }}>Tổng tiền</th>
                         <th style={{ width: '14%' }}>Thời gian</th>
                         <th style={{ width: '6%' }}>Thao tác</th>
@@ -5208,7 +5207,7 @@ const EmployeeInterface = ({ user }) => {
             <h3>{storeInfo?.name || user.storeName}</h3>
             <div className="store-details">
               <div>Mã hóa đơn: {currentInvoiceId}</div>
-              <div>Chi tiết cược</div>
+              <div>Chi tiết </div>
             </div>
           </div>
         </div>
