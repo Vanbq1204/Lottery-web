@@ -15,7 +15,6 @@ const SuperAdminCleanup = () => {
 
   // Auto cleanup settings states
   const [autoCleanupSettings, setAutoCleanupSettings] = useState([]);
-  const [showAutoSettings, setShowAutoSettings] = useState(false);
   const [loadingAutoSettings, setLoadingAutoSettings] = useState(false);
 
   const getCurrentVNDateStr = () => {
@@ -238,12 +237,10 @@ const SuperAdminCleanup = () => {
     }
   };
 
-  // Load auto cleanup settings when component mounts or when showing auto settings
+  // Load auto cleanup settings when component mounts
   useEffect(() => {
-    if (showAutoSettings && autoCleanupSettings.length === 0) {
-      fetchAutoCleanupSettings();
-    }
-  }, [showAutoSettings]);
+    fetchAutoCleanupSettings();
+  }, []); // Empty dependency array = run once on mount
 
   // Calculate total stats for summary
   const getTotalStats = () => {
@@ -539,6 +536,18 @@ const SuperAdminCleanup = () => {
                           max="720"
                           value={setting.cleanupAfterHours}
                           onChange={(e) => {
+                            // Chỉ update UI, chưa call API
+                            const hours = parseInt(e.target.value) || 24;
+                            setAutoCleanupSettings(prev =>
+                              prev.map(s =>
+                                s.adminId === setting.adminId
+                                  ? { ...s, cleanupAfterHours: hours }
+                                  : s
+                              )
+                            );
+                          }}
+                          onBlur={(e) => {
+                            // Rời khỏi input mới call API
                             const hours = parseInt(e.target.value) || 24;
                             updateAutoCleanupSetting(setting.adminId, {
                               enabled: setting.enabled,
