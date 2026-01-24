@@ -13,6 +13,11 @@ const SuperAdminCleanup = () => {
   const [keepWinningInvoicesMap, setKeepWinningInvoicesMap] = useState(new Map()); // Map<storeId, boolean>
   const [allowRecentDates, setAllowRecentDates] = useState(false); // Allow deletion of today and yesterday
 
+  // Auto cleanup settings states
+  const [autoCleanupSettings, setAutoCleanupSettings] = useState([]);
+  const [showAutoSettings, setShowAutoSettings] = useState(false);
+  const [loadingAutoSettings, setLoadingAutoSettings] = useState(false);
+
   const getCurrentVNDateStr = () => {
     const now = new Date();
     const vn = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
@@ -187,6 +192,59 @@ const SuperAdminCleanup = () => {
     } finally { setLoading(false); }
   };
 
+  // Fetch auto cleanup settings
+  const fetchAutoCleanupSettings = async () => {
+    setLoadingAutoSettings(true);
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await axios.get(
+        getApiUrl('/auto-cleanup/settings'),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (resp.data?.success) {
+        setAutoCleanupSettings(resp.data.data || []);
+      } else {
+        setError(resp.data?.message || 'Không thể lấy cài đặt tự động xóa');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Lỗi server khi lấy cài đặt');
+    } finally {
+      setLoadingAutoSettings(false);
+    }
+  };
+
+  // Update auto cleanup settings for an admin
+  const updateAutoCleanupSetting = async (adminId, settings) => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await axios.put(
+        getApiUrl('/auto-cleanup/settings'),
+        { adminId, ...settings },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (resp.data?.success) {
+        // Refresh settings
+        await fetchAutoCleanupSettings();
+        return true;
+      } else {
+        setError(resp.data?.message || 'Không thể cập nhật cài đặt');
+        return false;
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Lỗi server khi cập nhật cài đặt');
+      return false;
+    }
+  };
+
+  // Load auto cleanup settings when component mounts or when showing auto settings
+  useEffect(() => {
+    if (showAutoSettings && autoCleanupSettings.length === 0) {
+      fetchAutoCleanupSettings();
+    }
+  }, [showAutoSettings]);
+
   // Calculate total stats for summary
   const getTotalStats = () => {
     if (!statsData) return { totalWinningInvoices: 0, paidWinningInvoices: 0 };
@@ -207,217 +265,361 @@ const SuperAdminCleanup = () => {
   return (
     <div className="super-admin-content">
       <div className="super-admin-header">
-        <h2>Làm sạch dữ liệu theo ngày</h2>
-        <p>Chọn ngày để xem thống kê và xóa dữ liệu cũ. Mặc định chỉ cho phép xóa các ngày trước hôm qua, trừ khi bật chế độ cho phép xóa ngày gần đây.</p>
+        <h2>Làm sạch dữ liệu</h2>
+        <p>Quản lý xóa dữ liệu thủ công theo ngày và cấu hình tự động xóa cho từng chủ cửa hàng.</p>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', background: '#f5f5f5', padding: '15px', borderRadius: '8px' }}>
-        <label style={{ fontWeight: 'bold' }}>Ngày cần xóa:</label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          max={retentionMaxSelectable()}
-          style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-        />
-        <button
-          onClick={checkStats}
-          disabled={loading || !date}
-          style={{
-            padding: '8px 16px',
-            background: '#2196F3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            opacity: (loading || !date) ? 0.7 : 1
-          }}
-        >
-          {loading ? 'Đang tải...' : '🔍 Kiểm tra dữ liệu'}
-        </button>
-      </div>
+      {/* ============ PHẦN 1: XÓA THỦ CÔNG THEO NGÀY ============ */}
+      <div style={{ marginBottom: 40, padding: '20px', background: '#f8f9fa', borderRadius: '12px' }}>
+        <h3 style={{ margin: '0 0 15px 0', color: '#000' }}>📋 Xóa thủ công theo ngày</h3>
 
-      <div style={{
-        display: 'flex',
-        gap: 10,
-        alignItems: 'center',
-        marginBottom: 20,
-        padding: '12px',
-        background: allowRecentDates ? '#ffebee' : '#f5f5f5',
-        borderRadius: '8px',
-        border: allowRecentDates ? '2px solid #d32f2f' : '1px solid #ddd',
-        transition: 'all 0.3s ease'
-      }}>
-        <input
-          type="checkbox"
-          id="allowRecentDates"
-          checked={allowRecentDates}
-          onChange={(e) => setAllowRecentDates(e.target.checked)}
-          style={{ transform: 'scale(1.5)', cursor: 'pointer' }}
-        />
-        <label
-          htmlFor="allowRecentDates"
-          style={{
-            fontWeight: 'bold',
-            color: allowRecentDates ? '#d32f2f' : '#666',
-            cursor: 'pointer',
-            userSelect: 'none',
-            flex: 1
-          }}
-        >
-          {allowRecentDates ? '⚠️ CHẾ ĐỘ NGUY HIỂM: ' : '🔒 '}
-          Cho phép xóa dữ liệu HÔM NAY và HÔM QUA
-          {allowRecentDates && ' (ĐANG BẬT)'}
-        </label>
-      </div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', background: '#ffffff', padding: '15px', borderRadius: '8px' }}>
+          <label style={{ fontWeight: 'bold' }}>Ngày cần xóa:</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            max={retentionMaxSelectable()}
+            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+          />
+          <button
+            onClick={checkStats}
+            disabled={loading || !date}
+            style={{
+              padding: '8px 16px',
+              background: '#2196F3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              opacity: (loading || !date) ? 0.7 : 1
+            }}
+          >
+            {loading ? 'Đang tải...' : '🔍 Kiểm tra dữ liệu'}
+          </button>
+        </div>
 
-      {error && <div style={{ color: '#d32f2f', fontWeight: 600, marginBottom: 15, padding: '10px', background: '#ffebee', borderRadius: '4px' }}>{error}</div>}
+        <div style={{
+          display: 'flex',
+          gap: 10,
+          alignItems: 'center',
+          marginBottom: 20,
+          padding: '12px',
+          background: allowRecentDates ? '#ffebee' : '#ffffff',
+          borderRadius: '8px',
+          border: allowRecentDates ? '2px solid #d32f2f' : '1px solid #ddd',
+          transition: 'all 0.3s ease'
+        }}>
+          <input
+            type="checkbox"
+            id="allowRecentDates"
+            checked={allowRecentDates}
+            onChange={(e) => setAllowRecentDates(e.target.checked)}
+            style={{ transform: 'scale(1.5)', cursor: 'pointer' }}
+          />
+          <label
+            htmlFor="allowRecentDates"
+            style={{
+              fontWeight: 'bold',
+              color: allowRecentDates ? '#d32f2f' : '#666',
+              cursor: 'pointer',
+              userSelect: 'none',
+              flex: 1
+            }}
+          >
+            {allowRecentDates ? '⚠️ CHẾ ĐỘ NGUY HIỂM: ' : '🔒 '}
+            Cho phép xóa dữ liệu HÔM NAY và HÔM QUA
+            {allowRecentDates && ' (ĐANG BẬT)'}
+          </label>
+        </div>
 
-      {statsData && (
-        <div className="cleanup-results">
-          <div className="stats-summary" style={{ marginBottom: '20px', display: 'flex', gap: '20px' }}>
-            <div className="stat-box" style={{ background: '#e3f2fd', padding: '15px', borderRadius: '8px', flex: 1, textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1976d2' }}>{totals.totalWinningInvoices}</div>
-              <div style={{ color: '#555' }}>Tổng hóa đơn trúng thưởng</div>
+        {error && <div style={{ color: '#d32f2f', fontWeight: 600, marginBottom: 15, padding: '10px', background: '#ffebee', borderRadius: '4px' }}>{error}</div>}
+
+        {statsData && (
+          <div className="cleanup-results">
+            <div className="stats-summary" style={{ marginBottom: '20px', display: 'flex', gap: '20px' }}>
+              <div className="stat-box" style={{ background: '#e3f2fd', padding: '15px', borderRadius: '8px', flex: 1, textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1976d2' }}>{totals.totalWinningInvoices}</div>
+                <div style={{ color: '#555' }}>Tổng hóa đơn trúng thưởng</div>
+              </div>
+              <div className="stat-box" style={{ background: '#e8f5e9', padding: '15px', borderRadius: '8px', flex: 1, textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#388e3c' }}>{totals.paidWinningInvoices}</div>
+                <div style={{ color: '#555' }}>Hóa đơn trúng đã trả</div>
+              </div>
             </div>
-            <div className="stat-box" style={{ background: '#e8f5e9', padding: '15px', borderRadius: '8px', flex: 1, textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#388e3c' }}>{totals.paidWinningInvoices}</div>
-              <div style={{ color: '#555' }}>Hóa đơn trúng đã trả</div>
-            </div>
-          </div>
 
-          <div className="admin-stores-table-container" style={{ overflowX: 'auto' }}>
-            <table className="admin-mgmt-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#f5f5f5' }}>
-                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '50px' }}>Chọn</th>
-                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '80px' }}>
-                    <div style={{ fontSize: '11px', lineHeight: '1.2' }}>Giữ lại<br />HĐ Thưởng</div>
-                  </th>
-                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Admin</th>
-                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Cửa hàng</th>
-                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Hóa đơn trúng (Đã trả / Tổng)</th>
-                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Báo cáo ngày</th>
-                  <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Lịch sử sửa đổi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {statsData.map((admin) => (
-                  <React.Fragment key={admin.adminId}>
-                    {admin.stores.length > 0 ? (
-                      admin.stores.map((store, index) => (
-                        <tr
-                          key={store.storeId}
-                          style={{
-                            background: keepWinningInvoicesMap.has(store.storeId)
-                              ? '#fff3e0'
-                              : (selectedStoreIds.has(store.storeId) ? '#e8f5e9' : 'white')
-                          }}
-                        >
-                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                            <input
-                              type="checkbox"
-                              checked={selectedStoreIds.has(store.storeId)}
-                              onChange={() => handleCheckboxChange(store.storeId)}
-                              style={{ transform: 'scale(1.5)', cursor: 'pointer' }}
-                            />
-                          </td>
-                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                            <input
-                              type="checkbox"
-                              checked={keepWinningInvoicesMap.has(store.storeId)}
-                              onChange={() => handleKeepWinningInvoicesChange(store.storeId)}
-                              style={{ transform: 'scale(1.3)', cursor: 'pointer' }}
-                              title="Chỉ giữ lại hoá đơn thưởng khi xóa"
-                            />
-                          </td>
-                          {index === 0 && (
-                            <td
-                              rowSpan={admin.stores.length}
-                              style={{
-                                padding: '12px',
-                                border: '1px solid #ddd',
-                                verticalAlign: 'top',
-                                background: '#fff'
-                              }}
-                            >
-                              <div style={{ fontWeight: 'bold' }}>{admin.adminName}</div>
-                              {admin.totalSnapshots > 0 && (
-                                <div style={{ fontSize: '12px', color: '#d32f2f', marginTop: '5px' }}>
-                                  ({admin.totalSnapshots} bản ghi tin nhắn)
-                                </div>
-                              )}
-                              {admin.totalDailyReports > 0 && (
-                                <div style={{ fontSize: '12px', color: '#388e3c', marginTop: '5px' }}>
-                                  ({admin.totalDailyReports} báo cáo ngày)
-                                </div>
+            <div className="admin-stores-table-container" style={{ overflowX: 'auto' }}>
+              <table className="admin-mgmt-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f5f5f5' }}>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '50px' }}>Chọn</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '80px' }}>
+                      <div style={{ fontSize: '11px', lineHeight: '1.2' }}>Giữ lại<br />HĐ Thưởng</div>
+                    </th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Admin</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Cửa hàng</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Hóa đơn trúng (Đã trả / Tổng)</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Báo cáo ngày</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>Lịch sử sửa đổi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {statsData.map((admin) => (
+                    <React.Fragment key={admin.adminId}>
+                      {admin.stores.length > 0 ? (
+                        admin.stores.map((store, index) => (
+                          <tr
+                            key={store.storeId}
+                            style={{
+                              background: keepWinningInvoicesMap.has(store.storeId)
+                                ? '#fff3e0'
+                                : (selectedStoreIds.has(store.storeId) ? '#e8f5e9' : 'white')
+                            }}
+                          >
+                            <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                checked={selectedStoreIds.has(store.storeId)}
+                                onChange={() => handleCheckboxChange(store.storeId)}
+                                style={{ transform: 'scale(1.5)', cursor: 'pointer' }}
+                              />
+                            </td>
+                            <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                checked={keepWinningInvoicesMap.has(store.storeId)}
+                                onChange={() => handleKeepWinningInvoicesChange(store.storeId)}
+                                style={{ transform: 'scale(1.3)', cursor: 'pointer' }}
+                                title="Chỉ giữ lại hoá đơn thưởng khi xóa"
+                              />
+                            </td>
+                            {index === 0 && (
+                              <td
+                                rowSpan={admin.stores.length}
+                                style={{
+                                  padding: '12px',
+                                  border: '1px solid #ddd',
+                                  verticalAlign: 'top',
+                                  background: '#fff'
+                                }}
+                              >
+                                <div style={{ fontWeight: 'bold' }}>{admin.adminName}</div>
+                                {admin.totalSnapshots > 0 && (
+                                  <div style={{ fontSize: '12px', color: '#d32f2f', marginTop: '5px' }}>
+                                    ({admin.totalSnapshots} bản ghi tin nhắn)
+                                  </div>
+                                )}
+                                {admin.totalDailyReports > 0 && (
+                                  <div style={{ fontSize: '12px', color: '#388e3c', marginTop: '5px' }}>
+                                    ({admin.totalDailyReports} báo cáo ngày)
+                                  </div>
+                                )}
+                              </td>
+                            )}
+                            <td style={{ padding: '12px', border: '1px solid #ddd' }}>{store.storeName}</td>
+                            <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                              <span style={{ fontWeight: 'bold', color: '#388e3c' }}>{store.paidWinningInvoices}</span>
+                              <span style={{ margin: '0 5px' }}>/</span>
+                              <span>{store.totalWinningInvoices}</span>
+                            </td>
+                            <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                              {store.hasDailyReport ?
+                                <span style={{ color: '#2e7d32', fontWeight: 600 }}>Có</span> :
+                                <span style={{ color: '#777' }}>-</span>
+                              }
+                            </td>
+                            <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                              {store.totalInvoiceHistory > 0 ? (
+                                <span style={{ fontWeight: 600, color: '#1976d2' }}>{store.totalInvoiceHistory}</span>
+                              ) : (
+                                <span style={{ color: '#777' }}>-</span>
                               )}
                             </td>
-                          )}
-                          <td style={{ padding: '12px', border: '1px solid #ddd' }}>{store.storeName}</td>
-                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                            <span style={{ fontWeight: 'bold', color: '#388e3c' }}>{store.paidWinningInvoices}</span>
-                            <span style={{ margin: '0 5px' }}>/</span>
-                            <span>{store.totalWinningInvoices}</span>
-                          </td>
-                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                            {store.hasDailyReport ?
-                              <span style={{ color: '#2e7d32', fontWeight: 600 }}>Có</span> :
-                              <span style={{ color: '#777' }}>-</span>
-                            }
-                          </td>
-                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                            {store.totalInvoiceHistory > 0 ? (
-                              <span style={{ fontWeight: 600, color: '#1976d2' }}>{store.totalInvoiceHistory}</span>
-                            ) : (
-                              <span style={{ color: '#777' }}>-</span>
-                            )}
-                          </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr key={admin.adminId}>
+                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                          <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
+                          <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{admin.adminName}</td>
+                          <td colSpan="4" style={{ padding: '12px', border: '1px solid #ddd', fontStyle: 'italic', color: '#888' }}>Không có cửa hàng</td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr key={admin.adminId}>
-                        <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                        <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>-</td>
-                        <td style={{ padding: '12px', border: '1px solid #ddd', fontWeight: 'bold' }}>{admin.adminName}</td>
-                        <td colSpan="4" style={{ padding: '12px', border: '1px solid #ddd', fontStyle: 'italic', color: '#888' }}>Không có cửa hàng</td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-                {statsData.length === 0 && (
-                  <tr>
-                    <td colSpan="7" style={{ padding: '20px', textAlign: 'center' }}>Không có dữ liệu admin nào.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div style={{ marginTop: '20px', textAlign: 'right', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontWeight: 'bold' }}>
-              Đã chọn: {selectedStoreIds.size} cửa hàng
+                      )}
+                    </React.Fragment>
+                  ))}
+                  {statsData.length === 0 && (
+                    <tr>
+                      <td colSpan="7" style={{ padding: '20px', textAlign: 'center' }}>Không có dữ liệu admin nào.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-            <button
-              onClick={performCleanup}
-              disabled={loading || selectedStoreIds.size === 0}
-              style={{
-                padding: '12px 24px',
-                background: selectedStoreIds.size > 0 ? '#d32f2f' : '#ccc',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: selectedStoreIds.size > 0 ? 'pointer' : 'not-allowed',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-              }}
-            >
-              {loading ? 'Đang xử lý...' : '🗑️ Xóa dữ liệu đã chọn'}
-            </button>
+
+            <div style={{ marginTop: '20px', textAlign: 'right', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontWeight: 'bold' }}>
+                Đã chọn: {selectedStoreIds.size} cửa hàng
+              </div>
+              <button
+                onClick={performCleanup}
+                disabled={loading || selectedStoreIds.size === 0}
+                style={{
+                  padding: '12px 24px',
+                  background: selectedStoreIds.size > 0 ? '#d32f2f' : '#ccc',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: selectedStoreIds.size > 0 ? 'pointer' : 'not-allowed',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                }}
+              >
+                {loading ? 'Đang xử lý...' : '🗑️ Xóa dữ liệu đã chọn'}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* ============ PHẦN 2: CÀI ĐẶT TỰ ĐỘNG XÓA ============ */}
+      <div style={{ marginTop: 40, padding: '20px', background: '#f0f7ff', borderRadius: '12px' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#000' }}>⚙️ Cài đặt Tự động Xóa Dữ liệu</h3>
+        <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#666' }}>
+          Cấu hình tự động xóa dữ liệu cho từng chủ cửa hàng. Dữ liệu sẽ tự động bị xóa sau thời gian cấu hình (tính từ 00:00 ngày kế tiếp).
+        </p>
+
+        {loadingAutoSettings ? (
+          <div style={{ textAlign: 'center', padding: '20px' }}>Đang tải...</div>
+        ) : (
+          <>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white' }}>
+                <thead>
+                  <tr style={{ background: '#f5f5f5' }}>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'left' }}>Chủ cửa hàng</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '120px' }}>Bật/Tắt</th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '180px' }}>
+                      Xóa sau (giờ)
+                    </th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '200px' }}>
+                      <div style={{ fontSize: '11px', lineHeight: '1.2' }}>
+                        Giữ HĐ Thưởng<br />chưa trả
+                      </div>
+                    </th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', width: '150px' }}>
+                      Lần chạy cuối
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {autoCleanupSettings.map((setting) => (
+                    <tr key={setting.adminId} style={{ background: setting.enabled ? '#e8f5e9' : 'white' }}>
+                      <td style={{ padding: '12px', border: '1px solid #ddd' }}>
+                        <strong>{setting.adminName}</strong>
+                      </td>
+                      <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={setting.enabled}
+                          onChange={(e) => {
+                            updateAutoCleanupSetting(setting.adminId, {
+                              enabled: e.target.checked,
+                              cleanupAfterHours: setting.cleanupAfterHours,
+                              keepUnpaidWinningInvoices: setting.keepUnpaidWinningInvoices
+                            });
+                          }}
+                          style={{ transform: 'scale(1.5)', cursor: 'pointer' }}
+                        />
+                      </td>
+                      <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                        <input
+                          type="number"
+                          min="1"
+                          max="720"
+                          value={setting.cleanupAfterHours}
+                          onChange={(e) => {
+                            const hours = parseInt(e.target.value) || 24;
+                            updateAutoCleanupSetting(setting.adminId, {
+                              enabled: setting.enabled,
+                              cleanupAfterHours: hours,
+                              keepUnpaidWinningInvoices: setting.keepUnpaidWinningInvoices
+                            });
+                          }}
+                          disabled={!setting.enabled}
+                          style={{
+                            width: '80px',
+                            padding: '6px',
+                            textAlign: 'center',
+                            border: '1px solid #ddd',
+                            borderRadius: '4px',
+                            opacity: setting.enabled ? 1 : 0.5
+                          }}
+                        />
+                        <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                          {setting.cleanupAfterHours >= 24
+                            ? `(${Math.floor(setting.cleanupAfterHours / 24)} ngày)`
+                            : ''}
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={setting.keepUnpaidWinningInvoices}
+                          onChange={(e) => {
+                            updateAutoCleanupSetting(setting.adminId, {
+                              enabled: setting.enabled,
+                              cleanupAfterHours: setting.cleanupAfterHours,
+                              keepUnpaidWinningInvoices: e.target.checked
+                            });
+                          }}
+                          disabled={!setting.enabled}
+                          style={{
+                            transform: 'scale(1.3)',
+                            cursor: setting.enabled ? 'pointer' : 'not-allowed',
+                            opacity: setting.enabled ? 1 : 0.5
+                          }}
+                        />
+                      </td>
+                      <td style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center', fontSize: '12px' }}>
+                        {setting.lastRunAt
+                          ? new Date(setting.lastRunAt).toLocaleString('vi-VN')
+                          : <span style={{ color: '#999' }}>Chưa chạy</span>
+                        }
+                      </td>
+                    </tr>
+                  ))}
+                  {autoCleanupSettings.length === 0 && (
+                    <tr>
+                      <td colSpan="5" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                        Không có chủ cửa hàng nào
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{
+              marginTop: 20,
+              padding: '15px',
+              background: '#fff3e0',
+              borderRadius: '6px',
+              border: '1px solid #ff9800'
+            }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#f57c00' }}>📝 Hướng dẫn sử dụng:</h4>
+              <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px', lineHeight: '1.8' }}>
+                <li><strong>Bật/Tắt:</strong> Bật để kích hoạt tự động xóa dữ liệu cho chủ cửa hàng này</li>
+                <li><strong>Xóa sau (giờ):</strong> Thời gian kể từ 00:00 ngày kế tiếp đến khi xóa dữ liệu của ngày trước đó</li>
+                <li><strong>Giữ HĐ Thưởng chưa trả:</strong> Nếu bật, các hóa đơn thưởng chưa trả tiền sẽ được giữ lại, không bị xóa</li>
+                <li><strong>Ví dụ 1:</strong> Chọn "12 giờ" → Dữ liệu ngày 25 (bất kỳ thời điểm nào trong ngày 25) sẽ bị xóa vào lúc: <strong>00:00 ngày 26 + 12h = 12:00 trưa ngày 26</strong></li>
+                <li><strong>Ví dụ 2:</strong> Chọn "24 giờ" → Dữ liệu ngày 25 sẽ bị xóa vào lúc: <strong>00:00 ngày 26 + 24h = 00:00 ngày 27</strong></li>
+                <li><strong>Lưu ý:</strong> Tất cả dữ liệu trong cả ngày (từ 00:00 đến 23:59:59) sẽ bị xóa cùng lúc</li>
+              </ul>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
