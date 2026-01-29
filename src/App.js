@@ -101,6 +101,33 @@ function App() {
         }, 500);
       });
 
+      // Listen for maintenance mode activation event from SuperAdmin
+      socket.on('maintenance-mode-activated', (data) => {
+        console.log('🔧 Maintenance mode activated:', data);
+
+        // Only logout if not superadmin
+        if (user.role !== 'superadmin') {
+          // Show notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Hệ thống đang bảo trì', {
+              body: 'Hệ thống đang bảo trì. Bạn sẽ được đăng xuất.'
+            });
+          }
+
+          // Show alert
+          alert('Hệ thống đang bảo trì, vui lòng quay lại sau. Xin lỗi vì sự bất tiện này.');
+
+          // Force logout
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+            // Force reload to show maintenance message
+            window.location.reload();
+          }, 1000);
+        }
+      });
+
       return () => {
         socket.disconnect();
       };

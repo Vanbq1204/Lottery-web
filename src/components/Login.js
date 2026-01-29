@@ -14,6 +14,25 @@ const Login = ({ onLogin }) => {
   const [activeTab, setActiveTab] = useState('login'); // Default to login
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [checkingMaintenance, setCheckingMaintenance] = useState(true);
+
+  // Check maintenance mode on mount
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        const response = await axios.get(getApiUrl('/auth/maintenance'));
+        if (response.data?.success && response.data?.maintenanceMode) {
+          setMaintenanceMode(true);
+        }
+      } catch (err) {
+        console.error('Error checking maintenance mode:', err);
+      } finally {
+        setCheckingMaintenance(false);
+      }
+    };
+    checkMaintenance();
+  }, []);
 
   // Check if user has already accepted terms
   useEffect(() => {
@@ -81,8 +100,21 @@ const Login = ({ onLogin }) => {
         <div className="login-pattern"></div>
       </div>
 
+      {/* Loading State */}
+      {checkingMaintenance && (
+        <div className="login-card-wrapper show-login">
+          <div className="login-right-panel">
+            <div className="login-form-container">
+              <div className="login-header">
+                <h2 className="login-title">Đang kiểm tra...</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Terms Modal */}
-      {showTermsModal && (
+      {!checkingMaintenance && showTermsModal && (
         <div className="terms-modal-overlay" onClick={() => setShowTermsModal(false)}>
           <div className="terms-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="terms-modal-header">
@@ -116,7 +148,7 @@ const Login = ({ onLogin }) => {
         </div>
       )}
 
-      <div className={`login-card-wrapper ${activeTab === 'intro' ? 'show-intro' : 'show-login'}`}>
+      <div className={`login-card-wrapper ${activeTab === 'intro' ? 'show-intro' : 'show-login'}`} style={{ display: checkingMaintenance ? 'none' : 'flex' }}>
         {/* Mobile Tab Navigation - Hidden (duplicate text) */}
         {/* <div className="mobile-tabs mobile-tabs-single">
           <button
@@ -136,6 +168,25 @@ const Login = ({ onLogin }) => {
 
               <h2 className="login-title">Đăng nhập</h2>
             </div>
+
+            {/* Maintenance Mode Warning Banner */}
+            {maintenanceMode && (
+              <div style={{
+                padding: '16px',
+                background: '#fff3cd',
+                borderRadius: 8,
+                marginBottom: 16,
+                border: '2px solid #ffc107'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 20, marginRight: 8 }}>🔧</span>
+                  <strong style={{ color: '#d32f2f' }}>HỆ THỐNG ĐANG BẢO TRÌ</strong>
+                </div>
+                <p style={{ fontSize: 14, color: '#666', margin: 0 }}>
+                  Chỉ tài khoản <strong>SuperAdmin</strong> mới có thể đăng nhập. Tất cả tài khoản khác sẽ bị từ chối.
+                </p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="login-form">
               <div className="form-group">

@@ -1,10 +1,12 @@
 import { getApiUrl } from '../config/api';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import SuperAdminMaintenance from './SuperAdminMaintenance';
 
 const SuperAdminForceRelogin = () => {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('session'); // 'session' or 'maintenance'
 
   const loadStatus = async () => {
     try {
@@ -60,29 +62,69 @@ const SuperAdminForceRelogin = () => {
   };
 
   return (
-    <div style={{ border: '2px solid black', borderRadius: 8, padding: 16, background: 'white' }}>
-      <h3>Quản lý phiên đăng nhập</h3>
+    <div>
+      <h2 style={{ marginBottom: 16 }}>Quản lý phiên đăng nhập</h2>
 
-      {/* Force Relogin Section */}
-      <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid #ddd' }}>
-        <h4 style={{ marginTop: 0 }}>Yêu cầu đăng nhập lại</h4>
-        <p>Chức năng này sẽ buộc tất cả tài khoản Admin và Nhân viên đăng xuất và phải đăng nhập lại.</p>
-        <div style={{ margin: '12px 0' }}>
-          <strong>Lần kích hoạt gần nhất:</strong> {formatVN(status)}
+      {/* Tab Navigation */}
+      <div style={{ marginBottom: 16, borderBottom: '2px solid #ddd' }}>
+        <button
+          onClick={() => setActiveTab('session')}
+          style={{
+            padding: '10px 20px',
+            marginRight: 8,
+            border: 'none',
+            borderBottom: activeTab === 'session' ? '3px solid #1976d2' : '3px solid transparent',
+            background: 'transparent',
+            fontWeight: activeTab === 'session' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            fontSize: 15
+          }}
+        >
+          🔁 Yêu cầu đăng nhập lại / Reload
+        </button>
+        <button
+          onClick={() => setActiveTab('maintenance')}
+          style={{
+            padding: '10px 20px',
+            border: 'none',
+            borderBottom: activeTab === 'maintenance' ? '3px solid #1976d2' : '3px solid transparent',
+            background: 'transparent',
+            fontWeight: activeTab === 'maintenance' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            fontSize: 15
+          }}
+        >
+          🔧 Kích hoạt bảo trì hệ thống
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'session' ? (
+        <div style={{ border: '2px solid black', borderRadius: 8, padding: 16, background: 'white' }}>
+          {/* Force Relogin Section */}
+          <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid #ddd' }}>
+            <h4 style={{ marginTop: 0 }}>Yêu cầu đăng nhập lại</h4>
+            <p>Chức năng này sẽ buộc tất cả tài khoản Admin và Nhân viên đăng xuất và phải đăng nhập lại.</p>
+            <div style={{ margin: '12px 0' }}>
+              <strong>Lần kích hoạt gần nhất:</strong> {formatVN(status)}
+            </div>
+            <button onClick={triggerForceRelogin} disabled={loading} style={{ border: '2px solid #d32f2f', background: '#d32f2f', color: 'white', padding: '8px 12px', borderRadius: 4, fontWeight: 700 }}>
+              {loading ? 'Đang kích hoạt...' : 'Kích hoạt yêu cầu đăng nhập lại'}
+            </button>
+          </div>
+
+          {/* Force Reload Section */}
+          <div>
+            <h4 style={{ marginTop: 0 }}>Reload trang toàn hệ thống</h4>
+            <p>Chức năng này sẽ buộc tất cả tài khoản reload trang ngay lập tức (giống như ấn F5).</p>
+            <button onClick={triggerForceReload} disabled={loading} style={{ border: '2px solid #1976d2', background: '#1976d2', color: 'white', padding: '8px 12px', borderRadius: 4, fontWeight: 700 }}>
+              {loading ? 'Đang gửi...' : '🔄 Kích hoạt reload trang'}
+            </button>
+          </div>
         </div>
-        <button onClick={triggerForceRelogin} disabled={loading} style={{ border: '2px solid #d32f2f', background: '#d32f2f', color: 'white', padding: '8px 12px', borderRadius: 4, fontWeight: 700 }}>
-          {loading ? 'Đang kích hoạt...' : 'Kích hoạt yêu cầu đăng nhập lại'}
-        </button>
-      </div>
-
-      {/* Force Reload Section */}
-      <div>
-        <h4 style={{ marginTop: 0 }}>Reload trang toàn hệ thống</h4>
-        <p>Chức năng này sẽ buộc tất cả tài khoản reload trang ngay lập tức (giống như ấn F5).</p>
-        <button onClick={triggerForceReload} disabled={loading} style={{ border: '2px solid #1976d2', background: '#1976d2', color: 'white', padding: '8px 12px', borderRadius: 4, fontWeight: 700 }}>
-          {loading ? 'Đang gửi...' : '🔄 Kích hoạt reload trang'}
-        </button>
-      </div>
+      ) : (
+        <SuperAdminMaintenance />
+      )}
     </div>
   );
 };
