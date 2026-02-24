@@ -43,6 +43,31 @@ const EmployeeInterface = ({ user }) => {
 
   // Invoice list states
   const [invoiceList, setInvoiceList] = useState([]);
+
+  // Notifications & Modals
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 4000);
+  };
+
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null
+  });
+
+  const [promptModal, setPromptModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    inputLabel: '',
+    inputValue: '',
+    placeholder: '',
+    onConfirm: null,
+    onCancel: null
+  });
   // Special number groups (2s) for quick selection
   const [twoSGroups, setTwoSGroups] = useState([]);
   // Dynamic bộ groups for 'bo' bet type
@@ -2227,19 +2252,19 @@ const EmployeeInterface = ({ user }) => {
         });
 
         setBetData(newBetData);
-        alert('Đã tải hóa đơn thành công. Bạn có thể chỉnh sửa.');
+        showNotification('Đã tải hóa đơn thành công. Bạn có thể chỉnh sửa.');
 
       } else {
-        alert('Lỗi: ' + response.data.message);
+        showNotification(`Lỗi: ${response.data.message}`, 'error');
       }
     } catch (error) {
       console.error('Load invoice error:', error);
 
       // Xử lý lỗi 404 - hóa đơn không tồn tại
       if (error.response?.status === 404) {
-        alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
+        showNotification('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại.', 'error');
       } else {
-        alert('Không thể tải hóa đơn: ' + (error.response?.data?.message || error.message));
+        showNotification(`Không thể tải hóa đơn: ${error.response?.data?.message || error.message}`, 'error');
       }
     } finally {
       setIsLoadingInvoice(false);
@@ -2348,32 +2373,49 @@ const EmployeeInterface = ({ user }) => {
         }
       });
 
-      const reason = prompt('Nhập lý do sửa hóa đơn (không bắt buộc):') || 'Cập nhật hóa đơn';
+      setPromptModal({
+        isOpen: true,
+        title: 'Lý do sửa hóa đơn',
+        message: 'Nhập lý do sửa hóa đơn (không bắt buộc):',
+        inputLabel: 'Lý do',
+        inputValue: '',
+        placeholder: 'VD: Cập nhật hóa đơn...',
+        onConfirm: async (reasonInput) => {
+          setPromptModal(prev => ({ ...prev, isOpen: false }));
+          const reason = reasonInput || 'Cập nhật hóa đơn';
 
-      // Try to get location if available, but don't block
-      let locationAddress = '';
-      try {
-        // Check permission first to avoid unnecessary prompts if already denied
-        const permissionState = await getGeolocationPermission();
-        // If granted OR prompt, try to get address (which will trigger prompt if needed)
-        if (permissionState !== 'denied') {
-          locationAddress = await getCurrentAddress();
-        }
-      } catch (err) {
-        console.warn('Could not get location, proceeding without it:', err);
-      }
+          // Try to get location if available, but don't block
+          let locationAddress = '';
+          try {
+            // Check permission first to avoid unnecessary prompts if already denied
+            const permissionState = await getGeolocationPermission();
+            // If granted OR prompt, try to get address (which will trigger prompt if needed)
+            if (permissionState !== 'denied') {
+              locationAddress = await getCurrentAddress();
+            }
+          } catch (err) {
+            console.warn('Could not get location, proceeding without it:', err);
+          }
 
-      await executeEditInvoice(editInvoiceId, {
-        customerName: customerName || 'Khách lẻ',
-        items: itemsForDB,
-        totalAmount,
-        customerPaid: customerGiveAmount,
-        changeAmount: changeAmountValue,
-        reason
-      }, locationAddress);
+          try {
+            await executeEditInvoice(editInvoiceId, {
+              customerName: customerName || 'Khách lẻ',
+              items: itemsForDB,
+              totalAmount,
+              customerPaid: customerGiveAmount,
+              changeAmount: changeAmountValue,
+              reason
+            }, locationAddress);
+          } catch (error) {
+            console.error('Lỗi khi lưu sửa hóa đơn:', error);
+            showNotification('Có lỗi xảy ra khi lưu hóa đơn. Vui lòng thử lại.', 'error');
+          }
+        },
+        onCancel: () => setPromptModal(prev => ({ ...prev, isOpen: false }))
+      });
     } catch (error) {
-      console.error('Lỗi khi lưu sửa hóa đơn:', error);
-      alert('Có lỗi xảy ra khi lưu hóa đơn. Vui lòng thử lại.');
+      console.error('Lỗi chuẩn bị dữ liệu sửa hóa đơn:', error);
+      showNotification('Có lỗi xảy ra khi chuẩn bị dữ liệu. Vui lòng thử lại.', 'error');
     }
   };
 
@@ -2390,14 +2432,14 @@ const EmployeeInterface = ({ user }) => {
       });
 
       if (response.data.success) {
-        alert('Cập nhật hóa đơn thành công!');
+        showNotification('Cập nhật hóa đơn thành công!');
 
         // Reset edit mode and create new invoice
         setIsEditMode(false);
         setEditInvoiceId('');
         clearInvoice();
       } else {
-        alert('Lỗi: ' + response.data.message);
+        showNotification(`Lỗi: ${response.data.message}`, 'error');
       }
     } catch (error) {
       console.error('Save edited invoice error:', error);
@@ -2406,85 +2448,119 @@ const EmployeeInterface = ({ user }) => {
 
       // Xử lý lỗi thời gian đặc biệt
       if (errorData?.code === 'BETTING_TIME_EXPIRED') {
-        alert(`⏰ THỜI GIAN NHẬP ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+        showNotification(`⏰ THỜI GIAN NHẬP ĐÃ HẾT!\n\n${errorData.message}`, 'error');
       } else if (errorData?.code === 'SPECIAL_BETS_TIME_EXPIRED') {
-        alert(`⏰ THỜI GIAN NHẬP LÔ, XIÊN, XIÊN QUAY ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+        showNotification(`⏰ THỜI GIAN LÔ/XIÊN ĐÃ HẾT!\n\n${errorData.message}`, 'error');
       } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
-        alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+        showNotification(`⏰ THỜI GIAN SỬA/XÓA ĐÃ HẾT!\n\n${errorData.message}`, 'error');
       } else if (errorData?.code === 'INVOICE_LOCKED_BY_MESSAGE_EXPORT' || (error.response?.status === 403 && (errorData?.message || '').includes('xuất tin nhắn'))) {
-        const reasonReq = prompt('Hóa đơn đã được xuất tin nhắn, không thể sửa. Nhập lý do gửi yêu cầu tới admin để xin sửa:');
-        if (reasonReq !== null) {
-          try {
-            const token = localStorage.getItem('token');
-            const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
-              invoiceId: editInvoiceId || currentInvoiceId,
-              requestType: 'edit',
-              reason: reasonReq || ''
-            }, { headers: { Authorization: `Bearer ${token}` } });
-            if (resp.data?.success) {
-              alert('Đã gửi yêu cầu tới admin. Vui lòng chờ phê duyệt.');
-            } else {
-              alert(resp.data?.message || 'Không thể gửi yêu cầu');
+        setPromptModal({
+          isOpen: true,
+          title: 'Yêu cầu mở khóa hóa đơn',
+          message: 'Hóa đơn đã được xuất tin nhắn, không thể sửa. Nhập lý do gửi yêu cầu tới admin để xin sửa:',
+          inputLabel: 'Lý do',
+          inputValue: '',
+          placeholder: 'VD: Khách báo nhầm số...',
+          onConfirm: async (reasonReq) => {
+            setPromptModal(prev => ({ ...prev, isOpen: false }));
+            if (reasonReq !== null) {
+              try {
+                const token = localStorage.getItem('token');
+                const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
+                  invoiceId: editInvoiceId || currentInvoiceId,
+                  requestType: 'edit',
+                  reason: reasonReq || ''
+                }, { headers: { Authorization: `Bearer ${token}` } });
+                if (resp.data?.success) {
+                  showNotification('Đã gửi yêu cầu tới admin. Vui lòng chờ phê duyệt.');
+                } else {
+                  showNotification(resp.data?.message || 'Không thể gửi yêu cầu', 'error');
+                }
+              } catch (err) {
+                showNotification(err.response?.data?.message || 'Lỗi khi gửi yêu cầu', 'error');
+              }
             }
-          } catch (err) {
-            alert(err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
-          }
-        }
+          },
+          onCancel: () => setPromptModal(prev => ({ ...prev, isOpen: false }))
+        });
       } else {
-        alert('Lỗi khi cập nhật hóa đơn: ' + (errorData?.message || error.message));
+        showNotification(`Lỗi cập nhật: ${errorData?.message || error.message}`, 'error');
       }
     }
   };
 
   // Delete invoice
-  const deleteInvoice = async () => {
-    const invoiceIdToDelete = prompt('Nhập mã hóa đơn cần xóa (có thể nhập 5 số cuối, vd: 12345):');
-    if (!invoiceIdToDelete) return;
+  const deleteInvoice = () => {
+    setPromptModal({
+      isOpen: true,
+      title: 'Xóa hóa đơn',
+      message: 'Nhập mã hóa đơn cần xóa (có thể nhập 5 số cuối, vd: 12345):',
+      inputLabel: 'Mã hóa đơn',
+      inputValue: '',
+      placeholder: 'VD: 12345',
+      onConfirm: (invoiceIdInput) => {
+        setPromptModal(prev => ({ ...prev, isOpen: false }));
+        if (invoiceIdInput) {
+          let finalInvoiceId = invoiceIdInput.trim();
 
-    let finalInvoiceId = invoiceIdToDelete.trim();
+          if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length !== 5) {
+            showNotification('Vui lòng nhập đúng 5 số cuối của mã hóa đơn!', 'error');
+            return;
+          }
 
-    // Kiểm tra nếu nhập số nhưng không đúng 5 số
-    if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length !== 5) {
-      alert('Vui lòng nhập đúng 5 số cuối của mã hóa đơn!');
-      return;
-    }
+          if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length === 5) {
+            const foundInvoice = invoiceList.find(invoice =>
+              invoice.invoiceId.endsWith(finalInvoiceId)
+            );
+            if (foundInvoice) {
+              finalInvoiceId = foundInvoice.invoiceId;
+            } else {
+              showNotification(`Không tìm thấy hóa đơn có mã kết thúc bằng ${finalInvoiceId}.`, 'error');
+              return;
+            }
+          }
 
-    // Nếu chỉ là số và có đúng 5 số, tìm hóa đơn theo số cuối
-    if (/^\d+$/.test(finalInvoiceId) && finalInvoiceId.length === 5) {
-      // Tìm hóa đơn trong danh sách hiện tại theo số cuối
-      const foundInvoice = invoiceList.find(invoice =>
-        invoice.invoiceId.endsWith(finalInvoiceId)
-      );
+          // Kích hoạt bước xác nhận lý do
+          requestDeleteReason(finalInvoiceId);
+        }
+      },
+      onCancel: () => setPromptModal(prev => ({ ...prev, isOpen: false }))
+    });
+  };
 
-      if (foundInvoice) {
-        finalInvoiceId = foundInvoice.invoiceId;
-      } else {
-        // Nếu không tìm thấy, báo lỗi và dừng
-        alert(`Không tìm thấy hóa đơn có mã kết thúc bằng ${finalInvoiceId}. Vui lòng kiểm tra lại mã hóa đơn.`);
-        return;
-      }
-    }
+  const requestDeleteReason = (finalInvoiceId) => {
+    setPromptModal({
+      isOpen: true,
+      title: 'Lý do xóa',
+      message: `Đang xóa hóa đơn ${finalInvoiceId}`,
+      inputLabel: 'Nhập lý do xóa:',
+      inputValue: '',
+      placeholder: 'VD: Xóa do khách bỏ...',
+      onConfirm: async (reasonInput) => {
+        setPromptModal(prev => ({ ...prev, isOpen: false }));
+        const reason = reasonInput || 'Xóa hóa đơn';
 
-    const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
-
-    // Try to get location if available, but don't block
-    let locationAddress = '';
-    try {
-      // Check permission first to avoid unnecessary prompts if already denied
-      const permissionState = await getGeolocationPermission();
-      if (permissionState === 'granted') {
-        locationAddress = await getCurrentAddress();
-      }
-    } catch (err) {
-      console.warn('Could not get location, proceeding without it:', err);
-    }
-
-    // eslint-disable-next-line no-restricted-globals
-    if (!confirm(`Bạn có chắc chắn muốn xóa hóa đơn ${finalInvoiceId}?`)) {
-      return;
-    }
-
-    await executeDeleteInvoice(finalInvoiceId, reason, locationAddress);
+        setConfirmModal({
+          isOpen: true,
+          title: 'Xác nhận xóa',
+          message: `Bạn có chắc chắn muốn xóa hóa đơn ${finalInvoiceId}?`,
+          onConfirm: async () => {
+            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+            let locationAddress = '';
+            try {
+              const permissionState = await getGeolocationPermission();
+              if (permissionState === 'granted') {
+                locationAddress = await getCurrentAddress();
+              }
+            } catch (err) {
+              console.warn('Could not get location:', err);
+            }
+            await executeDeleteInvoice(finalInvoiceId, reason, locationAddress);
+          }
+        });
+      },
+      onCancel: () => setPromptModal(prev => ({ ...prev, isOpen: false }))
+    });
   };
 
   const executeDeleteInvoice = async (invoiceId, reason, locationAddress) => {
@@ -2501,11 +2577,11 @@ const EmployeeInterface = ({ user }) => {
       });
 
       if (response.data.success) {
-        alert('Xóa hóa đơn thành công!');
+        showNotification('Xóa hóa đơn thành công!');
         // Reload invoice list after deletion
         loadInvoiceList();
       } else {
-        alert('Lỗi: ' + response.data.message);
+        showNotification(`Lỗi: ${response.data.message}`, 'error');
       }
     } catch (error) {
       console.error('Delete invoice error:', error);
@@ -2515,34 +2591,46 @@ const EmployeeInterface = ({ user }) => {
 
       if (error.response?.status === 404) {
         // Lỗi 404 - hóa đơn không tồn tại
-        alert('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại mã hóa đơn.');
+        showNotification('Không tìm thấy hóa đơn với mã này. Vui lòng kiểm tra lại.', 'error');
       } else if (errorData?.code === 'EDIT_DELETE_TIME_EXPIRED') {
         // Lỗi thời gian sửa/xóa đã hết
-        alert(`⏰ THỜI GIAN SỬA/XÓA HÓA ĐƠN ĐÃ HẾT!\n\n${errorData.message}\n\nVui lòng liên hệ admin để điều chỉnh thời gian nếu cần thiết.`);
+        showNotification(`⏰ THỜI GIAN SỬA/XÓA ĐÃ HẾT!\n\n${errorData.message}`, 'error');
       } else if (errorData?.code === 'INVOICE_LOCKED_BY_MESSAGE_EXPORT' || errorData?.code === 'INVOICE_DELETE_REQUIRES_APPROVAL' || (error.response?.status === 403 && (errorData?.message || '').includes('xuất tin nhắn'))) {
         const promptMsg = errorData?.code === 'INVOICE_DELETE_REQUIRES_APPROVAL'
           ? 'Bạn phải xin ý kiến admin trước khi xóa. Nhập lý do gửi yêu cầu tới admin để xin xóa:'
           : 'Hóa đơn đã được xuất tin nhắn, không thể xóa. Nhập lý do gửi yêu cầu tới admin để xin xóa:';
-        const reasonReq = prompt(promptMsg);
-        if (reasonReq !== null) {
-          try {
-            const token = localStorage.getItem('token');
-            const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
-              invoiceId: invoiceId,
-              requestType: 'delete',
-              reason: reasonReq || ''
-            }, { headers: { Authorization: `Bearer ${token}` } });
-            if (resp.data?.success) {
-              alert('Đã gửi yêu cầu tới admin. Vui lòng chờ phê duyệt.');
-            } else {
-              alert(resp.data?.message || 'Không thể gửi yêu cầu');
+
+        setPromptModal({
+          isOpen: true,
+          title: 'Yêu cầu xóa hóa đơn',
+          message: promptMsg,
+          inputLabel: 'Lý do',
+          inputValue: '',
+          placeholder: 'VD: Khách yêu cầu hủy...',
+          onConfirm: async (reasonReq) => {
+            setPromptModal(prev => ({ ...prev, isOpen: false }));
+            if (reasonReq !== null) {
+              try {
+                const token = localStorage.getItem('token');
+                const resp = await axios.post(getApiUrl('/employee/invoice-change-requests'), {
+                  invoiceId: invoiceId,
+                  requestType: 'delete',
+                  reason: reasonReq || ''
+                }, { headers: { Authorization: `Bearer ${token}` } });
+                if (resp.data?.success) {
+                  showNotification('Đã gửi yêu cầu tới admin. Vui lòng chờ phê duyệt.');
+                } else {
+                  showNotification(resp.data?.message || 'Không thể gửi yêu cầu', 'error');
+                }
+              } catch (err) {
+                showNotification(err.response?.data?.message || 'Lỗi khi gửi yêu cầu', 'error');
+              }
             }
-          } catch (err) {
-            alert(err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
-          }
-        }
+          },
+          onCancel: () => setPromptModal(prev => ({ ...prev, isOpen: false }))
+        });
       } else {
-        alert('Lỗi khi xóa hóa đơn: ' + (errorData?.message || error.message));
+        showNotification(`Lỗi khi xóa hóa đơn: ${errorData?.message || error.message}`, 'error');
       }
     }
   };
@@ -3038,45 +3126,54 @@ const EmployeeInterface = ({ user }) => {
       // Then print it
       setTimeout(() => {
         createPrintableInvoice(customerName, currentInvoiceId);
-        alert('Hóa đơn đã được cập nhật và in thành công!');
+        showNotification('Hóa đơn đã được cập nhật và in thành công!');
       }, 500);
 
     } catch (error) {
       console.error('Lỗi khi lưu và in hóa đơn:', error);
-      alert('Có lỗi xảy ra khi lưu và in hóa đơn');
+      showNotification('Có lỗi xảy ra khi lưu và in hóa đơn', 'error');
     }
   };
 
   // Edit invoice function
   const editInvoice = () => {
-    const invoiceIdInput = prompt('Nhập mã hóa đơn cần sửa (có thể nhập 5 số cuối, vd: 12345):');
-    if (invoiceIdInput) {
-      let invoiceIdToEdit = invoiceIdInput.trim();
+    setPromptModal({
+      isOpen: true,
+      title: 'Sửa hóa đơn',
+      message: 'Nhập mã hóa đơn cần sửa (có thể nhập 5 số cuối, vd: 12345):',
+      inputLabel: 'Mã hóa đơn',
+      inputValue: '',
+      placeholder: 'VD: 12345',
+      onConfirm: (invoiceIdInput) => {
+        setPromptModal(prev => ({ ...prev, isOpen: false }));
+        if (invoiceIdInput) {
+          let invoiceIdToEdit = invoiceIdInput.trim();
 
-      // Kiểm tra nếu nhập số nhưng không đúng 5 số
-      if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length !== 5) {
-        alert('Vui lòng nhập đúng 5 số cuối của mã hóa đơn!');
-        return;
-      }
+          // Kiểm tra nếu nhập số nhưng không đúng 5 số
+          if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length !== 5) {
+            showNotification('Vui lòng nhập đúng 5 số cuối của mã hóa đơn!', 'error');
+            return;
+          }
 
-      // Nếu chỉ là số và có đúng 5 số, tìm hóa đơn theo số cuối
-      if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length === 5) {
-        // Tìm hóa đơn trong danh sách hiện tại theo số cuối
-        const foundInvoice = invoiceList.find(invoice =>
-          invoice.invoiceId.endsWith(invoiceIdToEdit)
-        );
+          // Nếu chỉ là số và có đúng 5 số, tìm hóa đơn theo số cuối
+          if (/^\d+$/.test(invoiceIdToEdit) && invoiceIdToEdit.length === 5) {
+            const foundInvoice = invoiceList.find(invoice =>
+              invoice.invoiceId.endsWith(invoiceIdToEdit)
+            );
 
-        if (foundInvoice) {
-          invoiceIdToEdit = foundInvoice.invoiceId;
-        } else {
-          // Nếu không tìm thấy, báo lỗi và dừng
-          alert(`Không tìm thấy hóa đơn có mã kết thúc bằng ${invoiceIdToEdit}. Vui lòng kiểm tra lại mã hóa đơn.`);
-          return;
+            if (foundInvoice) {
+              invoiceIdToEdit = foundInvoice.invoiceId;
+            } else {
+              showNotification(`Không tìm thấy hóa đơn có mã kết thúc bằng ${invoiceIdToEdit}.`, 'error');
+              return;
+            }
+          }
+
+          loadInvoiceForEdit(invoiceIdToEdit);
         }
-      }
-
-      loadInvoiceForEdit(invoiceIdToEdit);
-    }
+      },
+      onCancel: () => setPromptModal(prev => ({ ...prev, isOpen: false }))
+    });
   };
 
   // Save invoice to database
@@ -4491,30 +4588,41 @@ const EmployeeInterface = ({ user }) => {
   );
 
   // Delete invoice by id from list
-  const deleteInvoiceById = async (finalInvoiceId) => {
+  const deleteInvoiceById = (finalInvoiceId) => {
     if (!finalInvoiceId) return;
 
-    // eslint-disable-next-line no-restricted-globals
-    if (!confirm(`Bạn có chắc chắn muốn xóa hóa đơn ${finalInvoiceId}?`)) {
-      return;
-    }
+    setPromptModal({
+      isOpen: true,
+      title: 'Lý do xóa',
+      message: `Đang xóa hóa đơn ${finalInvoiceId}`,
+      inputLabel: 'Nhập lý do xóa:',
+      inputValue: '',
+      placeholder: 'VD: Xóa do khách bỏ...',
+      onConfirm: async (reasonInput) => {
+        setPromptModal(prev => ({ ...prev, isOpen: false }));
+        const reason = reasonInput || 'Xóa hóa đơn';
 
-    const reason = prompt('Nhập lý do xóa hóa đơn:') || 'Xóa hóa đơn';
-
-    // Try to get location if available, but don't block
-    let locationAddress = '';
-    try {
-      // Check permission first to avoid unnecessary prompts if already denied
-      const permissionState = await getGeolocationPermission();
-      // If granted OR prompt, try to get address (which will trigger prompt if needed)
-      if (permissionState !== 'denied') {
-        locationAddress = await getCurrentAddress();
-      }
-    } catch (err) {
-      console.warn('Could not get location, proceeding without it:', err);
-    }
-
-    await executeDeleteInvoice(finalInvoiceId, reason, locationAddress);
+        setConfirmModal({
+          isOpen: true,
+          title: 'Xác nhận xóa',
+          message: `Bạn có chắc chắn muốn xóa hóa đơn ${finalInvoiceId}?`,
+          onConfirm: async () => {
+            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+            let locationAddress = '';
+            try {
+              const permissionState = await getGeolocationPermission();
+              if (permissionState === 'granted') {
+                locationAddress = await getCurrentAddress();
+              }
+            } catch (err) {
+              console.warn('Could not get location:', err);
+            }
+            await executeDeleteInvoice(finalInvoiceId, reason, locationAddress);
+          }
+        });
+      },
+      onCancel: () => setPromptModal(prev => ({ ...prev, isOpen: false }))
+    });
   };
 
 
@@ -5288,7 +5396,91 @@ const EmployeeInterface = ({ user }) => {
           {renderContent()}
         </div>
       </div>
-    </div>
+
+      {/* Notifications */}
+      {
+        notification.show && (
+          <div className={`toast-notification ${notification.type}`}>
+            {notification.message}
+          </div>
+        )
+      }
+
+      {/* Confirm Modal */}
+      {
+        confirmModal.isOpen && (
+          <div className="settings-modal-overlay" onClick={(e) => { if (e.target.className === 'settings-modal-overlay') setConfirmModal(prev => ({ ...prev, isOpen: false })); }}>
+            <div className="settings-modal-content" style={{ maxWidth: '400px' }}>
+              <div className="settings-modal-header">
+                <h3>{confirmModal.title}</h3>
+                <button className="close-modal-btn" onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}>✕</button>
+              </div>
+              <div className="settings-modal-body" style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '16px', marginBottom: '25px', lineHeight: '1.5' }}>{confirmModal.message}</p>
+                <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                  <button
+                    onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    style={{ padding: '10px 20px', background: '#e0e0e0', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', minWidth: '100px' }}
+                  >
+                    Huỷ bỏ
+                  </button>
+                  <button
+                    onClick={confirmModal.onConfirm}
+                    style={{ padding: '10px 20px', background: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', minWidth: '100px' }}
+                  >
+                    Xác nhận
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Prompt Modal */}
+      {
+        promptModal.isOpen && (
+          <div className="settings-modal-overlay" onClick={(e) => { if (e.target.className === 'settings-modal-overlay') setPromptModal(prev => ({ ...prev, isOpen: false })); }}>
+            <div className="settings-modal-content" style={{ maxWidth: '400px' }}>
+              <div className="settings-modal-header">
+                <h3>{promptModal.title}</h3>
+                <button className="close-modal-btn" onClick={() => setPromptModal(prev => ({ ...prev, isOpen: false }))}>✕</button>
+              </div>
+              <div className="settings-modal-body">
+                <p style={{ fontSize: '14px', marginBottom: '15px', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{promptModal.message}</p>
+                {promptModal.inputLabel && (
+                  <div className="form-group" style={{ marginBottom: '20px', textAlign: 'left' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>{promptModal.inputLabel}</label>
+                    <input
+                      type="text"
+                      value={promptModal.inputValue}
+                      onChange={(e) => setPromptModal(prev => ({ ...prev, inputValue: e.target.value }))}
+                      placeholder={promptModal.placeholder}
+                      style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '14px' }}
+                      autoFocus
+                    />
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => { if (promptModal.onCancel) promptModal.onCancel(); else setPromptModal(prev => ({ ...prev, isOpen: false })); }}
+                    style={{ padding: '8px 16px', background: '#e0e0e0', color: '#111', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Huỷ bỏ
+                  </button>
+                  <button
+                    onClick={() => promptModal.onConfirm(promptModal.inputValue)}
+                    style={{ padding: '8px 16px', background: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Xác nhận
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 
 };

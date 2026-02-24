@@ -991,6 +991,18 @@ const AdminExportSummary = ({ user }) => {
                 </div>
             </div>
 
+            <div className="manual-mode-wrapper">
+                <label className="switch">
+                    <input
+                        type="checkbox"
+                        checked={isManualMode}
+                        onChange={(e) => setIsManualMode(e.target.checked)}
+                    />
+                    <span className="slider round"></span>
+                </label>
+                <span className="switch-label">Bật chế độ tính ngoài</span>
+            </div>
+
             {/* Debt book moved back down */}
 
             {/* Removed inline settings */}
@@ -998,15 +1010,6 @@ const AdminExportSummary = ({ user }) => {
             <div className="summary-snapshots-section">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3>Dữ liệu tính toán</h3>
-                    <label className="manual-mode-toggle" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 'bold', color: '#1976d2' }}>
-                        <input
-                            type="checkbox"
-                            checked={isManualMode}
-                            onChange={(e) => setIsManualMode(e.target.checked)}
-                            style={{ transform: 'scale(1.2)' }}
-                        />
-                        Tính Text Báo Cáo (Tính ngoài)
-                    </label>
                 </div>
 
                 {isManualMode ? (
@@ -1257,7 +1260,7 @@ const AdminExportSummary = ({ user }) => {
                 (snapshots.length > 0 || isManualMode) && (
                     <div className="summary-text-export">
                         <div style={{ marginBottom: '15px' }}>
-                            <h3 style={{ marginBottom: '15px', color: '#1976d2', borderLeft: '4px solid #1976d2', paddingLeft: '10px' }}>Copy Báo Cáo Text</h3>
+                            <h3 style={{ marginBottom: '15px' }}>Copy Báo Cáo Text</h3>
 
                             <div className="export-controls-container">
                                 <label className="export-radio-label">
