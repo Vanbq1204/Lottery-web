@@ -17,8 +17,7 @@ const AdminManagement = () => {
     storeId: '',
     allowChangePassword: true,
     allowMessageExport: true,
-    allowChangePassword: true,
-    allowMessageExport: true,
+    allowExportSummary: true,
     enforceDeleteApproval: false
   });
   const [showEditForm, setShowEditForm] = useState(false);
@@ -28,6 +27,7 @@ const AdminManagement = () => {
     password: '',
     allowChangePassword: true,
     allowMessageExport: true,
+    allowExportSummary: true,
     enforceDeleteApproval: false
   });
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -117,7 +117,7 @@ const AdminManagement = () => {
       if (data.success) {
         alert('Tạo admin thành công');
         setShowCreateForm(false);
-        setFormData({ username: '', password: '', name: '', email: '', storeId: '', enforceDeleteApproval: false });
+        setFormData({ username: '', password: '', name: '', email: '', storeId: '', allowChangePassword: true, allowMessageExport: true, allowExportSummary: true, enforceDeleteApproval: false });
         loadAdmins();
         loadAvailableStores();
       } else {
@@ -201,11 +201,9 @@ const AdminManagement = () => {
       name: admin.name,
       email: admin.email,
       password: '',
-      password: '',
       allowChangePassword: admin.allowChangePassword ?? true,
       allowMessageExport: admin.allowMessageExport ?? true,
-      allowChangePassword: admin.allowChangePassword ?? true,
-      allowMessageExport: admin.allowMessageExport ?? true,
+      allowExportSummary: admin.allowExportSummary ?? true,
       enforceDeleteApproval: !!admin.enforceDeleteApproval
     });
     setShowEditForm(true);
@@ -223,11 +221,9 @@ const AdminManagement = () => {
     const updateData = {
       name: editFormData.name,
       email: editFormData.email,
-      email: editFormData.email,
       allowChangePassword: !!editFormData.allowChangePassword,
       allowMessageExport: !!editFormData.allowMessageExport,
-      allowChangePassword: !!editFormData.allowChangePassword,
-      allowMessageExport: !!editFormData.allowMessageExport,
+      allowExportSummary: !!editFormData.allowExportSummary,
       enforceDeleteApproval: !!editFormData.enforceDeleteApproval
     };
 
@@ -312,6 +308,12 @@ const AdminManagement = () => {
                 <label>
                   <input type="checkbox" checked={editFormData.allowMessageExport} onChange={(e) => setEditFormData({ ...editFormData, allowMessageExport: e.target.checked })} />
                   Cho phép sử dụng Xuất tin nhắn
+                </label>
+              </div>
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={editFormData.allowExportSummary} onChange={(e) => setEditFormData({ ...editFormData, allowExportSummary: e.target.checked })} />
+                  Cho phép hiển thị Tổng kết tin xuất
                 </label>
               </div>
               <div className="admin-mgmt-form-group">
@@ -406,6 +408,12 @@ const AdminManagement = () => {
                 <label>
                   <input type="checkbox" checked={formData.allowMessageExport} onChange={(e) => setFormData({ ...formData, allowMessageExport: e.target.checked })} />
                   Cho phép sử dụng Xuất tin nhắn
+                </label>
+              </div>
+              <div className="admin-mgmt-form-group">
+                <label>
+                  <input type="checkbox" checked={formData.allowExportSummary} onChange={(e) => setFormData({ ...formData, allowExportSummary: e.target.checked })} />
+                  Cho phép hiển thị Tổng kết tin xuất
                 </label>
               </div>
               <div className="admin-mgmt-form-group">

@@ -10,6 +10,7 @@ import TimeSettings from './TimeSettings';
 import DataCleanup from './DataCleanup';
 import AdminMessageExport from './AdminMessageExport';
 import AdminMessageExportSettings from './AdminMessageExportSettings';
+import AdminExportSummary from './AdminExportSummary';
 import AdminChangePassword from './AdminChangePassword';
 import AdminStoreTimeSettings from './AdminStoreTimeSettings';
 import AdminDailyReport from './AdminDailyReport';
@@ -29,7 +30,12 @@ const AdminInterface = ({ user, onLogout }) => {
   const menuItems = [
     { id: 'my-store', label: 'Cửa hàng của tôi', icon: '🏪' },
     { id: 'reports', label: 'Báo cáo tổng hợp', icon: '📊' },
-    ...(user?.allowMessageExport ? [{ id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }] : []),
+    ...(user?.allowMessageExport ? [
+      { id: 'message-export', label: 'Xuất tin nhắn', icon: '✉️' }
+    ] : []),
+    ...(user?.allowExportSummary !== false ? [
+      { id: 'export-summary', label: 'Tổng kết tin xuất', icon: '📈' }
+    ] : []),
     { id: 'prize-stats', label: 'Thống kê tổng hợp', icon: '🏆' },
     { id: 'daily-report', label: 'Báo cáo cuối ngày', icon: '📑' },
     { id: 'invoice-history', label: 'Lịch sử hoạt động', icon: '📚' },
@@ -208,6 +214,20 @@ const AdminInterface = ({ user, onLogout }) => {
           <div className="admin-content-section">
             {/* Xuất tin nhắn tổng hợp theo ngày */}
             <AdminMessageExport user={user} />
+          </div>
+        );
+      case 'export-summary':
+        if (!allowedMessageExport) {
+          return (
+            <div className="admin-content-section">
+              <h2>Không có quyền</h2>
+              <p>Bạn không có quyền sử dụng chức năng tổng kết tin xuất.</p>
+            </div>
+          );
+        }
+        return (
+          <div className="admin-content-section">
+            <AdminExportSummary user={user} />
           </div>
         );
       case 'message-export-settings':
