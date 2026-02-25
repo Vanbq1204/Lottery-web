@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { getApiUrl } from '../config/api';
 import './AdminMessageExportSettings.css';
 
 const defaultFormat = { lo: 'Lo', loA: 'Lo A', twoS: 'De', deaA: 'De A', dauA: 'De Dau A', ditA: 'De Dit A', threeS: 'Bc', fourS: '4s', tong: 'De Tong', dau: 'De Dau', dit: 'De Dit', kep: 'Kep', boPrefix: 'Bo', xien2: 'Xien2', xien3: 'Xien3', xien4: 'Xien4', xq3: 'xq3', xq4: 'xq4', xiennhay: 'Xiennhay' };
@@ -14,6 +16,45 @@ const AdminMessageExportSettings = ({ user }) => {
   const [separateExport, setSeparateExport] = useState(() => {
     try { const raw = localStorage.getItem(resolveSeparateExportKey(user)); return raw === 'true'; } catch (_) { return false; }
   });
+
+  const [autoExportMessage, setAutoExportMessage] = useState(false);
+  const [loadingAutoExport, setLoadingAutoExport] = useState(true);
+
+  useEffect(() => {
+    const fetchAutoExportSetting = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await axios.get(getApiUrl('/admin/message-exports/auto-setting'), {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data?.success) {
+          setAutoExportMessage(res.data.autoExportMessage);
+        }
+      } catch (err) {
+        console.error('Lỗi lấy thiết lập tự động xuất:', err);
+      } finally {
+        setLoadingAutoExport(false);
+      }
+    };
+    fetchAutoExportSetting();
+  }, []);
+
+  const handleToggleAutoExport = async (checked) => {
+    setAutoExportMessage(checked);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(getApiUrl('/admin/message-exports/auto-setting'), {
+        autoExportMessage: checked
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error('Lỗi cập nhật thiết lập tự động xuất:', err);
+      // Revert if error
+      setAutoExportMessage(!checked);
+    }
+  };
 
   useEffect(() => { try { localStorage.setItem(resolveFormatKey(user), JSON.stringify(format)); } catch (_) { } }, [format, user]);
 
@@ -66,6 +107,19 @@ const AdminMessageExportSettings = ({ user }) => {
             </label>
             <div className="msg-note" style={{ marginTop: 8 }}>
               Khi bật: Lịch sử xuất tin sẽ hiển thị riêng từng cửa hàng. Khi tắt: Gộp tất cả cửa hàng như bình thường.
+            </div>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 12 }}>
+              <input
+                type="checkbox"
+                checked={autoExportMessage}
+                disabled={loadingAutoExport}
+                onChange={(e) => handleToggleAutoExport(e.target.checked)}
+              />
+              <span>Tự động xuất tin nhắn sau thời gian giới hạn báo cáo (18h30)</span>
+            </label>
+            <div className="msg-note" style={{ marginTop: 8 }}>
+              Khi bật: Hệ thống sẽ tự động xuất tin nhắn một lần vào lúc 18h30. (Cài đặt lưu trên server)
             </div>
           </div>
           <div style={{ marginTop: 12 }}>
