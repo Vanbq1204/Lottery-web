@@ -11,9 +11,6 @@ const AdminExportSummary = ({ user }) => {
         return vietnamTime.toISOString().split('T')[0];
     };
 
-    const getReceiveMultiplierKey = () => `adminRecvMult_${user.id}`;
-    const getPrizeMultiplierKey = () => `adminPrizeMult_${user.id}`;
-
     const [selectedDate, setSelectedDate] = useState(getCurrentVietnamDate());
     const [snapshots, setSnapshots] = useState([]);
     const [lotteryResult, setLotteryResult] = useState(null);
@@ -21,69 +18,25 @@ const AdminExportSummary = ({ user }) => {
     const [loading, setLoading] = useState(false);
 
     // User input settings
-    const [receiveMultiplier, setReceiveMultiplier] = useState(() => {
-        return localStorage.getItem(getReceiveMultiplierKey()) || '83';
-    });
-    const [prizeMultiplier, setPrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getPrizeMultiplierKey()) || '80';
-    });
+    const [receiveMultiplier, setReceiveMultiplier] = useState('83');
+    const [prizeMultiplier, setPrizeMultiplier] = useState('80');
 
-    const getLoReceiveMultiplierKey = () => `adminLoRecvMult_${user.id}`;
-    const getLoPrizeMultiplierKey = () => `adminLoPrizeMult_${user.id}`;
-    const [loReceiveMultiplier, setLoReceiveMultiplier] = useState(() => {
-        return localStorage.getItem(getLoReceiveMultiplierKey()) || '21.8';
-    });
-    const [loPrizeMultiplier, setLoPrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getLoPrizeMultiplierKey()) || '80';
-    });
+    const [loReceiveMultiplier, setLoReceiveMultiplier] = useState('21.8');
+    const [loPrizeMultiplier, setLoPrizeMultiplier] = useState('80');
 
-    const getThreeSReceiveMultiplierKey = () => `adminThreeSRecvMult_${user.id}`;
-    const getThreeSPrizeMultiplierKey = () => `adminThreeSPrizeMult_${user.id}`;
-    const [threeSReceiveMultiplier, setThreeSReceiveMultiplier] = useState(() => {
-        return localStorage.getItem(getThreeSReceiveMultiplierKey()) || '60';
-    });
-    const [threeSPrizeMultiplier, setThreeSPrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getThreeSPrizeMultiplierKey()) || '400';
-    });
+    const [threeSReceiveMultiplier, setThreeSReceiveMultiplier] = useState('60');
+    const [threeSPrizeMultiplier, setThreeSPrizeMultiplier] = useState('400');
 
-    const getFourSReceiveMultiplierKey = () => `adminFourSRecvMult_${user.id}`;
-    const getFourSPrizeMultiplierKey = () => `adminFourSPrizeMult_${user.id}`;
-    const [fourSReceiveMultiplier, setFourSReceiveMultiplier] = useState(() => {
-        return localStorage.getItem(getFourSReceiveMultiplierKey()) || '60';
-    });
-    const [fourSPrizeMultiplier, setFourSPrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getFourSPrizeMultiplierKey()) || '1000';
-    });
+    const [fourSReceiveMultiplier, setFourSReceiveMultiplier] = useState('60');
+    const [fourSPrizeMultiplier, setFourSPrizeMultiplier] = useState('1000');
 
-    const getXienReceiveMultiplierKey = () => `adminXienRecvMult_${user.id}`;
-    const getX2PrizeMultiplierKey = () => `adminX2PrizeMult_${user.id}`;
-    const getX3PrizeMultiplierKey = () => `adminX3PrizeMult_${user.id}`;
-    const getX4PrizeMultiplierKey = () => `adminX4PrizeMult_${user.id}`;
-    const getXqHit2PrizeMultiplierKey = () => `adminXqHit2PrizeMult_${user.id}`;
-    const getXqHit3PrizeMultiplierKey = () => `adminXqHit3PrizeMult_${user.id}`;
-    const getXqHit4PrizeMultiplierKey = () => `adminXqHit4PrizeMult_${user.id}`;
-
-    const [xienReceiveMultiplier, setXienReceiveMultiplier] = useState(() => {
-        return localStorage.getItem(getXienReceiveMultiplierKey()) || '60';
-    });
-    const [x2PrizeMultiplier, setX2PrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getX2PrizeMultiplierKey()) || '10';
-    });
-    const [x3PrizeMultiplier, setX3PrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getX3PrizeMultiplierKey()) || '40';
-    });
-    const [x4PrizeMultiplier, setX4PrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getX4PrizeMultiplierKey()) || '100';
-    });
-    const [xqHit2PrizeMultiplier, setXqHit2PrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getXqHit2PrizeMultiplierKey()) || '10';
-    });
-    const [xqHit3PrizeMultiplier, setXqHit3PrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getXqHit3PrizeMultiplierKey()) || '70';
-    });
-    const [xqHit4PrizeMultiplier, setXqHit4PrizeMultiplier] = useState(() => {
-        return localStorage.getItem(getXqHit4PrizeMultiplierKey()) || '320';
-    });
+    const [xienReceiveMultiplier, setXienReceiveMultiplier] = useState('60');
+    const [x2PrizeMultiplier, setX2PrizeMultiplier] = useState('10');
+    const [x3PrizeMultiplier, setX3PrizeMultiplier] = useState('40');
+    const [x4PrizeMultiplier, setX4PrizeMultiplier] = useState('100');
+    const [xqHit2PrizeMultiplier, setXqHit2PrizeMultiplier] = useState('10');
+    const [xqHit3PrizeMultiplier, setXqHit3PrizeMultiplier] = useState('70');
+    const [xqHit4PrizeMultiplier, setXqHit4PrizeMultiplier] = useState('320');
 
     // Checkbox state keeping track of selected snapshot IDs
     const [selectedSnapshotIds, setSelectedSnapshotIds] = useState([]);
@@ -102,7 +55,7 @@ const AdminExportSummary = ({ user }) => {
     const [copyMergeMode, setCopyMergeMode] = useState('merge'); // 'merge' or 'separate'
 
     // Debt book state
-    const [debts, setDebts] = useState([]);
+    const [debt, setDebt] = useState(null);
     const [showDebtBook, setShowDebtBook] = useState(false);
 
     // Toast notification state
@@ -113,7 +66,7 @@ const AdminExportSummary = ({ user }) => {
     };
 
     // Update paid modal state
-    const [updateModal, setUpdateModal] = useState({ isOpen: false, date: '', currentPaid: 0, newPaid: '' });
+    const [updateModal, setUpdateModal] = useState({ isOpen: false, oldDebt: 0, paid: 0, received: 0 });
 
     // Confirm Modal state
     const [confirmModal, setConfirmModal] = useState({
@@ -123,81 +76,82 @@ const AdminExportSummary = ({ user }) => {
         onConfirm: null
     });
 
-    const loadDebts = async () => {
+    const loadDebt = async () => {
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(getApiUrl('/debt'), { headers: { Authorization: `Bearer ${token}` } });
             if (res.data && res.data.success) {
-                setDebts(res.data.data);
+                setDebt(res.data.data);
             }
         } catch (err) {
             console.error('Lỗi khi tải danh sách nợ:', err);
         }
     };
 
+    const loadMultipliers = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(getApiUrl('/admin/message-exports/multipliers'), { headers: { Authorization: `Bearer ${token}` } });
+            if (res.data?.success && res.data.multipliers) {
+                const m = res.data.multipliers;
+                if (m.receive) setReceiveMultiplier(m.receive);
+                if (m.prize) setPrizeMultiplier(m.prize);
+                if (m.loReceive) setLoReceiveMultiplier(m.loReceive);
+                if (m.loPrize) setLoPrizeMultiplier(m.loPrize);
+                if (m.threeSReceive) setThreeSReceiveMultiplier(m.threeSReceive);
+                if (m.threeSPrize) setThreeSPrizeMultiplier(m.threeSPrize);
+                if (m.fourSReceive) setFourSReceiveMultiplier(m.fourSReceive);
+                if (m.fourSPrize) setFourSPrizeMultiplier(m.fourSPrize);
+                if (m.xienReceive) setXienReceiveMultiplier(m.xienReceive);
+                if (m.x2Prize) setX2PrizeMultiplier(m.x2Prize);
+                if (m.x3Prize) setX3PrizeMultiplier(m.x3Prize);
+                if (m.x4Prize) setX4PrizeMultiplier(m.x4Prize);
+                if (m.xqHit2Prize) setXqHit2PrizeMultiplier(m.xqHit2Prize);
+                if (m.xqHit3Prize) setXqHit3PrizeMultiplier(m.xqHit3Prize);
+                if (m.xqHit4Prize) setXqHit4PrizeMultiplier(m.xqHit4Prize);
+            }
+        } catch (err) {
+            console.error('Lỗi khi tải hệ số:', err);
+        }
+    };
+
     useEffect(() => {
-        loadDebts();
+        loadDebt();
+        loadMultipliers();
     }, []);
 
-    useEffect(() => {
-        localStorage.setItem(getReceiveMultiplierKey(), receiveMultiplier);
-    }, [receiveMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getPrizeMultiplierKey(), prizeMultiplier);
-    }, [prizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getLoReceiveMultiplierKey(), loReceiveMultiplier);
-    }, [loReceiveMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getLoPrizeMultiplierKey(), loPrizeMultiplier);
-    }, [loPrizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getThreeSReceiveMultiplierKey(), threeSReceiveMultiplier);
-    }, [threeSReceiveMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getThreeSPrizeMultiplierKey(), threeSPrizeMultiplier);
-    }, [threeSPrizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getFourSReceiveMultiplierKey(), fourSReceiveMultiplier);
-    }, [fourSReceiveMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getFourSPrizeMultiplierKey(), fourSPrizeMultiplier);
-    }, [fourSPrizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getXienReceiveMultiplierKey(), xienReceiveMultiplier);
-    }, [xienReceiveMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getX2PrizeMultiplierKey(), x2PrizeMultiplier);
-    }, [x2PrizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getX3PrizeMultiplierKey(), x3PrizeMultiplier);
-    }, [x3PrizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getX4PrizeMultiplierKey(), x4PrizeMultiplier);
-    }, [x4PrizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getXqHit2PrizeMultiplierKey(), xqHit2PrizeMultiplier);
-    }, [xqHit2PrizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getXqHit3PrizeMultiplierKey(), xqHit3PrizeMultiplier);
-    }, [xqHit3PrizeMultiplier, user.id]);
-
-    useEffect(() => {
-        localStorage.setItem(getXqHit4PrizeMultiplierKey(), xqHit4PrizeMultiplier);
-    }, [xqHit4PrizeMultiplier, user.id]);
+    const saveMultipliers = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const multipliers = {
+                receive: receiveMultiplier,
+                prize: prizeMultiplier,
+                loReceive: loReceiveMultiplier,
+                loPrize: loPrizeMultiplier,
+                threeSReceive: threeSReceiveMultiplier,
+                threeSPrize: threeSPrizeMultiplier,
+                fourSReceive: fourSReceiveMultiplier,
+                fourSPrize: fourSPrizeMultiplier,
+                xienReceive: xienReceiveMultiplier,
+                x2Prize: x2PrizeMultiplier,
+                x3Prize: x3PrizeMultiplier,
+                x4Prize: x4PrizeMultiplier,
+                xqHit2Prize: xqHit2PrizeMultiplier,
+                xqHit3Prize: xqHit3PrizeMultiplier,
+                xqHit4Prize: xqHit4PrizeMultiplier
+            };
+            const res = await axios.put(getApiUrl('/admin/message-exports/multipliers'), { multipliers }, { headers: { Authorization: `Bearer ${token}` } });
+            if (res.data?.success) {
+                showNotification('Lưu hệ số thành công');
+                setIsSettingsOpen(false);
+            } else {
+                showNotification(res.data?.message || 'Không thể lưu hệ số', 'error');
+            }
+        } catch (err) {
+            console.error('Lỗi khi lưu hệ số:', err);
+            showNotification('Lỗi kết nối khi lưu hệ số', 'error');
+        }
+    };
 
     // Load snapshots and lottery results
     const loadData = async () => {
@@ -897,17 +851,21 @@ const AdminExportSummary = ({ user }) => {
         setConfirmModal({
             isOpen: true,
             title: 'Xác nhận lưu',
-            message: `Bạn có chắc muốn lưu kết quả ${totalProfitLoss.toLocaleString('vi-VN')}n vào sổ nợ ngày ${selectedDate}?`,
+            message: `Bạn có chắc muốn cộng dồn kết quả hôm nay (${totalProfitLoss.toLocaleString('vi-VN')}n) vào cột Nợ Cũ?`,
             onConfirm: async () => {
                 setConfirmModal(prev => ({ ...prev, isOpen: false }));
                 try {
                     const token = localStorage.getItem('token');
-                    await axios.post(getApiUrl('/debt'), {
-                        date: selectedDate,
-                        debtAmount: totalProfitLoss
+                    const response = await axios.post(getApiUrl('/debt/add'), {
+                        newAmount: totalProfitLoss
                     }, { headers: { Authorization: `Bearer ${token}` } });
-                    showNotification('Đã lưu kết quả vào sổ nợ!');
-                    loadDebts();
+
+                    if (response.data && response.data.message) {
+                        showNotification(response.data.message, response.data.message === 'Đã cập nhật giá trị nợ này' ? 'success' : 'success');
+                    } else {
+                        showNotification('Đã lưu kết quả vào sổ nợ!');
+                    }
+                    loadDebt();
                 } catch (err) {
                     console.error(err);
                     showNotification('Có lỗi khi lưu sổ nợ', 'error');
@@ -916,51 +874,32 @@ const AdminExportSummary = ({ user }) => {
         });
     };
 
-    const handleUpdatePaidClick = (date, currentPaid) => {
-        setUpdateModal({ isOpen: true, date, currentPaid, newPaid: currentPaid.toString() });
-    };
-
-    const submitUpdatePaid = async () => {
-        const parsed = Number(updateModal.newPaid);
-        if (isNaN(parsed)) {
-            showNotification('Số tiền không hợp lệ', 'error');
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            await axios.post(getApiUrl('/debt'), {
-                date: updateModal.date,
-                paidAmount: parsed
-            }, { headers: { Authorization: `Bearer ${token}` } });
-            setUpdateModal({ isOpen: false, date: '', currentPaid: 0, newPaid: '' });
-            showNotification('Đã cập nhật số tiền!');
-            loadDebts();
-        } catch (err) {
-            console.error(err);
-            showNotification('Có lỗi khi cập nhật số tiền đã trả', 'error');
-        }
-    };
-
-    const handleDeleteDebt = (date) => {
-        setConfirmModal({
+    const handleEditDebtClick = () => {
+        setUpdateModal({
             isOpen: true,
-            title: 'Xác nhận xoá',
-            message: `Bạn có chắc muốn xoá ghi nợ ngày ${date}?`,
-            onConfirm: async () => {
-                setConfirmModal(prev => ({ ...prev, isOpen: false }));
-                try {
-                    const token = localStorage.getItem('token');
-                    await axios.delete(getApiUrl(`/debt/${date}`), { headers: { Authorization: `Bearer ${token}` } });
-                    showNotification('Đã xoá nợ thành công!');
-                    loadDebts();
-                } catch (err) {
-                    console.error(err);
-                    showNotification('Có lỗi khi xoá ghi nợ', 'error');
-                }
-            }
+            oldDebt: debt?.oldDebt || 0,
+            paid: debt?.paid || 0,
+            received: debt?.received || 0
         });
     };
+
+    const submitUpdateDebt = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put(getApiUrl('/debt/update'), {
+                oldDebt: updateModal.oldDebt,
+                paid: updateModal.paid,
+                received: updateModal.received
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            setUpdateModal({ isOpen: false, oldDebt: 0, paid: 0, received: 0 });
+            showNotification('Đã cập nhật sổ nợ!');
+            loadDebt();
+        } catch (err) {
+            console.error(err);
+            showNotification('Có lỗi khi cập nhật sổ nợ', 'error');
+        }
+    };
+
 
     return (
         <div className="admin-export-summary">
@@ -1308,7 +1247,7 @@ const AdminExportSummary = ({ user }) => {
 
             <div className="summary-snapshots-section debt-book-section">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <h3 style={{ margin: 0, color: '#d32f2f', borderLeft: 'none', paddingLeft: '0' }}>📓 Sổ Quản Lý Ghi Nợ</h3>
+                    <h3 style={{ margin: 0, color: '#d32f2f', borderLeft: 'none', paddingLeft: '0' }}>📓 Cập nhật sổ nợ ngày {debt?.lastUpdatedDate ? new Date(debt.lastUpdatedDate).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN')}</h3>
                     <button
                         onClick={() => setShowDebtBook(!showDebtBook)}
                         className="btn-toggle-debt"
@@ -1319,62 +1258,46 @@ const AdminExportSummary = ({ user }) => {
 
                 {showDebtBook && (
                     <div className="debt-book-content">
-                        {debts.length === 0 ? (
-                            <p style={{ fontStyle: 'italic', color: '#666' }}>Chưa có ghi chép nợ nào.</p>
-                        ) : (
-                            <div className="debt-table-wrapper">
-                                <table className="minimal-table" style={{ width: '100%', marginTop: '10px' }}>
-                                    <thead>
-                                        <tr style={{ background: '#f1f1f1' }}>
-                                            <th style={{ border: '1px solid #ddd', textAlign: 'center' }}>Ngày</th>
-                                            <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Tiền Kết Quả (Nợ)</th>
-                                            <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Đã Trả</th>
-                                            <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Còn Lại</th>
-                                            <th style={{ border: '1px solid #ddd', textAlign: 'center' }}>Hành động</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {debts.map(d => (
-                                            <tr key={d.id}>
-                                                <td style={{ border: '1px solid #ddd', textAlign: 'center', fontWeight: 'bold' }}>{d.date}</td>
-                                                <td style={{ border: '1px solid #ddd', textAlign: 'right', color: d.debtAmount >= 0 ? 'green' : 'red' }}>
-                                                    {d.debtAmount.toLocaleString('vi-VN')}n
-                                                </td>
-                                                <td style={{ border: '1px solid #ddd', textAlign: 'right' }}>
-                                                    {d.paidAmount.toLocaleString('vi-VN')}n
-                                                </td>
-                                                <td style={{ border: '1px solid #ddd', textAlign: 'right', fontWeight: 'bold', color: d.remainingDebt >= 0 ? 'green' : 'red' }}>
-                                                    {d.remainingDebt.toLocaleString('vi-VN')}n
-                                                </td>
-                                                <td style={{ border: '1px solid #ddd', textAlign: 'center' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                                        <button
-                                                            onClick={() => handleUpdatePaidClick(d.date, d.paidAmount)}
-                                                            className="btn-action btn-success"
-                                                        >
-                                                            Cập nhật đã trả
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteDebt(d.date)}
-                                                            className="btn-action btn-danger"
-                                                        >
-                                                            Xoá
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        <tr style={{ background: '#ffeb3b4d' }}>
-                                            <td colSpan="3" style={{ border: '1px solid #ddd', textAlign: 'right', fontWeight: 'bold' }}>TỔNG CỘNG NỢ CÒN LẠI:</td>
-                                            <td style={{ border: '1px solid #ddd', textAlign: 'right', fontWeight: 'bold', color: debts.reduce((sum, d) => sum + d.remainingDebt, 0) >= 0 ? 'green' : 'red', fontSize: '16px' }}>
-                                                {debts.reduce((sum, d) => sum + d.remainingDebt, 0).toLocaleString('vi-VN')}n
-                                            </td>
-                                            <td style={{ border: '1px solid #ddd' }}></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <div className="debt-table-wrapper">
+                            <table className="minimal-table" style={{ width: '100%', marginTop: '10px' }}>
+                                <thead>
+                                    <tr style={{ background: '#f1f1f1' }}>
+                                        <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Nợ cũ</th>
+                                        <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Đã trả (+)</th>
+                                        <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Đã nhận (-)</th>
+                                        <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Còn lại</th>
+                                        <th style={{ border: '1px solid #ddd', textAlign: 'center' }}>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr key="current-debt">
+                                        <td style={{ border: '1px solid #ddd', textAlign: 'right', color: (debt?.oldDebt || 0) >= 0 ? '#d32f2f' : 'green' }}>
+                                            {(debt?.oldDebt || 0).toLocaleString('vi-VN')}n
+                                        </td>
+                                        <td style={{ border: '1px solid #ddd', textAlign: 'right', color: 'green' }}>
+                                            {(debt?.paid || 0).toLocaleString('vi-VN')}n
+                                        </td>
+                                        <td style={{ border: '1px solid #ddd', textAlign: 'right', color: '#ff9800' }}>
+                                            {(debt?.received || 0).toLocaleString('vi-VN')}n
+                                        </td>
+                                        <td style={{ border: '1px solid #ddd', textAlign: 'right', fontWeight: 'bold', color: (debt?.remainingDebt || 0) >= 0 ? '#d32f2f' : 'green', fontSize: '16px' }}>
+                                            {(debt?.remainingDebt || 0).toLocaleString('vi-VN')}n
+                                        </td>
+                                        <td style={{ border: '1px solid #ddd', textAlign: 'center' }}>
+                                            <button
+                                                onClick={handleEditDebtClick}
+                                                className="btn-action btn-success"
+                                            >
+                                                Sửa
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div style={{ marginTop: '8px', fontStyle: 'italic', fontSize: '13px', color: '#666', lineHeight: '1.4' }}>
+                                📌 *Lưu ý: Khi sang ngày mới, số tiền "Còn lại" của ngày hôm trước sẽ được tự động chuyển thành "Nợ cũ" của ngày hôm nay. Đồng thời, "Đã trả" và "Đã nhận" sẽ tự động đặt lại về 0.*
                             </div>
-                        )}
+                        </div>
                     </div>
                 )}
             </div>
@@ -1446,10 +1369,20 @@ const AdminExportSummary = ({ user }) => {
                                         </tr>
                                     </tbody>
                                 </table>
+                                <div style={{ marginTop: '15px', textAlign: 'right' }}>
+                                    <button
+                                        className="btn btn-primary"
+                                        style={{ padding: '8px 16px', background: '#4caf50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                        onClick={saveMultipliers}
+                                    >
+                                        Lưu cài đặt
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                )}
+                )
+            }
 
             {
                 updateModal.isOpen && (
@@ -1461,22 +1394,35 @@ const AdminExportSummary = ({ user }) => {
                             </div>
                             <div className="settings-modal-body">
                                 <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Ngày nợ:</label>
-                                    <input type="text" value={updateModal.date} disabled style={{ width: '100%', padding: '8px', background: '#e9ecef', border: '1px solid #ced4da', borderRadius: '4px' }} />
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Nợ cũ (n):</label>
+                                    <input
+                                        type="number"
+                                        style={{ width: '100%', padding: '10px', fontSize: '16px', border: '1px solid #ced4da', borderRadius: '4px' }}
+                                        value={updateModal.oldDebt}
+                                        onChange={(e) => setUpdateModal({ ...updateModal, oldDebt: e.target.value })}
+                                        autoFocus
+                                    />
                                 </div>
                                 <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Nhập tổng số tiền đã trả (n):</label>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Đã trả (n) (+):</label>
                                     <input
                                         type="number"
                                         style={{ width: '100%', padding: '10px', fontSize: '16px', border: '1px solid #007bff', borderRadius: '4px' }}
-                                        value={updateModal.newPaid}
-                                        onChange={(e) => setUpdateModal({ ...updateModal, newPaid: e.target.value })}
-                                        autoFocus
+                                        value={updateModal.paid}
+                                        onChange={(e) => setUpdateModal({ ...updateModal, paid: e.target.value })}
                                     />
-                                    <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>Ghi chú: Nhập tổng số tiền đã thanh toán từ trước tới nay tính theo đơn vị 'n'.</small>
+                                </div>
+                                <div style={{ marginBottom: '15px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Đã nhận (n) (-):</label>
+                                    <input
+                                        type="number"
+                                        style={{ width: '100%', padding: '10px', fontSize: '16px', border: '1px solid #ff9800', borderRadius: '4px' }}
+                                        value={updateModal.received}
+                                        onChange={(e) => setUpdateModal({ ...updateModal, received: e.target.value })}
+                                    />
                                 </div>
                                 <button
-                                    onClick={submitUpdatePaid}
+                                    onClick={submitUpdateDebt}
                                     style={{ width: '100%', padding: '12px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}
                                 >
                                     Lưu Cập Nhật
@@ -1484,7 +1430,8 @@ const AdminExportSummary = ({ user }) => {
                             </div>
                         </div>
                     </div>
-                )}
+                )
+            }
 
             {
                 confirmModal.isOpen && (
@@ -1513,8 +1460,9 @@ const AdminExportSummary = ({ user }) => {
                             </div>
                         </div>
                     </div>
-                )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
