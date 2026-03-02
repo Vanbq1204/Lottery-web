@@ -7,58 +7,67 @@ import './PrizeInterface.css';
 const PrizeInterface = ({ onCalculatingChange }) => {
   const [winningInvoices, setWinningInvoices] = useState([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmStep, setConfirmStep] = useState(1);
   const [lotteryPreview, setLotteryPreview] = useState(null);
+  const [hasCheckedResponsibility, setHasCheckedResponsibility] = useState(false);
   // Get current date in Vietnam timezone (UTC+7)
   const getCurrentVietnamDate = () => {
     const now = new Date();
-    const vietnamTime = new Date(now.getTime() + (7 * 60 * 60 * 1000)); // Add 7 hours
-    return vietnamTime.toISOString().split('T')[0];
+    // Sử dụng Intl để lấy đúng ngày theo múi giờ Việt Nam
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+    return parts; // format: YYYY-MM-DD
   };
-  
+
   const [selectedDate, setSelectedDate] = useState(getCurrentVietnamDate());
   const [isLoading, setIsLoading] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [paidFilter, setPaidFilter] = useState('all'); // 'all', 'paid', 'unpaid'
   const [searchInvoice, setSearchInvoice] = useState(''); // Tìm kiếm theo mã hóa đơn
-  const [showTimeNotification, setShowTimeNotification] = useState(false);
   const [hasCalculatedToday, setHasCalculatedToday] = useState(false);
-  
-  // Kiểm tra xem đã qua 18h30 chưa
-  const checkTimeForNotification = () => {
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    
-    // Debug: Log thời gian hiện tại
-    console.log(`Current time: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
-    
-    // Hiển thị notification sau 18h30 (18:30) và chưa tính thưởng trong ngày
-    const isAfter1830 = currentHour > 18 || (currentHour === 18 && currentMinute >= 30);
-    const shouldShow = isAfter1830 && !hasCalculatedToday;
-    console.log(`Should show notification: ${shouldShow} (isAfter1830: ${isAfter1830}, hasCalculated: ${hasCalculatedToday})`);
-    
-    return shouldShow;
+  const [hasLotteryResult, setHasLotteryResult] = useState(false);
+
+  // Check if lottery results exist for this date
+  const checkLotteryResult = async (dateStr) => {
+    try {
+      const token = localStorage.getItem('token');
+      const url = getApiUrl(`/lottery/results?date=${dateStr}`);
+      console.log('🔍 [checkLotteryResult] Checking date:', dateStr, 'URL:', url);
+      const resp = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const list = resp.data?.lotteryResults || [];
+      const hasResult = Array.isArray(list) && list.length > 0;
+      console.log('🔍 [checkLotteryResult] Results:', list.length, 'hasResult:', hasResult);
+      setHasLotteryResult(hasResult);
+    } catch (error) {
+      console.error('Lỗi kiểm tra kết quả xổ số:', error);
+      setHasLotteryResult(false);
+    }
   };
-  
-  // Effect để kiểm tra thời gian mỗi phút
-  useEffect(() => {
-    const checkTime = () => {
-      setShowTimeNotification(checkTimeForNotification());
-    };
-    
-    // Kiểm tra ngay lập tức
-    checkTime();
-    
-    // Kiểm tra mỗi phút
-    const interval = setInterval(checkTime, 60000);
-    
-    return () => clearInterval(interval);
-  }, [hasCalculatedToday]);
-  
-  // Effect để kiểm tra trạng thái đã tính thưởng khi thay đổi ngày
+
+  // Effect để kiểm tra trạng thái đã tính thưởng khi thay đổi ngày và thiết lập socket
   useEffect(() => {
     const calculated = sessionStorage.getItem(`calculated_${selectedDate}`);
     setHasCalculatedToday(calculated === 'true');
+
+    // Initial check
+    checkLotteryResult(selectedDate);
+
+    // Setup socket listener for real-time updates
+    const { io } = require('socket.io-client');
+    const baseUrl = getApiUrl('').replace('/api', '');
+    const socket = io(baseUrl);
+
+    socket.on('lottery_result_updated', (data) => {
+      // Re-check lottery result when an update occurs
+      // Even if another date was updated, it's safer to just re-check current selected date
+      console.log('Lottery result updated event received:', data);
+      checkLotteryResult(selectedDate);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [selectedDate]);
 
   // Lấy danh sách hóa đơn trúng thưởng
@@ -67,20 +76,20 @@ const PrizeInterface = ({ onCalculatingChange }) => {
       setIsLoading(true);
       const token = localStorage.getItem('token');
       let url = date ? `/prize/winning-invoices?date=${date}` : '/prize/winning-invoices';
-      
+
       // Thêm filter trạng thái trả thưởng
       if (filterPaid && filterPaid !== 'all') {
         const isPaidParam = filterPaid === 'paid' ? 'true' : 'false';
         url += (url.includes('?') ? '&' : '?') + `isPaid=${isPaidParam}`;
       }
-      
+
       console.log('🔍 Loading winning invoices with URL:', getApiUrl(url));
       console.log('🔍 Token:', token ? 'Present' : 'Missing');
-      
+
       const response = await axios.get(getApiUrl(url), {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       console.log('✅ Response:', response.data);
       setWinningInvoices(response.data);
     } catch (error) {
@@ -97,16 +106,16 @@ const PrizeInterface = ({ onCalculatingChange }) => {
   const togglePaidStatus = async (invoiceId) => {
     try {
       const token = localStorage.getItem('token');
-      
+
       const response = await axios.put(
         getApiUrl(`/prize/winning-invoices/${invoiceId}/toggle-paid`),
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       // Tải lại danh sách
       await loadWinningInvoices(selectedDate, paidFilter);
-      
+
     } catch (error) {
       console.error('Lỗi toggle trạng thái:', error);
     }
@@ -117,47 +126,47 @@ const PrizeInterface = ({ onCalculatingChange }) => {
     // Định nghĩa event handlers
     let handleBeforeUnload;
     let handleVisibilityChange;
-    
+
     try {
       setIsCalculating(true);
       // Thông báo cho parent component về trạng thái tính thưởng
       if (onCalculatingChange) {
         onCalculatingChange(true);
       }
-      
+
       // Thêm event listener để ngăn chặn việc rời khỏi trang
       handleBeforeUnload = (e) => {
         e.preventDefault();
         e.returnValue = 'Đang tính thưởng, vui lòng không đóng trang hoặc chuyển tab!';
         return 'Đang tính thưởng, vui lòng không đóng trang hoặc chuyển tab!';
       };
-      
+
       handleVisibilityChange = () => {
         if (document.hidden) {
           alert('⚠️ Cảnh báo: Đang tính thưởng, vui lòng không chuyển tab khác để đảm bảo quá trình hoàn tất!');
         }
       };
-      
+
       // Thêm event listeners
       window.addEventListener('beforeunload', handleBeforeUnload);
       document.addEventListener('visibilitychange', handleVisibilityChange);
-      
+
       const token = localStorage.getItem('token');
-      
-      const response = await axios.post(getApiUrl('/prize/calculate'), 
+
+      const response = await axios.post(getApiUrl('/prize/calculate'),
         { date: selectedDate },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       alert(`${response.data.message}`);
-      
+
       // Đánh dấu đã tính thưởng cho ngày hôm nay
       setHasCalculatedToday(true);
       sessionStorage.setItem(`calculated_${selectedDate}`, 'true');
-      
+
       // Tải lại danh sách sau khi tính thưởng
       await loadWinningInvoices(selectedDate, paidFilter);
-      
+
     } catch (error) {
       console.error('Lỗi tính thưởng:', error);
       alert('Lỗi khi tính thưởng: ' + (error.response?.data?.message || error.message));
@@ -193,6 +202,8 @@ const PrizeInterface = ({ onCalculatingChange }) => {
       }
       // Có kết quả: mở modal xác nhận và hiển thị
       setLotteryPreview(list[0]);
+      setConfirmStep(1);
+      setHasCheckedResponsibility(false); // Reset checkbox
       setConfirmOpen(true);
     } catch (error) {
       console.error('Lỗi kiểm tra kết quả xổ số:', error);
@@ -235,7 +246,7 @@ const PrizeInterface = ({ onCalculatingChange }) => {
       const invoiceId = (invoice.originalInvoiceId || invoice.invoiceId).toLowerCase();
       const customerName = (invoice.customerName || '').toLowerCase();
       const searchTerm = searchInvoice.toLowerCase();
-      
+
       // Tìm kiếm theo số cuối, mã đầy đủ hoặc tên khách hàng
       if (!invoiceId.includes(searchTerm) && !customerName.includes(searchTerm)) {
         return false;
@@ -243,7 +254,7 @@ const PrizeInterface = ({ onCalculatingChange }) => {
     }
     return true;
   });
-  
+
   const totalAmount = filteredInvoices.reduce((sum, invoice) => sum + invoice.totalPrizeAmount, 0);
 
   return (
@@ -291,7 +302,7 @@ const PrizeInterface = ({ onCalculatingChange }) => {
               color: '#7f8c8d',
               lineHeight: '1.5'
             }}>
-              ⚠️ Vui lòng không đóng trang hoặc chuyển tab khác<br/>
+              ⚠️ Vui lòng không đóng trang hoặc chuyển tab khác<br />
               Quá trình này có thể mất vài phút
             </div>
             <div style={{
@@ -310,7 +321,7 @@ const PrizeInterface = ({ onCalculatingChange }) => {
       )}
 
       {/* Modal xác nhận tính thưởng với kết quả xổ số */}
-      {confirmOpen && lotteryPreview && (
+      {confirmOpen && lotteryPreview && confirmStep === 1 && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
           background: 'rgba(0,0,0,0.6)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -359,43 +370,148 @@ const PrizeInterface = ({ onCalculatingChange }) => {
               </table>
             </div>
 
-            <div style={{ marginTop: 16, color: '#495057' }}>
-              Vui lòng kiểm tra kỹ trước khi bấm tính thưởng. Nếu sai vui lòng ấn <strong>Từ chối tính thưởng</strong> và liên hệ lại với quản trị viên; nếu đúng hãy ấn <strong>Đồng ý tính thưởng</strong>.
-            </div>
-
             <div style={{
-              marginTop: 12,
-              padding: '10px 12px',
-              backgroundColor: '#ffe8e8',
-              border: '1px solid #ffb3b3',
-              borderRadius: 8,
-              color: '#b00020',
-              fontWeight: 700
+              marginTop: 20,
+              padding: '16px',
+              backgroundColor: '#fff8f1',
+              borderLeft: '4px solid #ff9800',
+              borderRadius: '4px',
+              color: '#5d4037',
+              fontSize: '15px'
             }}>
-              ⚠️ Nếu kết quả sai mà bạn bấm tính thưởng có thể ảnh hưởng đến sai lệch số liệu, hệ thống không chịu trách nhiệm.
+              <strong>⚠️ LƯU Ý QUAN TRỌNG:</strong>
+              <div style={{ marginTop: '8px', lineHeight: '1.5' }}>
+                Hệ thống chuẩn bị tính toán trả thưởng dựa trên kết quả xổ số phía trên.
+                Nếu kết quả sai lệch, hệ thống sẽ thực hiện <strong>trả thưởng sai toàn bộ hóa đơn</strong> và rất khó để khắc phục!
+                Xin vui lòng đối chiếu cẩn thận với kết quả xổ số chính thức trước khi xác nhận.
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+            <div style={{ marginTop: 20, display: 'flex', alignItems: 'flex-start' }}>
+              <input
+                type="checkbox"
+                id="responsibility-check"
+                checked={hasCheckedResponsibility}
+                onChange={(e) => setHasCheckedResponsibility(e.target.checked)}
+                style={{ width: '20px', height: '20px', cursor: 'pointer', marginRight: '10px', marginTop: '2px' }}
+              />
+              <label htmlFor="responsibility-check" style={{ cursor: 'pointer', userSelect: 'none' }}>
+                <div style={{ fontWeight: 'bold', color: '#d32f2f', fontSize: '15px' }}>
+                  Tôi cam kết đã kiểm tra kỹ và chịu trách nhiệm bảo đảm kết quả này là chính xác
+                </div>
+                <div style={{ fontSize: '13px', color: '#6c757d', marginTop: '4px', fontStyle: 'italic' }}>
+                  (nếu đúng thì hãy click vào ô trống này)
+                </div>
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 24, justifyContent: 'flex-end', borderTop: '1px solid #eee', paddingTop: '16px' }}>
               <button
-                style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: '#28a745', color: '#fff', fontWeight: 700 }}
-                onClick={async () => { setConfirmOpen(false); await calculatePrizes(); }}
-              >
-                ✅ Đồng ý tính thưởng
-              </button>
-              <button
-                style={{ padding: '10px 14px', borderRadius: 8, border: 'none', background: '#dc3545', color: '#fff', fontWeight: 700 }}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: '#6c757d',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
                 onClick={() => setConfirmOpen(false)}
               >
-                ❌ Từ chối tính thưởng
+                ❌ Bỏ qua / Đóng
+              </button>
+              <button
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: hasCheckedResponsibility ? '#28a745' : '#8fdfa2',
+                  color: '#fff',
+                  fontWeight: 600,
+                  cursor: hasCheckedResponsibility ? 'pointer' : 'not-allowed',
+                  transition: 'background 0.2s'
+                }}
+                disabled={!hasCheckedResponsibility}
+                onClick={() => setConfirmStep(2)}
+              >
+                ✅ Tiếp tục xác nhận
               </button>
             </div>
           </div>
         </div>
       )}
-      
-      <div className="prize-header">
+
+      {/* Modal 2: Đồng ý tính thưởng */}
+      {confirmOpen && lotteryPreview && confirmStep === 2 && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(0,0,0,0.6)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 12, padding: 20, maxWidth: 500, width: '95%', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', textAlign: 'center'
+          }}>
+            <h3 style={{ marginTop: 0, color: '#dc3545' }}>Cảnh báo Tính Thưởng !!!</h3>
+
+            <div style={{
+              marginTop: 12,
+              padding: '15px',
+              backgroundColor: '#ffe8e8',
+              border: '1px solid #ffb3b3',
+              borderRadius: 8,
+              color: '#b00020',
+              fontWeight: 700,
+              fontSize: '16px'
+            }}>
+              ⚠️ Bạn có chắc chắn muốn TÍNH THƯỞNG cho ngày {lotteryPreview.turnNum} không?
+            </div>
+
+            <div style={{ marginTop: 16, color: '#495057', fontStyle: 'italic', lineHeight: '1.5' }}>
+              Hãy chắc chắn rằng kết quả xổ số đã được xác nhận chính xác. Nếu kết quả sai mà bạn ấn tính thưởng, hệ thống sẽ thực hiện trả thưởng sai và rất khó khắc phục!
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'center' }}>
+              <button
+                style={{ padding: '12px 20px', borderRadius: 8, border: 'none', background: '#28a745', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+                onClick={async () => { setConfirmOpen(false); await calculatePrizes(); }}
+              >
+                ✅ Đồng ý tính thưởng
+              </button>
+              <button
+                style={{ padding: '12px 20px', borderRadius: 8, border: 'none', background: '#6c757d', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+                onClick={() => setConfirmStep(1)}
+              >
+                🔙 Quay lại
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="prize-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h2>🏆 Quản lý thưởng</h2>
         <p>Tính toán và hiển thị các hóa đơn trúng thưởng</p>
+
+        {hasLotteryResult && selectedDate === getCurrentVietnamDate() && (
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            border: '1px solid rgba(40, 167, 69, 0.3)',
+            color: '#28a745',
+            padding: '10px 24px',
+            marginTop: '16px',
+            borderRadius: '50px', // Viên nang tròn
+            fontWeight: '600',
+            fontSize: '15px',
+            boxShadow: '0 2px 10px rgba(40, 167, 69, 0.1)',
+            letterSpacing: '0.3px',
+            width: 'fit-content' // Đảm bảo tự co giãn vừa đủ text thay vì tràn
+          }}>
+            <span style={{ marginRight: '8px', fontSize: '18px' }}>✨</span>
+            <span>Đã có kết quả ngày {selectedDate.split('-').reverse().join('/')}, vui lòng kiểm tra kỹ trước khi bấm tính thưởng bạn nhé !</span>
+            <span style={{ marginLeft: '8px', fontSize: '18px' }}>✨</span>
+          </div>
+        )}
       </div>
 
       <div className="prize-controls">
@@ -409,7 +525,7 @@ const PrizeInterface = ({ onCalculatingChange }) => {
             className="date-input"
           />
         </div>
-        
+
         <div className="paid-filter">
           <label htmlFor="paid-filter">Trạng thái:</label>
           <select
@@ -423,12 +539,12 @@ const PrizeInterface = ({ onCalculatingChange }) => {
             <option value="unpaid">Chưa trả thưởng</option>
           </select>
         </div>
-        
+
         <div className="search-filter">
           <label htmlFor="search-invoice">Tìm hóa đơn:</label>
-          <input 
+          <input
             id="search-invoice"
-            type="text" 
+            type="text"
             value={searchInvoice}
             onChange={(e) => setSearchInvoice(e.target.value)}
             placeholder="Nhập mã hóa đơn hoặc tên khách hàng"
@@ -442,47 +558,15 @@ const PrizeInterface = ({ onCalculatingChange }) => {
             }}
           />
         </div>
-        
+
         <div className="calculate-btn-container" style={{ position: 'relative', display: 'inline-block' }}>
-          <button 
+          <button
             className="calculate-btn"
             onClick={handleCalculateClick}
             disabled={isCalculating}
           >
             {isCalculating ? '⏳ Đang tính...' : '🔄 Tính thưởng'}
           </button>
-          
-          {showTimeNotification && (
-            <div className="time-notification-tooltip" style={{
-              position: 'absolute',
-              top: '-60px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              backgroundColor: '#ff6b6b',
-              color: 'white',
-              padding: '8px 12px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              zIndex: 1000,
-              animation: 'pulse 2s infinite'
-            }}>
-              ⏰ Đã đến 18h30p Hãy ấn vào đây để tính thưởng
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 0,
-                height: 0,
-                borderLeft: '6px solid transparent',
-                borderRight: '6px solid transparent',
-                borderTop: '6px solid #ff6b6b'
-              }}></div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -490,8 +574,8 @@ const PrizeInterface = ({ onCalculatingChange }) => {
         <div className="stat-card">
           <div className="stat-number">{filteredInvoices.length}</div>
           <div className="stat-label">
-            {paidFilter === 'paid' ? 'Đã trả thưởng' : 
-             paidFilter === 'unpaid' ? 'Chưa trả thưởng' : 'Hóa đơn trúng'}
+            {paidFilter === 'paid' ? 'Đã trả thưởng' :
+              paidFilter === 'unpaid' ? 'Chưa trả thưởng' : 'Hóa đơn trúng'}
           </div>
         </div>
         <div className="stat-card">
@@ -504,7 +588,7 @@ const PrizeInterface = ({ onCalculatingChange }) => {
 
       <div className="winning-invoices">
         <h3>📋 Danh sách hóa đơn trúng thưởng</h3>
-        
+
         {isLoading ? (
           <div className="loading">⏳ Đang tải...</div>
         ) : filteredInvoices.length === 0 ? (
@@ -526,34 +610,34 @@ const PrizeInterface = ({ onCalculatingChange }) => {
               </thead>
               <tbody>
                 {filteredInvoices.map((invoice) => {
-                                    const betTypeNames = {
-    'loto': 'Lô tô', '2s': '2 số', '3s': '3 số',
-    'tong': 'Tổng', 'kep': 'Kép', 'dau': 'Đầu', 'dit': 'Đít',
-    'bo': 'Bộ', 'xien': 'Xiên', 'xienquay': 'Xiên quay',
-    // Xiên 2, 3, 4
-    'xien2_full': 'Xiên 2 - Trúng cả 2 số',
-    'xien2_1hit': 'Xiên 2 - Trúng 1 số (≥2 nháy)',
-    'xien3_full': 'Xiên 3 - Trúng cả 3 số',
-    'xien3_2hit_both': 'Xiên 3 - Trúng 2 số (cả 2 ≥2 nháy)',
-    'xien3_2hit_one': 'Xiên 3 - Trúng 2 số (1 số ≥2 nháy)',
-    'xien4_full': 'Xiên 4 - Trúng cả 4 số',
-    'xien4_3hit_all': 'Xiên 4 - Trúng 3 số (cả 3 ≥2 nháy)',
-    'xien4_3hit_two': 'Xiên 4 - Trúng 3 số (2 số ≥2 nháy)',
-    'xien4_3hit_one': 'Xiên 4 - Trúng 3 số (1 số ≥2 nháy)',
-    // Xiên quay 4
-    'xienquay4_full': 'Xiên quay 4 - Trúng cả 4 con',
-    'xienquay4_3con': 'Xiên quay 4 - Trúng 3 con',
-    'xienquay4_2con': 'Xiên quay 4 - Trúng 2 con',
-    // Xiên quay 3
-    'xienquay3_full': 'Xiên quay 3 - Trúng cả 3 con',
-    'xienquay3_2con': 'Xiên quay 3 - Trúng 2 con',
-    // 3 số cụ thể
-    '3s_gdb_g1': '3 số trùng cả GĐB và G1',
-    '3s_gdb': '3 số trùng GĐB',
-    '3s_gdb2_g1': '2 số cuối GĐB và 3 số cuối G1',
-    '3s_g1': '3 số trùng G1',
-    '3s_g6': '3 số trùng G6'
-  };
+                  const betTypeNames = {
+                    'loto': 'Lô tô', '2s': '2 số', '3s': '3 số',
+                    'tong': 'Tổng', 'kep': 'Kép', 'dau': 'Đầu', 'dit': 'Đít',
+                    'bo': 'Bộ', 'xien': 'Xiên', 'xienquay': 'Xiên quay',
+                    // Xiên 2, 3, 4
+                    'xien2_full': 'Xiên 2 - Trúng cả 2 số',
+                    'xien2_1hit': 'Xiên 2 - Trúng 1 số (≥2 nháy)',
+                    'xien3_full': 'Xiên 3 - Trúng cả 3 số',
+                    'xien3_2hit_both': 'Xiên 3 - Trúng 2 số (cả 2 ≥2 nháy)',
+                    'xien3_2hit_one': 'Xiên 3 - Trúng 2 số (1 số ≥2 nháy)',
+                    'xien4_full': 'Xiên 4 - Trúng cả 4 số',
+                    'xien4_3hit_all': 'Xiên 4 - Trúng 3 số (cả 3 ≥2 nháy)',
+                    'xien4_3hit_two': 'Xiên 4 - Trúng 3 số (2 số ≥2 nháy)',
+                    'xien4_3hit_one': 'Xiên 4 - Trúng 3 số (1 số ≥2 nháy)',
+                    // Xiên quay 4
+                    'xienquay4_full': 'Xiên quay 4 - Trúng cả 4 con',
+                    'xienquay4_3con': 'Xiên quay 4 - Trúng 3 con',
+                    'xienquay4_2con': 'Xiên quay 4 - Trúng 2 con',
+                    // Xiên quay 3
+                    'xienquay3_full': 'Xiên quay 3 - Trúng cả 3 con',
+                    'xienquay3_2con': 'Xiên quay 3 - Trúng 2 con',
+                    // 3 số cụ thể
+                    '3s_gdb_g1': '3 số trùng cả GĐB và G1',
+                    '3s_gdb': '3 số trùng GĐB',
+                    '3s_gdb2_g1': '2 số cuối GĐB và 3 số cuối G1',
+                    '3s_g1': '3 số trùng G1',
+                    '3s_g6': '3 số trùng G6'
+                  };
                   const detail = invoice.winningItems
                     .map(it => {
                       // Ưu tiên dùng betTypeLabel từ backend, fallback to mapping, cuối cùng là betType
@@ -575,7 +659,7 @@ const PrizeInterface = ({ onCalculatingChange }) => {
                       <td className="code">{invoice.originalInvoiceId || invoice.invoiceId}</td>
                       <td className="customer-name">{invoice.customerName || 'Khách lẻ'}</td>
                       <td className="money">{formatMoney(invoice.totalPrizeAmount)}</td>
-                      <td className="detail" style={{whiteSpace: 'pre-line'}}>{detail}</td>
+                      <td className="detail" style={{ whiteSpace: 'pre-line' }}>{detail}</td>
                     </tr>
                   );
                 })}
