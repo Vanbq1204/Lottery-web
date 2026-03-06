@@ -209,6 +209,12 @@ const EmployeeInterface = ({ user }) => {
     return saved === null ? true : saved === 'true'; // Mặc định là true
   });
 
+  // Bật nhập xiên nháy - lưu trong localStorage
+  const [enableXienNhay, setEnableXienNhay] = useState(() => {
+    const saved = localStorage.getItem('enableXienNhay');
+    return saved === 'true'; // Mặc định là tắt (false)
+  });
+
   useEffect(() => {
     const { io } = require('socket.io-client');
     const baseUrl = getApiUrl('').replace('/api', '');
@@ -4045,7 +4051,7 @@ const EmployeeInterface = ({ user }) => {
                       placeholder={getAmountPlaceholder(betType)}
                       className="amount-input"
                     />
-                    {betType === 'xien' && (
+                    {betType === 'xien' && enableXienNhay && (
                       <label className="xien-nhay-checkbox">
                         <input
                           type="checkbox"
@@ -5193,6 +5199,41 @@ const EmployeeInterface = ({ user }) => {
                 }}>
                   <span style={{
                     position: 'absolute', content: '""', height: '20px', width: '20px', left: quickXienInput ? '26px' : '4px', bottom: '4px',
+                    backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
+                  }}></span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Toggle - Bật nhập xiên nháy */}
+        <div className="settings-card" style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginTop: '20px' }}>
+          <div className="setting-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="setting-info" style={{ maxWidth: '80%' }}>
+              <label className="setting-label" style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Bật nhập xiên nháy</label>
+              <p className="setting-desc" style={{ color: '#666', margin: 0 }}>
+                Khi bật, ô chọn xiên nháy sẽ được hiển thị khi nhập cược xiên.
+              </p>
+            </div>
+            <div className="setting-control">
+              <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px' }}>
+                <input
+                  type="checkbox"
+                  checked={enableXienNhay}
+                  onChange={(e) => {
+                    const newVal = e.target.checked;
+                    setEnableXienNhay(newVal);
+                    localStorage.setItem('enableXienNhay', String(newVal));
+                  }}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span className="slider round" style={{
+                  position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                  backgroundColor: enableXienNhay ? '#2196F3' : '#ccc', transition: '.4s', borderRadius: '34px'
+                }}>
+                  <span style={{
+                    position: 'absolute', content: '""', height: '20px', width: '20px', left: enableXienNhay ? '26px' : '4px', bottom: '4px',
                     backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
                   }}></span>
                 </span>
