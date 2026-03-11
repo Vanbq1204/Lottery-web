@@ -1262,6 +1262,7 @@ const AdminExportSummary = ({ user }) => {
                             <table className="minimal-table" style={{ width: '100%', marginTop: '10px' }}>
                                 <thead>
                                     <tr style={{ background: '#f1f1f1' }}>
+                                        <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Hôm nay</th>
                                         <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Nợ cũ</th>
                                         <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Đã trả (+)</th>
                                         <th style={{ border: '1px solid #ddd', textAlign: 'right' }}>Đã nhận (-)</th>
@@ -1271,6 +1272,9 @@ const AdminExportSummary = ({ user }) => {
                                 </thead>
                                 <tbody>
                                     <tr key="current-debt">
+                                        <td style={{ border: '1px solid #ddd', textAlign: 'right', color: (debt?.todayAmount || 0) >= 0 ? '#d32f2f' : 'green', fontWeight: 'bold' }}>
+                                            {(debt?.todayAmount || 0).toLocaleString('vi-VN')}n
+                                        </td>
                                         <td style={{ border: '1px solid #ddd', textAlign: 'right', color: (debt?.oldDebt || 0) >= 0 ? '#d32f2f' : 'green' }}>
                                             {(debt?.oldDebt || 0).toLocaleString('vi-VN')}n
                                         </td>
@@ -1295,7 +1299,7 @@ const AdminExportSummary = ({ user }) => {
                                 </tbody>
                             </table>
                             <div style={{ marginTop: '8px', fontStyle: 'italic', fontSize: '13px', color: '#666', lineHeight: '1.4' }}>
-                                📌 *Lưu ý: Khi sang ngày mới, số tiền "Còn lại" của ngày hôm trước sẽ được tự động chuyển thành "Nợ cũ" của ngày hôm nay. Đồng thời, "Đã trả" và "Đã nhận" sẽ tự động đặt lại về 0.*
+                                📌 *Lưu ý: Khi sang ngày mới, số tiền "Còn lại" của ngày hôm trước sẽ được tự động chuyển thành "Nợ cũ" của ngày hôm nay. Đồng thời, "Hôm nay", "Đã trả" và "Đã nhận" sẽ tự động đặt lại về 0.*
                             </div>
                         </div>
                     </div>
