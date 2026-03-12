@@ -66,7 +66,7 @@ const AdminExportSummary = ({ user }) => {
     };
 
     // Update paid modal state
-    const [updateModal, setUpdateModal] = useState({ isOpen: false, oldDebt: 0, paid: 0, received: 0 });
+    const [updateModal, setUpdateModal] = useState({ isOpen: false, oldDebt: 0, todayAmount: 0, paid: 0, received: 0 });
 
     // Confirm Modal state
     const [confirmModal, setConfirmModal] = useState({
@@ -878,6 +878,7 @@ const AdminExportSummary = ({ user }) => {
         setUpdateModal({
             isOpen: true,
             oldDebt: debt?.oldDebt || 0,
+            todayAmount: debt?.todayAmount || 0,
             paid: debt?.paid || 0,
             received: debt?.received || 0
         });
@@ -888,10 +889,11 @@ const AdminExportSummary = ({ user }) => {
             const token = localStorage.getItem('token');
             await axios.put(getApiUrl('/debt/update'), {
                 oldDebt: updateModal.oldDebt,
+                todayAmount: updateModal.todayAmount,
                 paid: updateModal.paid,
                 received: updateModal.received
             }, { headers: { Authorization: `Bearer ${token}` } });
-            setUpdateModal({ isOpen: false, oldDebt: 0, paid: 0, received: 0 });
+            setUpdateModal({ isOpen: false, oldDebt: 0, todayAmount: 0, paid: 0, received: 0 });
             showNotification('Đã cập nhật sổ nợ!');
             loadDebt();
         } catch (err) {
@@ -1398,13 +1400,22 @@ const AdminExportSummary = ({ user }) => {
                             </div>
                             <div className="settings-modal-body">
                                 <div style={{ marginBottom: '15px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Hôm nay (n):</label>
+                                    <input
+                                        type="number"
+                                        style={{ width: '100%', padding: '10px', fontSize: '16px', border: '1px solid #ced4da', borderRadius: '4px' }}
+                                        value={updateModal.todayAmount}
+                                        onChange={(e) => setUpdateModal({ ...updateModal, todayAmount: e.target.value })}
+                                        autoFocus
+                                    />
+                                </div>
+                                <div style={{ marginBottom: '15px' }}>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Nợ cũ (n):</label>
                                     <input
                                         type="number"
                                         style={{ width: '100%', padding: '10px', fontSize: '16px', border: '1px solid #ced4da', borderRadius: '4px' }}
                                         value={updateModal.oldDebt}
                                         onChange={(e) => setUpdateModal({ ...updateModal, oldDebt: e.target.value })}
-                                        autoFocus
                                     />
                                 </div>
                                 <div style={{ marginBottom: '15px' }}>
