@@ -36,10 +36,51 @@
     white-space: nowrap;
 }
 
+.time-cell .delete-info {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid #ffcdd2;
+    color: #e74c3c;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .time-cell .time-label {
     color: #34a5ad;
     font-size: 14px;
     margin-right: 4px;
     display: inline-block;
     min-width: 25px;
+}
+
+/* Deleted Invoice Styles */
+.deleted-invoice {
+    background-color: #fff5f5 !important;
+    color: #95a5a6;
+}
+
+.deleted-invoice .customer-cell,
+.deleted-invoice .amount-cell {
+    color: #7f8c8d !important;
+    text-decoration: line-through;
+}
+
+.deleted-invoice .bet-details-cell {
+    opacity: 0.7;
+}
+
+.deleted-invoice .bet-details-cell span {
+    color: #7f8c8d !important;
+}
+
+.deleted-badge {
+    display: inline-block;
+    background-color: #e74c3c;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
 }

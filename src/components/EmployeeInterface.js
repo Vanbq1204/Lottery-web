@@ -4489,11 +4489,16 @@ const EmployeeInterface = ({ user }) => {
               return true;
             });
 
+            // Tính toán tổng số lượng và tổng tiền (chỉ tính hóa đơn chưa bị xóa)
+            const activeInvoices = filteredInvoices.filter(inv => !inv.isDeleted);
+            const totalActiveCount = activeInvoices.length;
+            const totalActiveMoney = activeInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+
             return (
               <>
                 <div className="invoice-summary">
-                  <p><strong>Tổng số hóa đơn:</strong> {filteredInvoices.length} {searchInvoiceList && `(lọc từ ${invoiceList.length})`}</p>
-                  <p><strong>Tổng tiền:</strong> {filteredInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0).toLocaleString()} VNĐ</p>
+                  <p><strong>Tổng số hóa đơn:</strong> {totalActiveCount} {searchInvoiceList && `(lọc từ ${invoiceList.filter(i => !i.isDeleted).length})`}</p>
+                  <p><strong>Tổng tiền:</strong> {totalActiveMoney.toLocaleString()} VNĐ</p>
                 </div>
 
                 <div className="invoice-table-container">
@@ -4510,9 +4515,10 @@ const EmployeeInterface = ({ user }) => {
                     </thead>
                     <tbody>
                       {filteredInvoices.map((invoice) => (
-                        <tr key={invoice._id} className="invoice-row">
+                        <tr key={invoice._id} className={`invoice-row ${invoice.isDeleted ? 'deleted-invoice' : ''}`}>
                           <td className="invoice-id-cell">
                             <strong>{invoice.invoiceId}</strong>
+                            {invoice.isDeleted && <div className="deleted-badge">Đã xóa</div>}
                           </td>
                           <td className="customer-cell">
                             {invoice.customerName}
@@ -4561,33 +4567,39 @@ const EmployeeInterface = ({ user }) => {
                                   })}
                                 </div>
                               )}
+                              {invoice.isDeleted && (
+                                <div className="delete-info">
+                                  <span className="time-label" style={{ color: '#e74c3c' }}>Xóa:</span> {new Date(invoice.deletedAt).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="action-cell">
-                            <div className="action-buttons">
-                              <button
-                                className="invoice-action-btn edit"
-                                title="Sửa hóa đơn"
-                                onClick={async () => {
-                                  await loadInvoiceForEdit(invoice.invoiceId);
-                                  setActiveMenu('betting');
-                                  // Cuộn lên đầu form nhập cược để người dùng thấy ngay
-                                  requestAnimationFrame(() => {
-                                    const container = document.querySelector('.content-body');
-                                    if (container) container.scrollTop = 0;
-                                  });
-                                }}
-                              >
-                                ✏️
-                              </button>
-                              <button
-                                className="invoice-action-btn delete"
-                                title="Xóa hóa đơn"
-                                onClick={() => deleteInvoiceById(invoice.invoiceId)}
-                              >
-                                🗑️
-                              </button>
-                            </div>
+                            {!invoice.isDeleted && (
+                              <div className="action-buttons">
+                                <button
+                                  className="invoice-action-btn edit"
+                                  title="Sửa hóa đơn"
+                                  onClick={async () => {
+                                    await loadInvoiceForEdit(invoice.invoiceId);
+                                    setActiveMenu('betting');
+                                    requestAnimationFrame(() => {
+                                      const container = document.querySelector('.content-body');
+                                      if (container) container.scrollTop = 0;
+                                    });
+                                  }}
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  className="invoice-action-btn delete"
+                                  title="Xóa hóa đơn"
+                                  onClick={() => deleteInvoiceById(invoice.invoiceId)}
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
