@@ -4543,8 +4543,11 @@ const EmployeeInterface = ({ user }) => {
                           </td>
                           <td className="time-cell">
                             <div className="time-history">
+                              <div className="invoice-date-label">
+                                {new Date(invoice.printedAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </div>
                               <div className="time-created">
-                                <span className="time-label">Tạo mới:</span> {new Date(invoice.printedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                <span className="time-label">Tạo mới:</span> {new Date(invoice.printedAt).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                               </div>
                               {invoice.editHistory && invoice.editHistory.length > 0 && (
                                 <div className="edit-history-list">
@@ -4552,7 +4555,7 @@ const EmployeeInterface = ({ user }) => {
                                     const actionLabel = (history.reason && history.reason.includes('In')) ? 'Sửa & In' : 'Sửa';
                                     return (
                                       <div key={idx} className="edit-history-item">
-                                        <span className="time-label">{actionLabel}:</span> {new Date(history.actionDate).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                        <span className="time-label">{actionLabel}:</span> {new Date(history.actionDate).toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                       </div>
                                     );
                                   })}

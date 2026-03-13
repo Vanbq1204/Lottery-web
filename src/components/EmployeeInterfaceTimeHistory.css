@@ -8,9 +8,17 @@
     line-height: 1.4;
 }
 
+.time-cell .invoice-date-label {
+    font-weight: 600;
+    color: #34495e;
+    font-size: 13px;
+    margin-bottom: 2px;
+}
+
 .time-cell .time-created {
-    color: #2c3e50;
+    color: #0b74dc;
     font-weight: 500;
+    font-size: 14px;
 }
 
 .time-cell .edit-history-list {
@@ -29,8 +37,8 @@
 }
 
 .time-cell .time-label {
-    color: #7f8c8d;
-    font-size: 13px;
+    color: #34a5ad;
+    font-size: 14px;
     margin-right: 4px;
     display: inline-block;
     min-width: 25px;
