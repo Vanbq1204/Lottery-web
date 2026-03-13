@@ -1,0 +1,37 @@
+
+/* Styles for time history in invoice list */
+.time-cell .time-history {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.time-cell .time-created {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.time-cell .edit-history-list {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px dashed #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.time-cell .edit-history-item {
+    color: #e67e22;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.time-cell .time-label {
+    color: #7f8c8d;
+    font-size: 13px;
+    margin-right: 4px;
+    display: inline-block;
+    min-width: 25px;
+}

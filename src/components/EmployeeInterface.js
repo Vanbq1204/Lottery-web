@@ -3,6 +3,7 @@ import { getApiUrl, EXTERNAL_LOTTERY_API } from '../config/api';
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './EmployeeInterface.css';
+import './EmployeeInterfaceTimeHistory.css';
 import Statistics from './Statistics';
 import PrizeInterface from './PrizeInterface';
 import PrizeSettings from './PrizeSettings';
@@ -2278,7 +2279,7 @@ const EmployeeInterface = ({ user }) => {
   };
 
   // Save edited invoice
-  const saveEditedInvoice = async () => {
+  const saveEditedInvoice = async (actionType = 'edit') => {
     try {
       if (!editInvoiceId) {
         alert('Không có hóa đơn để sửa');
@@ -2379,46 +2380,35 @@ const EmployeeInterface = ({ user }) => {
         }
       });
 
-      setPromptModal({
-        isOpen: true,
-        title: 'Lý do sửa hóa đơn',
-        message: 'Nhập lý do sửa hóa đơn (không bắt buộc):',
-        inputLabel: 'Lý do',
-        inputValue: '',
-        placeholder: 'VD: Cập nhật hóa đơn...',
-        onConfirm: async (reasonInput) => {
-          setPromptModal(prev => ({ ...prev, isOpen: false }));
-          const reason = reasonInput || 'Cập nhật hóa đơn';
+      // Skip prompting for reason, directly save
+      const reason = actionType === 'print' ? 'Sửa và In hóa đơn' : 'Sửa hóa đơn';
 
-          // Try to get location if available, but don't block
-          let locationAddress = '';
-          try {
-            // Check permission first to avoid unnecessary prompts if already denied
-            const permissionState = await getGeolocationPermission();
-            // If granted OR prompt, try to get address (which will trigger prompt if needed)
-            if (permissionState !== 'denied') {
-              locationAddress = await getCurrentAddress();
-            }
-          } catch (err) {
-            console.warn('Could not get location, proceeding without it:', err);
-          }
+      // Try to get location if available, but don't block
+      let locationAddress = '';
+      try {
+        // Check permission first to avoid unnecessary prompts if already denied
+        const permissionState = await getGeolocationPermission();
+        // If granted OR prompt, try to get address (which will trigger prompt if needed)
+        if (permissionState !== 'denied') {
+          locationAddress = await getCurrentAddress();
+        }
+      } catch (err) {
+        console.warn('Could not get location, proceeding without it:', err);
+      }
 
-          try {
-            await executeEditInvoice(editInvoiceId, {
-              customerName: customerName || 'Khách lẻ',
-              items: itemsForDB,
-              totalAmount,
-              customerPaid: customerGiveAmount,
-              changeAmount: changeAmountValue,
-              reason
-            }, locationAddress);
-          } catch (error) {
-            console.error('Lỗi khi lưu sửa hóa đơn:', error);
-            showNotification('Có lỗi xảy ra khi lưu hóa đơn. Vui lòng thử lại.', 'error');
-          }
-        },
-        onCancel: () => setPromptModal(prev => ({ ...prev, isOpen: false }))
-      });
+      try {
+        await executeEditInvoice(editInvoiceId, {
+          customerName: customerName || 'Khách lẻ',
+          items: itemsForDB,
+          totalAmount,
+          customerPaid: customerGiveAmount,
+          changeAmount: changeAmountValue,
+          reason
+        }, locationAddress);
+      } catch (error) {
+        console.error('Lỗi khi lưu sửa hóa đơn:', error);
+        showNotification('Có lỗi xảy ra khi lưu hóa đơn. Vui lòng thử lại.', 'error');
+      }
     } catch (error) {
       console.error('Lỗi chuẩn bị dữ liệu sửa hóa đơn:', error);
       showNotification('Có lỗi xảy ra khi chuẩn bị dữ liệu. Vui lòng thử lại.', 'error');
@@ -3127,7 +3117,7 @@ const EmployeeInterface = ({ user }) => {
   const saveAndPrintInvoice = async () => {
     try {
       // First save the invoice
-      await saveEditedInvoice();
+      await saveEditedInvoice('print');
 
       // Then print it
       setTimeout(() => {
@@ -4275,7 +4265,7 @@ const EmployeeInterface = ({ user }) => {
               {isEditMode ? (
                 <>
                   <button
-                    onClick={saveEditedInvoice}
+                    onClick={() => saveEditedInvoice('edit')}
                     className="btn btn-print"
                   >
                     Cập Nhật Hóa Đơn
@@ -4552,7 +4542,23 @@ const EmployeeInterface = ({ user }) => {
                             <strong>{invoice.totalAmount.toLocaleString()} VNĐ</strong>
                           </td>
                           <td className="time-cell">
-                            {new Date(invoice.printedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+                            <div className="time-history">
+                              <div className="time-created">
+                                <span className="time-label">Tạo mới:</span> {new Date(invoice.printedAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                              </div>
+                              {invoice.editHistory && invoice.editHistory.length > 0 && (
+                                <div className="edit-history-list">
+                                  {invoice.editHistory.map((history, idx) => {
+                                    const actionLabel = (history.reason && history.reason.includes('In')) ? 'Sửa & In' : 'Sửa';
+                                    return (
+                                      <div key={idx} className="edit-history-item">
+                                        <span className="time-label">{actionLabel}:</span> {new Date(history.actionDate).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="action-cell">
                             <div className="action-buttons">
